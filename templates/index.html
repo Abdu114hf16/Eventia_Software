@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventia | Events Management Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo" id="nav-logo">
+                <img src="assets/logo_fixed.png" alt="Eventia Logo" class="logo-img">
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="btn-text" id="nav-home-btn">Home</a>
+                <a href="login.html" class="btn btn-outline" id="nav-login-btn">Log In</a>
+                <a href="signup.html" class="btn btn-primary" id="nav-signup-btn">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="main-content">
+
+        <!-- Background Elements -->
+        <div class="bg-shape shape-1"></div>
+        <div class="bg-shape shape-2"></div>
+
+        <!-- VIEW: GUEST LANDING (DEFAULT) -->
+        <section id="guest-view" class="view-section active">
+
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-text">
+                    <h1>Discover & Manage <br><span>Exceptional Events</span></h1>
+                    <p>The centralized platform for seamless event management in Saudi Arabia. Connect with organizers,
+                        vendors, and attendees in one place.</p>
+                    <div class="hero-buttons">
+                        <button class="btn btn-primary" id="hero-browse-btn">Browse Events</button>
+                        <a href="signup.html" class="btn btn-outline" id="hero-create-btn">Create Event</a>
+                    </div>
+                </div>
+                <div class="hero-image-placeholder">
+                    <!-- Decorative Abstract Graphics -->
+                    <div class="abstract-card card-1">
+                        <i class="fa-solid fa-calendar-star"></i>
+                        <span>Premium Events</span>
+                    </div>
+                    <div class="abstract-card card-2">
+                        <i class="fa-solid fa-users"></i>
+                        <span>Networking</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Events Grid (Mockup for Browsing) -->
+            <div class="events-container">
+                <h2 class="section-title">Upcoming Events</h2>
+                <div class="events-grid">
+
+                    <!-- Event Card 1 -->
+                    <div class="event-card">
+                        <div class="event-image" style="background-color: #e3f2fd;">
+                            <i class="fa-solid fa-laptop-code"></i>
+                        </div>
+                        <div class="event-details">
+                            <span class="event-badge">Tech</span>
+                            <h3>Future Tech Summit 2026</h3>
+                            <div class="event-meta">
+                                <span><i class="fa-regular fa-calendar"></i> Oct 15, 2026</span>
+                                <span><i class="fa-solid fa-location-dot"></i> Riyadh Front</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline">View Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 2 -->
+                    <div class="event-card">
+                        <div class="event-image" style="background-color: #f3e5f5;">
+                            <i class="fa-solid fa-palette"></i>
+                        </div>
+                        <div class="event-details">
+                            <span class="event-badge">Art</span>
+                            <h3>Riyadh Art Week</h3>
+                            <div class="event-meta">
+                                <span><i class="fa-regular fa-calendar"></i> Nov 02, 2026</span>
+                                <span><i class="fa-solid fa-location-dot"></i> JAX District</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline">View Details</button>
+                        </div>
+                    </div>
+
+                    <!-- Event Card 3 -->
+                    <div class="event-card">
+                        <div class="event-image" style="background-color: #e8f5e9;">
+                            <i class="fa-solid fa-briefcase"></i>
+                        </div>
+                        <div class="event-details">
+                            <span class="event-badge">Business</span>
+                            <h3>Global Investors Forum</h3>
+                            <div class="event-meta">
+                                <span><i class="fa-regular fa-calendar"></i> Dec 10, 2026</span>
+                                <span><i class="fa-solid fa-location-dot"></i> KAFD</span>
+                            </div>
+                            <button class="btn btn-sm btn-outline">View Details</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js?v=2"></script>
+</body>
+
+</html>
