@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import OrganizerProfile, VendorProfile, AttendeeProfile
+from .models import OrganizerProfile, VendorProfile, AttendeeProfile, Event
 
 User = get_user_model()
 
@@ -65,3 +65,12 @@ class SignUpForm(forms.ModelForm):
                 profile.save()
 
         return user
+        class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = ['title', 'category', 'date', 'time', 'location', 'description']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'time': forms.TimeInput(attrs={'type': 'time'}),
+            'description': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Describe your event...'}),
+        }
