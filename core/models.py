@@ -1,11 +1,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('ORGANIZER', 'Organizer'),
         ('VENDOR', 'Vendor'),
         ('ATTENDEE', 'Attendee'),
+        ('SCEGA', 'SCEGA'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ATTENDEE')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
@@ -58,7 +60,8 @@ class Event(models.Model):
     # Choices for Status
     STATUS_CHOICES = (
         ('UPCOMING', 'Upcoming'),
-        ('COMPLETED', 'Completed'),
+        ('ONGOING', 'Ongoing'),
+        ('PAST', 'Past'), #completed
         ('CANCELLED', 'Cancelled'),
     )
 
@@ -69,6 +72,11 @@ class Event(models.Model):
         ('REJECTED', 'Rejected'),
     )
 
+    CATEGORY_CHOICES = (
+        ('Tech', 'Tech'), ('Art', 'Art'), ('Business', 'Business'),
+        ('Music', 'Music'), ('Education', 'Education'), ('Sports', 'Sports'), ('Other', 'Other'),
+    )
+
     # Event_ID is handled automatically by Django as the primary key 'id'
 
     # We link the event to an Organizer (assuming only organizers create events)
@@ -77,7 +85,7 @@ class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='UPCOMING')
-    category = models.CharField(max_length=100)
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
 
     capacity = models.PositiveIntegerField()
     age_restriction = models.PositiveIntegerField(default=0, help_text="Minimum age required (0 for no restriction)")
@@ -88,7 +96,24 @@ class Event(models.Model):
     approval = models.CharField(max_length=20, choices=APPROVAL_CHOICES, default='PENDING')
     location = models.CharField(max_length=255) # Can be an address or Google Maps link
 
-    ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    rejection_reason = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.title
+
+ @property
+    def min_price(self):
+        """Helper to display 'From X SAR'"""
+        tickets = self.tickets.all()
+        if tickets.exists():
+            return min([t.price for t in tickets])
+        return 0
+
+class TicketCategory(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    name = models.CharField(max_length=100) # e.g. "VIP", "General"
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.name} - {self.price}"
