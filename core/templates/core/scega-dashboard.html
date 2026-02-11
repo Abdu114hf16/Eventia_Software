@@ -77,10 +77,12 @@
 
             <div class="header-profile">
                 <div class="profile-info" style="text-align: right; margin-right: 10px;">
-                    <span class="profile-name" style="display: block; font-weight: 600;">SCEGA Admin</span>
-                    <span class="profile-role" style="font-size: 0.8rem; color: #666; display: block;">Administrator</span>
+                    <span class="profile-name" style="display: block; font-weight: 600;">{{ user.username }}</span>
+                    <span class="profile-role" style="font-size: 0.8rem; color: #666; display: block;">SCEGA Administrator</span>
                 </div>
-                <div class="profile-avatar" style="background-color: #0d47a1; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">S</div>
+                <div class="profile-avatar" style="background-color: #0d47a1; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
             </div>
         </header>
 
