@@ -118,3 +118,7 @@ def organizer_dashboard(request):
 def scega_dashboard(request):
     # FIX: Point to 'core/scega-dashboard.html'
     return render(request, 'core/scega-dashboard.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('home')
