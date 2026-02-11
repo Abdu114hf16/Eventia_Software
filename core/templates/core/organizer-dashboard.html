@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Gradient Title Style */
+        /* Gradient Title */
         #page-title {
             font-size: 1.5rem;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -18,23 +18,52 @@
             font-weight: 700;
         }
 
-        /* File Upload Area Styling */
+        /* My Events Tab Specific Styles */
+        .events-toolbar {
+            display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;
+            background: white; padding: 1rem; border-radius: 12px; border: 1px solid #eee;
+        }
+        .search-box { flex: 1; position: relative; }
+        .search-box input { width: 100%; padding: 10px 10px 10px 35px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
+
+        .events-table-header {
+            display: grid; grid-template-columns: 80px 1fr 160px 120px; gap: 1.5rem;
+            padding: 0.8rem 1.5rem; background: #f8f9fa; border-radius: 8px; margin-bottom: 1rem;
+            font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        /* Specific Badge Styles for Organizer */
+        .badge-pending-review {
+            background: #fff7e6; color: #d46b08; border: 1px solid #ffd591;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .badge-published {
+            background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .badge-rejected {
+            background: #fff1f0; color: #cf1322; border: 1px solid #ffa39e;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .action-btn-edit {
+            border: 1px solid #1e3c72; color: #1e3c72; background: white; border-radius: 20px; padding: 5px 15px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+        }
+        .action-btn-edit:hover { background: #f0f7ff; }
+
+        .action-btn-delete {
+            border: 1px solid #c62828; color: #c62828; background: white; border-radius: 20px; padding: 5px 15px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+        }
+        .action-btn-delete:hover { background: #fff1f0; }
+
+        /* File Upload */
         .file-upload-area {
-            border: 2px dashed #e0e0e0;
-            border-radius: 8px;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            height: 120px; /* Fixed height to match ticket section */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden; /* Ensure preview doesn't overflow */
+            border: 2px dashed #e0e0e0; border-radius: 8px; background: #f8f9fa;
+            transition: all 0.3s ease; cursor: pointer; height: 120px;
+            display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;
         }
-        .file-upload-area:hover {
-            border-color: var(--primary-light);
-            background: #f0f7ff;
-        }
+        .banner-preview { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
     </style>
 </head>
 <body class="dashboard-body">
@@ -44,7 +73,6 @@
             <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">EVENTIA</span>
         </div>
-
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-view="overview">
                 <i class="fa-solid fa-grid-2"></i> Dashboard
@@ -74,9 +102,7 @@
         <header class="dashboard-header">
             <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
                 <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
-                <div class="header-title">
-                    <h1 id="page-title">Dashboard Overview</h1>
-                </div>
+                <div class="header-title"><h1 id="page-title">Dashboard Overview</h1></div>
             </div>
             <div class="header-profile">
                 <span class="profile-name">{{ user.username }}</span>
@@ -85,7 +111,6 @@
         </header>
 
         <section id="view-overview" class="content-section active">
-
             {% if messages %}
             <div style="margin-bottom: 1.5rem;">
                 {% for message in messages %}
@@ -98,29 +123,17 @@
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>{{ events.count }}</h3>
-                        <p>Total Events</p>
-                    </div>
+                    <div class="stat-info"><h3>{{ events.count }}</h3><p>Total Events</p></div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>0</h3>
-                        <p>Pending Approval</p>
-                    </div>
+                    <div class="stat-info"><h3>0</h3><p>Pending Approval</p></div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-info">
-                        <h3>0</h3>
-                        <p>Total Tickets Sold</p>
-                    </div>
+                    <div class="stat-info"><h3>0</h3><p>Total Tickets Sold</p></div>
                 </div>
             </div>
 
-            <div class="section-header">
-                <h2>Recent Events</h2>
-            </div>
-
+            <div class="section-header"><h2>Recent Events</h2></div>
             <div id="recent-events-list">
                 {% for event in events|slice:":3" %}
                 <div class="event-list-item">
@@ -149,7 +162,6 @@
         <section id="view-create-event" class="content-section">
             <form id="create-event-form" method="POST" action="{% url 'organizer_dashboard' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> Basic Information</h3>
                     <div class="form-row">
@@ -176,33 +188,18 @@
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-calendar-days"></i> Date & Location</h3>
                     <div class="form-row">
-                        <div class="input-group">
-                            <label><i class="fa-regular fa-calendar"></i> Date *</label>
-                            <input type="date" name="date" required>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-regular fa-clock"></i> Time *</label>
-                            <input type="time" name="time" required>
-                        </div>
+                        <div class="input-group"><label><i class="fa-regular fa-calendar"></i> Date *</label><input type="date" name="date" required></div>
+                        <div class="input-group"><label><i class="fa-regular fa-clock"></i> Time *</label><input type="time" name="time" required></div>
                     </div>
                     <div class="form-row">
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-location-dot"></i> Venue / Location *</label>
-                            <input type="text" name="location" placeholder="e.g. Riyadh Front Exhibition Center, Hall A" required>
-                        </div>
-                        <div class="input-group">
-                            <label><i class="fa-solid fa-users"></i> Capacity *</label>
-                            <input type="number" name="capacity" placeholder="Max Attendees" min="1" required>
-                        </div>
+                        <div class="input-group"><label><i class="fa-solid fa-location-dot"></i> Venue / Location *</label><input type="text" name="location" placeholder="e.g. Riyadh Front" required></div>
+                        <div class="input-group"><label><i class="fa-solid fa-users"></i> Capacity *</label><input type="number" name="capacity" placeholder="Max Attendees" min="1" required></div>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-align-left"></i> Event Details</h3>
-                    <div class="input-group">
-                        <label><i class="fa-solid fa-pen"></i> Description *</label>
-                        <textarea name="description" rows="5" placeholder="Describe your event, what attendees can expect, key highlights, speakers, etc..." required></textarea>
-                    </div>
+                    <div class="input-group"><label><i class="fa-solid fa-pen"></i> Description *</label><textarea name="description" rows="5" required></textarea></div>
                 </div>
 
                 <div class="form-section">
@@ -217,11 +214,8 @@
                                     <button type="button" class="btn btn-sm btn-outline disabled delete-ticket-btn" style="color: #ccc; border-color: #eee; cursor: not-allowed;"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
-                            <button type="button" id="add-ticket-btn" class="btn btn-sm btn-outline" style="margin-top: 10px; width: 100%;">
-                                <i class="fa-solid fa-plus"></i> Add Another Category
-                            </button>
+                            <button type="button" id="add-ticket-btn" class="btn btn-sm btn-outline" style="margin-top: 10px; width: 100%;"><i class="fa-solid fa-plus"></i> Add Another Category</button>
                         </div>
-
                         <div class="input-group" style="flex: 1;">
                             <label><i class="fa-solid fa-image"></i> Event Banner</label>
                             <div class="file-upload-area" id="banner-upload-area">
@@ -237,52 +231,74 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="switchView('overview')">
-                        <i class="fa-solid fa-xmark"></i> Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-rocket"></i> Publish Event
-                    </button>
+                    <button type="button" class="btn btn-outline" onclick="switchView('overview')"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-rocket"></i> Publish Event</button>
                 </div>
             </form>
         </section>
 
         <section id="view-events-list" class="content-section">
+            <div class="events-toolbar">
+                <select style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; min-width: 150px;">
+                    <option>All Status</option>
+                    <option>Published</option>
+                    <option>Pending</option>
+                    <option>Rejected</option>
+                </select>
+                <div class="search-box">
+                    <i class="fa-solid fa-search"></i>
+                    <input type="text" placeholder="Search events...">
+                </div>
+                <button class="btn btn-primary" onclick="switchView('create-event')"><i class="fa-solid fa-plus"></i> Create</button>
+            </div>
+
+            <div class="events-table-header">
+                <div>DATE</div>
+                <div>EVENT DETAILS</div>
+                <div style="text-align: center;">SCEGA APPROVAL</div>
+                <div style="text-align: right;">ACTIONS</div>
+            </div>
+
             <div id="all-events-container">
                 {% for event in events %}
-                <div class="event-list-item" style="display: grid; grid-template-columns: 80px 1fr 140px 120px; align-items: center; gap: 1.5rem; border-bottom: 1px solid #eee; padding: 1rem 0;">
+                <div class="event-list-item" style="display: grid; grid-template-columns: 80px 1fr 160px 120px; align-items: center; gap: 1.5rem; padding: 1.2rem; border-bottom: 1px solid #eee;">
 
-                    <div class="event-date-box" style="text-align: center; background: #f1f3f5; padding: 0.5rem; border-radius: 8px;">
-                        <span class="date-month" style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--primary-color); text-transform: uppercase;">{{ event.date|date:"M" }}</span>
-                        <span class="date-day" style="display: block; font-size: 1.2rem; font-weight: 700;">{{ event.date|date:"d" }}</span>
+                    <div class="event-date-box" style="text-align: center; background: #2a5298; padding: 0.5rem; border-radius: 8px; color: white;">
+                        <span style="display: block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; opacity: 0.9;">{{ event.date|date:"M" }}</span>
+                        <span style="display: block; font-size: 1.4rem; font-weight: 700; line-height: 1;">{{ event.date|date:"d" }}</span>
                     </div>
 
                     <div class="event-details-text">
-                        <h4 style="margin: 0 0 0.25rem 0;">{{ event.title }}</h4>
-                        <div class="event-meta-info" style="font-size: 0.85rem; color: #666;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+                            <h4 style="margin: 0;">{{ event.title }}</h4>
+                            <span style="background: #f3e8ff; color: #7b1fa2; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px; font-weight: 600;">Upcoming</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; display: flex; gap: 15px;">
                             <span><i class="fa-regular fa-clock"></i> {{ event.time }}</span>
-                            <span style="margin-left: 10px;"><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
+                            <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
+                            <span><i class="fa-solid fa-ticket"></i> {% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} SAR{% endif %}</span>
                         </div>
                     </div>
 
                     <div style="text-align: center;">
                         {% if event.status == 'PENDING' %}
-                            <span class="status-badge" style="background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
-                                <i class="fa-solid fa-clock"></i> Pending
-                            </span>
-                        {% elif event.status == 'APPROVED' or event.status == 'UPCOMING' %}
-                            <span class="status-badge" style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                            <div class="badge-pending-review">
+                                <i class="fa-regular fa-clock"></i> Pending Review
+                            </div>
+                        {% elif event.status == 'APPROVED' %}
+                            <div class="badge-published">
                                 <i class="fa-solid fa-check"></i> Published
-                            </span>
+                            </div>
                         {% elif event.status == 'REJECTED' %}
-                            <span class="status-badge" style="background: #f8d7da; color: #721c24; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
-                                <i class="fa-solid fa-ban"></i> Rejected
-                            </span>
+                            <div class="badge-rejected">
+                                <i class="fa-solid fa-circle-xmark"></i> Rejected
+                            </div>
                         {% endif %}
                     </div>
 
-                    <div class="event-actions" style="text-align: right;">
-                        <button class="btn btn-sm btn-outline"><i class="fa-solid fa-pen"></i></button>
+                    <div style="text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+                        <button class="action-btn-edit"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="action-btn-delete"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </div>
                 {% empty %}
@@ -293,96 +309,57 @@
             </div>
         </section>
 
-        <section id="view-vendors" class="content-section">
-            <h2>Vendor Marketplace</h2>
-            <p>Coming soon...</p>
-        </section>
-        <section id="view-requests" class="content-section">
-            <h2>Requests</h2>
-            <p>Coming soon...</p>
-        </section>
-        <section id="view-analytics" class="content-section">
-            <h2>Analytics</h2>
-            <p>Coming soon...</p>
-        </section>
+        <section id="view-vendors" class="content-section"><h2>Vendor Marketplace</h2><p>Coming soon...</p></section>
+        <section id="view-requests" class="content-section"><h2>Requests</h2><p>Coming soon...</p></section>
+        <section id="view-analytics" class="content-section"><h2>Analytics</h2><p>Coming soon...</p></section>
 
     </main>
 
     <script src="{% static 'js/dashboard-ui.js' %}"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Image Upload Preview Logic
+            // ... (Keep existing script for file upload preview & ticket row adding) ...
             const fileInput = document.getElementById('banner-upload');
             const uploadArea = document.getElementById('banner-upload-area');
             const uploadPlaceholder = document.getElementById('upload-placeholder');
 
-            // Trigger file input on click
-            uploadArea.addEventListener('click', function() {
-                 fileInput.click();
-            });
-
-            // Handle file selection for preview
-            fileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    // Ensure it's an image
-                    if (!file.type.startsWith('image/')){
-                        alert('Please select an image file (PNG, JPG).');
-                        return;
+            if (uploadArea && fileInput) {
+                uploadArea.addEventListener('click', function() { fileInput.click(); });
+                fileInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            if(uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+                            const existing = uploadArea.querySelector('.banner-preview');
+                            if(existing) existing.remove();
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'banner-preview';
+                            uploadArea.appendChild(img);
+                        }
+                        reader.readAsDataURL(file);
                     }
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        // Hide placeholder and show image
-                        uploadPlaceholder.style.display = 'none';
+                });
+            }
 
-                        // Remove existing preview if any
-                        const existingPreview = uploadArea.querySelector('.banner-preview');
-                        if (existingPreview) existingPreview.remove();
-
-                        const img = document.createElement('img');
-                        img.src = event.target.result;
-                        img.alt = "Banner Preview";
-                        img.classList.add('banner-preview');
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        img.style.objectFit = 'cover';
-                        img.style.borderRadius = '8px';
-
-                        uploadArea.appendChild(img);
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // 2. Add Ticket Category Logic (Visual Only)
             const addTicketBtn = document.getElementById('add-ticket-btn');
             const ticketContainer = document.getElementById('ticket-categories-container');
-
-            addTicketBtn.addEventListener('click', function() {
-                 // Clone the first row to use as a template
-                 const firstRow = ticketContainer.querySelector('.ticket-row');
-                 const newRow = firstRow.cloneNode(true);
-
-                 // Reset inputs in the new row
-                 newRow.querySelector('.ticket-name').value = '';
-                 newRow.querySelector('.ticket-price').value = '';
-                 // Remove name attribute from extra price inputs so they don't conflict with backend for now
-                 newRow.querySelector('.ticket-price').removeAttribute('name');
-
-                 // Enable the delete button in the new row
-                 const deleteBtn = newRow.querySelector('.delete-ticket-btn');
-                 deleteBtn.classList.remove('disabled');
-                 deleteBtn.style.color = '#d32f2f';
-                 deleteBtn.style.cursor = 'pointer';
-
-                 // Add delete functionality
-                 deleteBtn.addEventListener('click', function() {
-                     newRow.remove();
-                 });
-
-                 ticketContainer.appendChild(newRow);
-            });
+            if (addTicketBtn && ticketContainer) {
+                addTicketBtn.addEventListener('click', function() {
+                     const firstRow = ticketContainer.querySelector('.ticket-row');
+                     const newRow = firstRow.cloneNode(true);
+                     newRow.querySelector('.ticket-name').value = '';
+                     newRow.querySelector('.ticket-price').value = '';
+                     newRow.querySelector('.ticket-price').removeAttribute('name');
+                     const deleteBtn = newRow.querySelector('.delete-ticket-btn');
+                     deleteBtn.classList.remove('disabled');
+                     deleteBtn.style.color = '#d32f2f';
+                     deleteBtn.style.cursor = 'pointer';
+                     deleteBtn.addEventListener('click', function(e) { e.stopPropagation(); newRow.remove(); });
+                     ticketContainer.appendChild(newRow);
+                });
+            }
         });
     </script>
 </body>

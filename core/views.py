@@ -179,6 +179,8 @@ def scega_dashboard(request):
 
 # --- ORGANIZER DASHBOARD ---
 
+# ... imports ...
+
 @login_required
 def organizer_dashboard(request):
     if request.user.role != 'ORGANIZER':
@@ -206,7 +208,8 @@ def organizer_dashboard(request):
 
     # Fetch Organizer's Events
     try:
-        my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-date')
+        # CHANGED: order_by('-id') ensures the most recently created events appear first
+        my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-id')
     except OrganizerProfile.DoesNotExist:
         my_events = []
 
