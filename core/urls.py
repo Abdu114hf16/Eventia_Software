@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.shortcuts import redirect
 
 urlpatterns = [
     # Homepage
@@ -9,6 +10,7 @@ urlpatterns = [
     # Specific Dashboards
     path('dashboard/organizer/', views.organizer_dashboard, name='organizer_dashboard'),
     path('dashboard/scega/', views.scega_dashboard, name='scega_dashboard'),
+    path('scega/', lambda request: redirect('scega_dashboard')),
 
     # Auth Routes
     path('signup/', views.signup_attendee, name='signup_attendee'),

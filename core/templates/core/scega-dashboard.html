@@ -55,24 +55,22 @@
 
             <div id="pending-events-cards" style="display: grid; gap: 1rem;">
                 {% for event in pending_events %}
-                <div class="event-list-item" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem;">
-                    <div class="event-info-main">
-                        <div>
-                            <h4 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">{{ event.title }}</h4>
-                            <div style="font-size: 0.9rem; color: #666;">
-                                <p><i class="fa-solid fa-user-tie"></i> <strong>Organizer:</strong> {{ event.organizer.organization_name }}</p>
-                                <p><i class="fa-solid fa-calendar"></i> {{ event.date }} | {{ event.time }}</p>
-                                <p><i class="fa-solid fa-align-left"></i> {{ event.description|truncatechars:100 }}</p>
-                            </div>
+                <div class="event-card-pending" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">{{ event.title }}</h4>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <p style="margin: 0;"><i class="fa-solid fa-user-tie"></i> <strong>Organizer:</strong> {{ event.organizer.organization_name }}</p>
+                            <p style="margin: 5px 0 0 0;"><i class="fa-regular fa-calendar"></i> {{ event.date }} | {{ event.time }}</p>
                         </div>
                     </div>
 
-                    <div class="event-actions" style="display: flex; gap: 10px;">
+                    <div style="display: flex; gap: 10px;">
                         <form method="POST" action="{% url 'scega_dashboard' %}">
                             {% csrf_token %}
                             <input type="hidden" name="event_id" value="{{ event.id }}">
                             <input type="hidden" name="action" value="approve">
-                            <button type="submit" class="btn btn-success btn-sm">
+                            <button type="submit" class="btn btn-sm" style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
                                 <i class="fa-solid fa-check"></i> Approve
                             </button>
                         </form>
@@ -81,16 +79,16 @@
                             {% csrf_token %}
                             <input type="hidden" name="event_id" value="{{ event.id }}">
                             <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="btn btn-danger btn-sm">
+                            <button type="submit" class="btn btn-sm" style="background: #c62828; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
                                 <i class="fa-solid fa-xmark"></i> Reject
                             </button>
                         </form>
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align: center; padding: 3rem;">
-                    <i class="fa-regular fa-circle-check" style="font-size: 3rem; color: #ddd;"></i>
-                    <p class="text-muted" style="margin-top: 1rem;">No pending requests.</p>
+                <div style="text-align: center; padding: 3rem; color: #999;">
+                    <i class="fa-regular fa-circle-check" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <p>No pending requests.</p>
                 </div>
                 {% endfor %}
             </div>
@@ -102,26 +100,21 @@
             </div>
             <div id="history-events-cards">
                 {% for event in history_events %}
-                <div class="event-list-item">
-                    <div class="event-info-main">
-                        <div class="event-details-text">
-                            <h4>{{ event.title }}</h4>
-                            <div class="event-meta-info">
-                                <span>{{ event.organizer.organization_name }}</span>
-                                <span>{{ event.date }}</span>
-                            </div>
-                        </div>
+                <div class="history-item" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h5 style="margin: 0; font-size: 1rem;">{{ event.title }}</h5>
+                        <span style="font-size: 0.8rem; color: #666;">{{ event.organizer.organization_name }} - {{ event.date }}</span>
                     </div>
                     <div>
-                        {% if event.approval == 'APPROVED' %}
-                            <span class="status-badge status-approved">Approved</span>
+                        {% if event.status == 'APPROVED' or event.status == 'UPCOMING' %}
+                            <span style="color: #2e7d32; font-weight: 600; font-size: 0.85rem;"><i class="fa-solid fa-check-circle"></i> Approved</span>
                         {% else %}
-                            <span class="status-badge status-rejected">Rejected</span>
+                            <span style="color: #c62828; font-weight: 600; font-size: 0.85rem;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
                         {% endif %}
                     </div>
                 </div>
                 {% empty %}
-                <p>No history available.</p>
+                <p class="text-muted" style="text-align: center; padding: 2rem;">No history available.</p>
                 {% endfor %}
             </div>
         </section>

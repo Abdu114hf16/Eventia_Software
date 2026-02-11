@@ -110,14 +110,53 @@ def dashboard_view(request):
 
 @login_required
 def organizer_dashboard(request):
-    # FIX: Point to 'core/organizer-dashboard.html'
-    return render(request, 'core/organizer-dashboard.html')
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+    if request.method == 'POST':
+        # ... fetch data (title, date, etc) ...
+        Event.objects.create(
+            organizer=request.user.organizer_profile,
+            title=request.POST.get('title'),
+            # ... other fields ...
+            status='PENDING'  # 2) & 3) Saved as Pending
+        )
+        messages.success(request, "Event requested! Waiting for SCEGA approval.")
+        return redirect('organizer_dashboard')
+    my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-date')
+    return render(request, 'core/organizer-dashboard.html', {'events': my_events})
 
 
 @login_required
 def scega_dashboard(request):
-    # FIX: Point to 'core/scega-dashboard.html'
-    return render(request, 'core/scega-dashboard.html')
+    if request.user.role != 'SCEGA_ADMIN':
+        return redirect('home')
+
+        # 5) SCEGA Chooses Approve or Reject
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        action = request.POST.get('action')
+        event = get_object_or_404(Event, id=event_id)
+
+        if action == 'approve':
+            event.status = 'APPROVED'
+            messages.success(request, f"Event '{event.title}' Published.")
+        elif action == 'reject':
+            event.status = 'REJECTED'
+            messages.warning(request, f"Event '{event.title}' Rejected.")
+
+        event.save()
+        return redirect('scega_dashboard')
+
+        # 4) SCEGA Receives Requests (Filter by Pending)
+    pending_events = Event.objects.filter(status='PENDING').order_by('date')
+
+    # 6) History Tab (Approved or Rejected)
+    history_events = Event.objects.filter(status__in=['APPROVED', 'REJECTED']).order_by('-date')
+
+    return render(request, 'core/scega-dashboard.html', {
+        'pending_events': pending_events,
+        'history_events': history_events
+    })
 
 def logout_view(request):
     logout(request)

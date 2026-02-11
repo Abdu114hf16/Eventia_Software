@@ -131,30 +131,45 @@
         <section id="view-events-list" class="content-section">
             <div id="all-events-container">
                 {% for event in events %}
-                <div class="event-list-item">
-                    <div class="event-info-main">
-                        <div class="event-date-box">
-                            <span class="date-day">{{ event.date|date:"d" }}</span>
-                            <span class="date-month">{{ event.date|date:"M" }}</span>
+                <div class="event-list-item" style="display: grid; grid-template-columns: 80px 1fr 140px 120px; align-items: center; gap: 1.5rem; border-bottom: 1px solid #eee; padding: 1rem 0;">
+
+                    <div class="event-date-box" style="text-align: center; background: #f1f3f5; padding: 0.5rem; border-radius: 8px;">
+                        <span class="date-month" style="display: block; font-size: 0.7rem; font-weight: 700; color: var(--primary-color); text-transform: uppercase;">{{ event.date|date:"M" }}</span>
+                        <span class="date-day" style="display: block; font-size: 1.2rem; font-weight: 700;">{{ event.date|date:"d" }}</span>
+                    </div>
+
+                    <div class="event-details-text">
+                        <h4 style="margin: 0 0 0.25rem 0;">{{ event.title }}</h4>
+                        <div class="event-meta-info" style="font-size: 0.85rem; color: #666;">
+                            <span><i class="fa-regular fa-clock"></i> {{ event.time }}</span>
+                            <span style="margin-left: 10px;"><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
                         </div>
-                        <div class="event-details-text">
-                            <h4>{{ event.title }}</h4>
-                            <div class="event-meta-info">
-                                <span><i class="fa-regular fa-clock"></i> {{ event.time }}</span>
-                                <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
-                                {% if event.approval == 'PENDING' %}
-                                    <span class="status-badge status-pending">Pending License</span>
-                                {% elif event.approval == 'APPROVED' %}
-                                    <span class="status-badge status-approved">Approved</span>
-                                {% elif event.approval == 'REJECTED' %}
-                                    <span class="status-badge status-rejected">Rejected</span>
-                                {% endif %}
-                            </div>
-                        </div>
+                    </div>
+
+                    <div style="text-align: center;">
+                        {% if event.status == 'PENDING' %}
+                            <span class="status-badge" style="background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                                <i class="fa-solid fa-clock"></i> Pending
+                            </span>
+                        {% elif event.status == 'APPROVED' or event.status == 'UPCOMING' %}
+                            <span class="status-badge" style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                                <i class="fa-solid fa-check"></i> Published
+                            </span>
+                        {% elif event.status == 'REJECTED' %}
+                            <span class="status-badge" style="background: #f8d7da; color: #721c24; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                                <i class="fa-solid fa-ban"></i> Rejected
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="event-actions" style="text-align: right;">
+                        <button class="btn btn-sm btn-outline"><i class="fa-solid fa-pen"></i></button>
                     </div>
                 </div>
                 {% empty %}
-                <p style="text-align:center; padding: 2rem;">No events found.</p>
+                <div style="text-align: center; padding: 3rem;">
+                    <p class="text-muted">No events found. Create your first event!</p>
+                </div>
                 {% endfor %}
             </div>
         </section>

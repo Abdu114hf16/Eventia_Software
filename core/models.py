@@ -58,7 +58,11 @@ class AttendeeProfile(models.Model):
 class Event(models.Model):
 
     # Choices for Approval
-    STATUS_CHOICES = (('UPCOMING', 'Upcoming'), ('COMPLETED', 'Completed'), ('CANCELLED', 'Cancelled'))
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending Approval'),  # Default when created
+        ('APPROVED', 'Published'),  # After SCEGA approves
+        ('REJECTED', 'Rejected'),  # After SCEGA rejects
+    )
     APPROVAL_CHOICES = (
         ('PENDING', 'Pending License'),
         ('APPROVED', 'Approved'),
@@ -69,7 +73,7 @@ class Event(models.Model):
     approval = models.CharField(max_length=20, choices=APPROVAL_CHOICES, default='PENDING')  # Default is Pending
     title = models.CharField(max_length=200)
     description = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='UPCOMING')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     category = models.CharField(max_length=100)
 
     capacity = models.PositiveIntegerField()
