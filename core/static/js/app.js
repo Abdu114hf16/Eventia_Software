@@ -317,15 +317,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
-            // Note: e.preventDefault() REMOVED so form can submit to Django
-            
+            // REMOVE the global e.preventDefault() here.
+            // We want the form to submit naturally unless there's an error.
+
             const passwordInput = signupDynamicContainer.querySelector('.signup-password');
             const confirmInput = signupDynamicContainer.querySelector('.signup-confirm-password');
             const emailInput = signupDynamicContainer.querySelector('.signup-email');
 
             let isValid = true;
 
-            // Simple client-side check before submission
+            // Email Validation
             if (emailInput) {
                 const email = emailInput.value;
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -335,6 +336,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // Password Match Validation
             if (passwordInput && confirmInput) {
                 if (passwordInput.value !== confirmInput.value) {
                     confirmInput.classList.add('input-error');
@@ -342,11 +344,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // ONLY prevent default if validation FAILS
             if (!isValid) {
-                e.preventDefault(); // Stop submission only if validation fails
-                // alert("Please fix errors before submitting."); // Optional
+                e.preventDefault();
+                // Optional: Show an alert or error message here
             }
-            // If valid, let it pass to Django!
+            // Otherwise, let Django handle the POST request
         });
     }
 
