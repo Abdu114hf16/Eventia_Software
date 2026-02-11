@@ -11,7 +11,7 @@
     <style>
         /* Gradient Title Style */
         #page-title {
-            font-size: 1.5rem; /* Smaller size */
+            font-size: 1.5rem;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -25,11 +25,11 @@
             background: #f8f9fa;
             transition: all 0.3s ease;
             cursor: pointer;
-            height: 100%;
-            min-height: 120px;
+            height: 120px; /* Fixed height to match ticket section */
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden; /* Ensure preview doesn't overflow */
         }
         .file-upload-area:hover {
             border-color: var(--primary-light);
@@ -207,30 +207,30 @@
 
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-ticket"></i> Tickets & Media</h3>
-                    <div class="form-row">
+                    <div class="form-row" style="align-items: flex-start;">
                         <div class="input-group" style="flex: 1;">
                             <label><i class="fa-solid fa-ticket"></i> Ticket Categories *</label>
                             <div id="ticket-categories-container">
                                 <div class="ticket-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
                                     <input type="text" class="ticket-name" placeholder="Name" value="Standard" required style="flex: 2;">
                                     <input type="number" name="ticket_price" class="ticket-price" placeholder="Price (SAR)" min="0" required style="flex: 1;">
-                                    <button type="button" class="btn btn-sm btn-outline disabled" style="color: #ccc; border-color: #eee; cursor: not-allowed;"><i class="fa-solid fa-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline disabled delete-ticket-btn" style="color: #ccc; border-color: #eee; cursor: not-allowed;"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline" style="margin-top: 10px; width: 100%;" disabled title="Multiple tickets coming soon">
+                            <button type="button" id="add-ticket-btn" class="btn btn-sm btn-outline" style="margin-top: 10px; width: 100%;">
                                 <i class="fa-solid fa-plus"></i> Add Another Category
                             </button>
                         </div>
 
                         <div class="input-group" style="flex: 1;">
                             <label><i class="fa-solid fa-image"></i> Event Banner</label>
-                            <div class="file-upload-area">
-                                <div style="padding: 1.5rem 0; text-align: center; width: 100%;">
+                            <div class="file-upload-area" id="banner-upload-area">
+                                <div id="upload-placeholder" style="padding: 1.5rem 0; text-align: center; width: 100%;">
                                     <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.5rem; color: var(--primary-light); margin-bottom: 0.5rem;"></i>
                                     <span style="display: block; margin: 0.2rem 0; font-weight: 500; font-size: 0.9rem;">Click or drag to upload</span>
                                     <small style="display: block; color: #999; font-size: 0.75rem;">PNG, JPG up to 5MB</small>
-                                    <input type="file" name="banner" style="display: none;" id="banner-upload">
                                 </div>
+                                <input type="file" name="banner" style="display: none;" id="banner-upload" accept="image/png, image/jpeg">
                             </div>
                         </div>
                     </div>
@@ -309,10 +309,80 @@
     </main>
 
     <script src="{% static 'js/dashboard-ui.js' %}"></script>
+
     <script>
-        // Simple script to handle file upload visual cue
-        document.querySelector('.file-upload-area').addEventListener('click', function() {
-            document.getElementById('banner-upload').click();
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1. Image Upload Preview Logic
+            const fileInput = document.getElementById('banner-upload');
+            const uploadArea = document.getElementById('banner-upload-area');
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
+
+            // Trigger file input on click
+            uploadArea.addEventListener('click', function() {
+                 fileInput.click();
+            });
+
+            // Handle file selection for preview
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Ensure it's an image
+                    if (!file.type.startsWith('image/')){
+                        alert('Please select an image file (PNG, JPG).');
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        // Hide placeholder and show image
+                        uploadPlaceholder.style.display = 'none';
+
+                        // Remove existing preview if any
+                        const existingPreview = uploadArea.querySelector('.banner-preview');
+                        if (existingPreview) existingPreview.remove();
+
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.alt = "Banner Preview";
+                        img.classList.add('banner-preview');
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        img.style.borderRadius = '8px';
+
+                        uploadArea.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // 2. Add Ticket Category Logic (Visual Only)
+            const addTicketBtn = document.getElementById('add-ticket-btn');
+            const ticketContainer = document.getElementById('ticket-categories-container');
+
+            addTicketBtn.addEventListener('click', function() {
+                 // Clone the first row to use as a template
+                 const firstRow = ticketContainer.querySelector('.ticket-row');
+                 const newRow = firstRow.cloneNode(true);
+
+                 // Reset inputs in the new row
+                 newRow.querySelector('.ticket-name').value = '';
+                 newRow.querySelector('.ticket-price').value = '';
+                 // Remove name attribute from extra price inputs so they don't conflict with backend for now
+                 newRow.querySelector('.ticket-price').removeAttribute('name');
+
+                 // Enable the delete button in the new row
+                 const deleteBtn = newRow.querySelector('.delete-ticket-btn');
+                 deleteBtn.classList.remove('disabled');
+                 deleteBtn.style.color = '#d32f2f';
+                 deleteBtn.style.cursor = 'pointer';
+
+                 // Add delete functionality
+                 deleteBtn.addEventListener('click', function() {
+                     newRow.remove();
+                 });
+
+                 ticketContainer.appendChild(newRow);
+            });
         });
     </script>
 </body>
