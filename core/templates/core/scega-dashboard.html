@@ -46,7 +46,18 @@
 
         .modal-header-gradient { padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; color: white; }
         .bg-gradient-blue { background: linear-gradient(135deg, #3C50C8, #004e92); }
-        .bg-gradient-red { background: linear-gradient(135deg, #ff6b6b, #c62828); }
+
+        /* Rejection Modal Specific Styles */
+        .reject-header {
+            background: linear-gradient(135deg, #ff6b6b, #c62828);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+        .reject-icon-circle {
+            width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;
+        }
 
         .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 1rem 0; }
         .info-box { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; }
@@ -240,8 +251,8 @@
                 </div>
 
                 <div style="margin-top: 1.5rem; display: flex; gap: 10px;">
-                    <button id="modal-approve-btn" class="btn" style="flex: 1; background: #2e7d32; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Approve</button>
-                    <button id="modal-reject-btn" class="btn" style="flex: 1; background: #c62828; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Reject</button>
+                    <button id="modal-approve-btn" class="btn" style="flex: 1; background: #2e7d32; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;"><i class="fa-solid fa-check"></i> Approve</button>
+                    <button id="modal-reject-btn" class="btn" style="flex: 1; background: #c62828; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600;"><i class="fa-solid fa-xmark"></i> Reject</button>
                 </div>
             </div>
         </div>
@@ -249,18 +260,30 @@
 
     <div id="reject-modal" class="modal-overlay">
         <div class="modal-card">
-            <div class="modal-header-gradient bg-gradient-red">
-                <h3 style="margin: 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 8px;"></i> Reject Event</h3>
-                <button onclick="closeModal('reject-modal')" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            <div class="reject-header">
+                <div class="reject-icon-circle">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.8rem; color: white;"></i>
+                </div>
+                <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Reject Event</h3>
+                <p style="margin: 0.5rem 0 0; font-size: 0.9rem; opacity: 0.9;">This action will notify the organizer</p>
             </div>
-            <div style="padding: 1.5rem;">
-                <p style="color: #666; font-size: 0.9rem; margin-top: 0;">Please provide a reason for rejection. This will be sent to the organizer.</p>
 
-                <textarea id="reject-reason-input" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: none; margin-bottom: 1rem;" placeholder="e.g., Safety concerns, Missing permit info..."></textarea>
+            <div style="padding: 2rem;">
+                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
+                    <i class="fa-solid fa-comment-dots" style="color: #666; margin-right: 5px;"></i> Rejection Reason <span style="color: #999; font-weight: 400;">(optional)</span>
+                </label>
 
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="closeModal('reject-modal')" style="flex: 1; background: white; border: 1px solid #ddd; padding: 10px; border-radius: 6px; cursor: pointer;">Cancel</button>
-                    <button onclick="submitRejection()" style="flex: 1; background: #c62828; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Confirm Rejection</button>
+                <textarea id="reject-reason-input" rows="4" style="width: 100%; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; font-family: inherit; resize: none; margin-bottom: 0.5rem; font-size: 0.95rem; transition: border-color 0.2s;" placeholder="e.g. Safety concerns, Missing permit info..." onfocus="this.style.borderColor='#c62828'" onblur="this.style.borderColor='#e0e0e0'"></textarea>
+
+                <p style="color: #999; font-size: 0.8rem; margin-top: 0; margin-bottom: 1.5rem;">
+                    <i class="fa-solid fa-circle-info"></i> The organizer will see this message in their dashboard.
+                </p>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="closeModal('reject-modal')" style="flex: 1; background: white; border: 1px solid #ddd; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600; color: #555;">Cancel</button>
+                    <button onclick="submitRejection()" style="flex: 1; background: #c62828; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                        <i class="fa-solid fa-xmark"></i> Reject Event
+                    </button>
                 </div>
             </div>
         </div>
