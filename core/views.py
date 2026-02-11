@@ -1,22 +1,41 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import SignUpForm
 from .models import Event, OrganizerProfile
-from django.shortcuts import render, redirect, get_object_or_404
+
+
+# --- GENERAL NAVIGATION & AUTH ---
+
+def dashboard_view(request):
+    """Redirects users based on their role."""
+    if not request.user.is_authenticated:
+        return render(request, 'core/index.html')
+
+    if request.user.role == 'ORGANIZER':
+        return redirect('organizer_dashboard')
+    elif request.user.role == 'SCEGA_ADMIN':
+        return redirect('scega_dashboard')
+
+    # Default for attendees or others
+    return render(request, 'core/index.html')
+
+
+def logout_view(request):
+    """Logs out the user and redirects to home."""
+    logout(request)
+    return redirect('home')
 
 
 # --- ATTENDEE VIEWS ---
 
 def signup_attendee(request):
-    """Handles signup for Attendees only"""
     if request.method == 'POST':
         data = request.POST.copy()
         data['role'] = 'ATTENDEE'
-
-        # Combine Day/Month/Year from frontend
+        # Construct date of birth from dropdowns
         day = data.get('day')
         month = data.get('month')
         year = data.get('year')
@@ -26,20 +45,16 @@ def signup_attendee(request):
         form = SignUpForm(data)
         if form.is_valid():
             user = form.save()
-            if not request.user.is_authenticated:
-                login(request, user)
+            login(request, user)
             return redirect('dashboard')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
         form = SignUpForm()
-
-    # FIX: Point to 'core/signup.html'
     return render(request, 'core/signup.html', {'form': form})
 
 
 def login_attendee(request):
-    """Handles login for Attendees"""
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -50,116 +65,61 @@ def login_attendee(request):
             messages.error(request, "Invalid credentials.")
     else:
         form = AuthenticationForm()
-    # FIX: Point to 'core/login.html'
     return render(request, 'core/login.html', {'form': form})
 
 
-# --- BUSINESS VIEWS ---
+# --- BUSINESS VIEWS (Organizer/Vendor) ---
 
 def signup_business(request):
-    """Handles signup for Organizers & Vendors"""
     if request.method == 'POST':
-        # The 'role' is injected by app.js hidden input
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            if not request.user.is_authenticated:
-                login(request, user)
-
-            # Redirect to specific dashboard based on role
+            login(request, user)
             if user.role == 'ORGANIZER':
                 return redirect('organizer_dashboard')
-            # Add Vendor redirect here if/when you have a vendor dashboard
             return redirect('dashboard')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
         form = SignUpForm()
-
-    # FIX: Point to 'core/signup-business.html'
     return render(request, 'core/signup-business.html', {'form': form})
 
 
 def login_business(request):
-    """Handles login for Organizers & Vendors"""
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-
-            # Smart Redirect based on Role
             if user.role == 'ORGANIZER':
                 return redirect('organizer_dashboard')
             elif user.role == 'SCEGA_ADMIN':
                 return redirect('scega_dashboard')
-            else:
-                return redirect('dashboard')
+            return redirect('dashboard')
         else:
             messages.error(request, "Invalid business credentials.")
     else:
         form = AuthenticationForm()
-    # FIX: Point to 'core/login-business.html'
     return render(request, 'core/login-business.html', {'form': form})
 
 
-def dashboard_view(request):
-    # FIX: Point to 'core/index.html'
-    return render(request, 'core/index.html')
+# --- SCEGA ADMIN VIEWS ---
 
-
-# --- DASHBOARD VIEWS ---
-
-@login_required
-@login_required
-def organizer_dashboard(request):
-    # Security: Only allow Organizers
-    if request.user.role != 'ORGANIZER':
-        return redirect('home')
-
-    # Handle Create Event
+def login_scega(request):
+    """Restricted login for SCEGA Admins only."""
     if request.method == 'POST':
-        try:
-            # 1. Get Data from Form
-            title = request.POST.get('title')
-            category = request.POST.get('category')
-            date = request.POST.get('date')
-            time = request.POST.get('time')
-            location = request.POST.get('location')
-            description = request.POST.get('description')
-            capacity = request.POST.get('capacity')  # <--- Now we capture this
-            price = request.POST.get('ticket_price', 0)
-
-            # 2. Create Event
-            Event.objects.create(
-                organizer=request.user.organizer_profile,
-                title=title,
-                category=category,
-                date=date,
-                time=time,
-                location=location,
-                description=description,
-                capacity=capacity,  # <--- Pass it to DB
-                ticket_price=price,
-                status='PENDING'  # Workflow start
-            )
-            messages.success(request, "Event requested! Waiting for SCEGA approval.")
-            return redirect('organizer_dashboard')
-
-        except Exception as e:
-            # Catch errors like missing fields or DB issues
-            messages.error(request, f"Error creating event: {str(e)}")
-            return redirect('organizer_dashboard')
-
-    # Fetch events
-    try:
-        my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-date')
-    except OrganizerProfile.DoesNotExist:
-        my_events = []
-
-    return render(request, 'core/organizer-dashboard.html', {
-        'events': my_events
-    })
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            if user.role == 'SCEGA_ADMIN':
+                login(request, user)
+                return redirect('scega_dashboard')
+            else:
+                messages.error(request, "Access Denied. SCEGA Admins only.")
+    else:
+        form = AuthenticationForm()
+    return render(request, 'core/scega-login.html', {'form': form})
 
 
 @login_required
@@ -167,10 +127,11 @@ def scega_dashboard(request):
     if request.user.role != 'SCEGA_ADMIN':
         return redirect('home')
 
-    # Handle Actions
+    # Handle Approvals/Rejections
     if request.method == 'POST':
         event_id = request.POST.get('event_id')
         action = request.POST.get('action')
+        # Requires get_object_or_404 (imported at top)
         event = get_object_or_404(Event, id=event_id)
 
         if action == 'approve':
@@ -183,19 +144,56 @@ def scega_dashboard(request):
         event.save()
         return redirect('scega_dashboard')
 
-    # Data for the Template
+    # Data for the dashboard
     pending_events = Event.objects.filter(status='PENDING').order_by('date')
     history_events = Event.objects.filter(status__in=['APPROVED', 'REJECTED']).order_by('-date')
 
-    # Counts for the Top Cards
+    # Counts
     pending_count = pending_events.count()
     approved_count = Event.objects.filter(status='APPROVED').count()
     rejected_count = Event.objects.filter(status='REJECTED').count()
 
-    return render(request, 'core/scega-dashboard.html', {
+    context = {
         'pending_events': pending_events,
         'history_events': history_events,
-        'pending_count': pending_count,  # <--- Passing these to template
-        'approved_count': approved_count,  # <--- Passing these to template
-        'rejected_count': rejected_count,  # <--- Passing these to template
-    })
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+    }
+    return render(request, 'core/scega-dashboard.html', context)
+
+
+# --- ORGANIZER DASHBOARD ---
+
+@login_required
+def organizer_dashboard(request):
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+
+    if request.method == 'POST':
+        try:
+            Event.objects.create(
+                organizer=request.user.organizer_profile,
+                title=request.POST.get('title'),
+                category=request.POST.get('category'),
+                date=request.POST.get('date'),
+                time=request.POST.get('time'),
+                location=request.POST.get('location'),
+                description=request.POST.get('description'),
+                capacity=request.POST.get('capacity'),
+                ticket_price=request.POST.get('ticket_price', 0),
+                status='PENDING'
+            )
+            messages.success(request, "Event requested! Waiting for SCEGA approval.")
+            return redirect('organizer_dashboard')
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            return redirect('organizer_dashboard')
+
+    # Fetch Organizer's Events
+    try:
+        my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-date')
+    except OrganizerProfile.DoesNotExist:
+        my_events = []
+
+    return render(request, 'core/organizer-dashboard.html', {'events': my_events})

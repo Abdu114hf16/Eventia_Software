@@ -4,15 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCEGA Admin Dashboard</title>
+    <title>SCEGA Admin Dashboard | Eventia</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="dashboard-body">
 
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar scega-header" id="sidebar">
         <div class="sidebar-header">
+            <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">SCEGA ADMIN</span>
         </div>
         <nav class="sidebar-nav">
@@ -24,86 +25,92 @@
             </a>
         </nav>
         <div class="sidebar-footer">
-            <a href="{% url 'logout' %}" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="{% url 'logout' %}" class="nav-item">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </a>
         </div>
     </aside>
 
     <main class="dashboard-main">
         <header class="dashboard-header">
-            <div class="header-left">
-                <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
-                <h1 id="page-title">Admin Dashboard</h1>
-            </div>
+            <h1 id="page-title">Admin Dashboard</h1>
             <div class="header-profile">
-                <span class="profile-name">Admin</span>
+                <span class="profile-name">SCEGA Admin</span>
             </div>
         </header>
 
         <section id="view-overview" class="content-section active">
+
             <div class="stats-grid">
                 <div class="stat-card" style="border-left: 4px solid #ff9800;">
-                    <div class="stat-icon" style="background: rgba(255, 152, 0, 0.15); color: #ff9800;">
-                        <i class="fa-solid fa-hourglass-start"></i>
-                    </div>
                     <div class="stat-info">
-                        <h3 id="stat-pending" style="color: #ff9800;">{{ pending_count }}</h3>
+                        <h3 style="color: #ff9800;">{{ pending_count }}</h3>
                         <p>Pending Requests</p>
                     </div>
                 </div>
                 <div class="stat-card" style="border-left: 4px solid #2e7d32;">
-                    <div class="stat-icon" style="background: rgba(46, 125, 50, 0.15); color: #2e7d32;">
-                        <i class="fa-solid fa-check-double"></i>
-                    </div>
                     <div class="stat-info">
-                        <h3 id="stat-approved" style="color: #2e7d32;">{{ approved_count }}</h3>
+                        <h3 style="color: #2e7d32;">{{ approved_count }}</h3>
                         <p>Approved Events</p>
                     </div>
                 </div>
                 <div class="stat-card" style="border-left: 4px solid #c62828;">
-                    <div class="stat-icon" style="background: rgba(198, 40, 40, 0.15); color: #c62828;">
-                        <i class="fa-solid fa-ban"></i>
-                    </div>
                     <div class="stat-info">
-                        <h3 id="stat-rejected" style="color: #c62828;">{{ rejected_count }}</h3>
+                        <h3 style="color: #c62828;">{{ rejected_count }}</h3>
                         <p>Rejected Events</p>
                     </div>
                 </div>
             </div>
-                {% empty %}
-                <div style="text-align: center; padding: 3rem; color: #999;">
-                    <i class="fa-regular fa-circle-check" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                    <p>No pending requests.</p>
+
+            <div class="section-header" style="margin-top: 2rem;">
+                <h2>Pending Events Queue</h2>
+            </div>
+            <div id="pending-events-cards">
+                {% for event in pending_events %}
+                <div class="event-card-pending" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0;">{{ event.title }}</h4>
+                        <p style="margin: 0; color: #666;">{{ event.date }} | {{ event.organizer.organization_name }}</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <form method="POST" action="{% url 'scega_dashboard' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            <input type="hidden" name="action" value="approve">
+                            <button type="submit" class="btn btn-sm" style="background: #2e7d32; color: white; border:none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Approve</button>
+                        </form>
+                        <form method="POST" action="{% url 'scega_dashboard' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="event_id" value="{{ event.id }}">
+                            <input type="hidden" name="action" value="reject">
+                            <button type="submit" class="btn btn-sm" style="background: #c62828; color: white; border:none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Reject</button>
+                        </form>
+                    </div>
                 </div>
+                {% empty %}
+                <p style="text-align: center; padding: 2rem; color: #999;">No pending requests.</p>
                 {% endfor %}
             </div>
         </section>
 
         <section id="view-history" class="content-section">
-            <div class="section-header">
-                <h2>Decision History</h2>
-            </div>
             <div id="history-events-cards">
                 {% for event in history_events %}
-                <div class="history-item" style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h5 style="margin: 0; font-size: 1rem;">{{ event.title }}</h5>
-                        <span style="font-size: 0.8rem; color: #666;">{{ event.organizer.organization_name }} - {{ event.date }}</span>
-                    </div>
-                    <div>
-                        {% if event.status == 'APPROVED' or event.status == 'UPCOMING' %}
-                            <span style="color: #2e7d32; font-weight: 600; font-size: 0.85rem;"><i class="fa-solid fa-check-circle"></i> Approved</span>
-                        {% else %}
-                            <span style="color: #c62828; font-weight: 600; font-size: 0.85rem;"><i class="fa-solid fa-circle-xmark"></i> Rejected</span>
-                        {% endif %}
-                    </div>
+                <div class="history-item" style="background: white; padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                    <span>{{ event.title }}</span>
+                    {% if event.status == 'APPROVED' %}
+                        <span style="color: green; font-weight: bold;">Approved</span>
+                    {% else %}
+                        <span style="color: red; font-weight: bold;">Rejected</span>
+                    {% endif %}
                 </div>
                 {% empty %}
-                <p class="text-muted" style="text-align: center; padding: 2rem;">No history available.</p>
+                <p style="text-align: center; padding: 2rem;">No history available.</p>
                 {% endfor %}
             </div>
         </section>
-    </main>
 
+    </main>
     <script src="{% static 'js/dashboard-ui.js' %}"></script>
 </body>
 </html>
