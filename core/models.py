@@ -74,7 +74,9 @@ class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    rejection_reason = models.TextField(blank=True, null=True)
     category = models.CharField(max_length=100)
+
 
     capacity = models.PositiveIntegerField()
     age_restriction = models.PositiveIntegerField(default=0, help_text="Minimum age required (0 for no restriction)")

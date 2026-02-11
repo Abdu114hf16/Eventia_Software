@@ -6,38 +6,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SCEGA Admin Dashboard | Eventia</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        /* --- SCEGA Specific Styles (Refining the Frontend Team Design) --- */
+        /* SCEGA Theme Overrides */
+        .scega-header { background: #0d47a1; }
 
-        .scega-header { background: #0d47a1; } /* Darker blue sidebar override */
+        /* Stats Cards */
+        .stat-card {
+            background: white; border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 4px solid transparent;
+        }
+        .stat-icon {
+            width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+        }
 
-        /* History Filter Buttons */
+        /* Filter Buttons */
         .history-filter-btn {
-            background: #f1f3f5;
-            color: #636e72;
-            border: 1px solid #dfe6e9;
+            background: #f1f3f5; color: #636e72; border: 1px solid #dfe6e9; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 500; transition: all 0.2s;
         }
-        .history-filter-btn:hover { background: #e9ecef; }
         .history-filter-btn.active {
-            background: #0d47a1;
-            color: white;
-            border-color: #0d47a1;
-            box-shadow: 0 2px 6px rgba(13, 71, 161, 0.2);
+            background: #0d47a1; color: white; border-color: #0d47a1; box-shadow: 0 2px 6px rgba(13, 71, 161, 0.2);
         }
 
-        /* Status Badges for History */
-        .badge-approved { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
-        .badge-rejected { background: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        /* Modals & Animations */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000;
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(4px); opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { display: flex; opacity: 1; }
 
-        /* Pending Card Animation */
-        .event-card-pending { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .event-card-pending:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .modal-card {
+            background: white; width: 90%; max-width: 500px; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25); transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.open .modal-card { transform: translateY(0); }
+
+        .modal-header-gradient { padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .bg-gradient-blue { background: linear-gradient(135deg, #3C50C8, #004e92); }
+        .bg-gradient-red { background: linear-gradient(135deg, #ff6b6b, #c62828); }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 1rem 0; }
+        .info-box { background: #f8f9fa; padding: 10px; border-radius: 8px; text-align: center; }
+        .info-label { font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        .info-value { font-weight: 600; font-size: 0.9rem; color: #333; margin-top: 4px; }
     </style>
 </head>
 
@@ -48,41 +62,31 @@
             <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">SCEGA ADMIN</span>
         </div>
-
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-view="overview" onclick="switchView('overview')">
+            <a href="#" class="nav-item active" onclick="switchView('overview', this)">
                 <i class="fa-solid fa-grid-2"></i> Dashboard
             </a>
-            <a href="#" class="nav-item" data-view="history" onclick="switchView('history')">
+            <a href="#" class="nav-item" onclick="switchView('history', this)">
                 <i class="fa-solid fa-clock-rotate-left"></i> History
             </a>
         </nav>
-
         <div class="sidebar-footer">
-            <a href="{% url 'logout_scega' %}" class="nav-item">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
-            </a>
+            <a href="{% url 'logout_scega' %}" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </div>
     </aside>
 
     <main class="dashboard-main">
-
         <header class="dashboard-header">
-            <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
+            <div class="header-left">
                 <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
-                <div class="header-title">
-                    <h1 id="page-title" style="font-size: 1.5rem; font-weight: 700; color: #0d47a1;">Admin Dashboard</h1>
-                </div>
+                <h1 id="page-title" style="font-size: 1.5rem; font-weight: 700; color: #0d47a1;">Admin Dashboard</h1>
             </div>
-
             <div class="header-profile">
                 <div class="profile-info" style="text-align: right; margin-right: 10px;">
                     <span class="profile-name" style="display: block; font-weight: 600;">{{ user.username }}</span>
                     <span class="profile-role" style="font-size: 0.8rem; color: #666; display: block;">SCEGA Administrator</span>
                 </div>
-                <div class="profile-avatar" style="background-color: #0d47a1; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">
-                    {{ user.username|slice:":1"|upper }}
-                </div>
+                <div class="profile-avatar" style="background-color: #0d47a1;">{{ user.username|slice:":1"|upper }}</div>
             </div>
         </header>
 
@@ -91,7 +95,7 @@
             {% if messages %}
             <div style="margin-bottom: 1.5rem;">
                 {% for message in messages %}
-                <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 8px; border: 1px solid #c8e6c9;">
+                <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 8px; border: 1px solid #c8e6c9; display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-check-circle"></i> {{ message }}
                 </div>
                 {% endfor %}
@@ -99,32 +103,17 @@
             {% endif %}
 
             <div class="stats-grid">
-                <div class="stat-card" style="border-left: 4px solid #ff9800; background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <div class="stat-icon" style="background: rgba(255, 152, 0, 0.15); color: #ff9800; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                        <i class="fa-solid fa-hourglass-start"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="stat-pending" style="color: #ff9800; font-size: 2rem; margin: 0;">{{ pending_count }}</h3>
-                        <p style="margin: 0; color: #666;">Pending Requests</p>
-                    </div>
+                <div class="stat-card" style="border-left-color: #ff9800;">
+                    <div class="stat-icon" style="background: rgba(255, 152, 0, 0.15); color: #ff9800;"><i class="fa-solid fa-hourglass-start"></i></div>
+                    <div class="stat-info"><h3 style="color: #ff9800; font-size: 2rem; margin: 0;">{{ pending_count }}</h3><p style="margin:0; color:#666;">Pending Requests</p></div>
                 </div>
-                <div class="stat-card" style="border-left: 4px solid #2e7d32; background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <div class="stat-icon" style="background: rgba(46, 125, 50, 0.15); color: #2e7d32; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                        <i class="fa-solid fa-check-double"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="stat-approved" style="color: #2e7d32; font-size: 2rem; margin: 0;">{{ approved_count }}</h3>
-                        <p style="margin: 0; color: #666;">Approved Events</p>
-                    </div>
+                <div class="stat-card" style="border-left-color: #2e7d32;">
+                    <div class="stat-icon" style="background: rgba(46, 125, 50, 0.15); color: #2e7d32;"><i class="fa-solid fa-check-double"></i></div>
+                    <div class="stat-info"><h3 style="color: #2e7d32; font-size: 2rem; margin: 0;">{{ approved_count }}</h3><p style="margin:0; color:#666;">Approved Events</p></div>
                 </div>
-                <div class="stat-card" style="border-left: 4px solid #c62828; background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                    <div class="stat-icon" style="background: rgba(198, 40, 40, 0.15); color: #c62828; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                        <i class="fa-solid fa-ban"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="stat-rejected" style="color: #c62828; font-size: 2rem; margin: 0;">{{ rejected_count }}</h3>
-                        <p style="margin: 0; color: #666;">Rejected Events</p>
-                    </div>
+                <div class="stat-card" style="border-left-color: #c62828;">
+                    <div class="stat-icon" style="background: rgba(198, 40, 40, 0.15); color: #c62828;"><i class="fa-solid fa-ban"></i></div>
+                    <div class="stat-info"><h3 style="color: #c62828; font-size: 2rem; margin: 0;">{{ rejected_count }}</h3><p style="margin:0; color:#666;">Rejected Events</p></div>
                 </div>
             </div>
 
@@ -142,27 +131,33 @@
                             <p style="margin: 5px 0 0 0;"><i class="fa-regular fa-calendar"></i> {{ event.date }} | <i class="fa-regular fa-clock"></i> {{ event.time }}</p>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <form method="POST" action="{% url 'scega_dashboard' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <input type="hidden" name="action" value="approve">
-                            <button type="submit" class="btn btn-sm" style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
-                                <i class="fa-solid fa-check"></i> Approve
-                            </button>
-                        </form>
-                        <form method="POST" action="{% url 'scega_dashboard' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="btn btn-sm" style="background: #c62828; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
-                                <i class="fa-solid fa-xmark"></i> Reject
-                            </button>
-                        </form>
+
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-sm"
+                            style="background: #f5f5f5; color: #555; border: 1px solid #ddd;"
+                            onclick="openViewModal(this)"
+                            data-id="{{ event.id }}"
+                            data-title="{{ event.title }}"
+                            data-category="{{ event.category }}"
+                            data-date="{{ event.date }}"
+                            data-time="{{ event.time }}"
+                            data-location="{{ event.location }}"
+                            data-desc="{{ event.description }}"
+                            data-price="{{ event.ticket_price }}">
+                            <i class="fa-solid fa-eye"></i> View
+                        </button>
+
+                        <button type="button" class="btn btn-sm" style="background: #2e7d32; color: white; border: none;" onclick="submitAction('{{ event.id }}', 'approve')">
+                            <i class="fa-solid fa-check"></i> Approve
+                        </button>
+
+                        <button type="button" class="btn btn-sm" style="background: #c62828; color: white; border: none;" onclick="openRejectModal('{{ event.id }}')">
+                            <i class="fa-solid fa-xmark"></i> Reject
+                        </button>
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align: center; padding: 3rem; color: #999; background: white; border-radius: 12px;">
+                <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px; color: #999;">
                     <i class="fa-regular fa-circle-check" style="font-size: 2.5rem; margin-bottom: 1rem; color: #ddd;"></i>
                     <p>No pending requests. All caught up!</p>
                 </div>
@@ -171,13 +166,10 @@
         </section>
 
         <section id="view-history" class="content-section" style="display: none; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-
-            <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 1.5rem;">
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="history-filter-btn active" onclick="filterHistory('all', this)" style="padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">All</button>
-                    <button class="history-filter-btn" onclick="filterHistory('approved', this)" style="padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">Approved</button>
-                    <button class="history-filter-btn" onclick="filterHistory('rejected', this)" style="padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">Rejected</button>
-                </div>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <button class="history-filter-btn active" onclick="filterHistory('all', this)">All</button>
+                <button class="history-filter-btn" onclick="filterHistory('approved', this)">Approved</button>
+                <button class="history-filter-btn" onclick="filterHistory('rejected', this)">Rejected</button>
             </div>
 
             <div id="history-events-cards" style="display: grid; gap: 0.75rem;">
@@ -186,57 +178,172 @@
                     <div>
                         <strong style="display: block; font-size: 1rem; color: #333;">{{ event.title }}</strong>
                         <span style="font-size: 0.85rem; color: #777;">{{ event.organizer.organization_name }} • {{ event.date }}</span>
+                        {% if event.status == 'REJECTED' and event.rejection_reason %}
+                            <div style="margin-top: 5px; font-size: 0.8rem; color: #c62828;"><i class="fa-solid fa-circle-info"></i> {{ event.rejection_reason }}</div>
+                        {% endif %}
                     </div>
                     <div>
                         {% if event.status == 'APPROVED' %}
-                            <span class="badge-approved"><i class="fa-solid fa-check"></i> Approved</span>
+                            <span style="background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;"><i class="fa-solid fa-check"></i> Approved</span>
                         {% else %}
-                            <span class="badge-rejected"><i class="fa-solid fa-xmark"></i> Rejected</span>
+                            <span style="background: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600;"><i class="fa-solid fa-xmark"></i> Rejected</span>
                         {% endif %}
                     </div>
                 </div>
                 {% empty %}
-                <p style="text-align: center; padding: 2rem; color: #999;">No history available.</p>
+                <p style="text-align: center; color: #999;">No history available.</p>
                 {% endfor %}
             </div>
         </section>
-
     </main>
 
-    <script>
-        // 1. View Switcher
-        function switchView(viewId) {
-            // Update Sidebar
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            const activeNav = document.querySelector(`.nav-item[data-view="${viewId}"]`);
-            if(activeNav) activeNav.classList.add('active');
+    <form id="dashboard-action-form" method="POST" action="{% url 'scega_dashboard' %}" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="event_id" id="form_event_id">
+        <input type="hidden" name="action" id="form_action">
+        <input type="hidden" name="rejection_reason" id="form_reason">
+    </form>
 
-            // Toggle Sections
-            document.querySelectorAll('section').forEach(el => el.style.display = 'none');
+    <div id="view-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header-gradient bg-gradient-blue">
+                <h3 style="margin: 0; font-size: 1.1rem;"><i class="fa-solid fa-file-lines" style="margin-right: 8px;"></i> Event Review</h3>
+                <button onclick="closeModal('view-modal')" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding: 1.5rem;">
+                <h2 id="modal-title" style="margin: 0 0 5px 0; color: #222;">Event Title</h2>
+                <span id="modal-category" style="background: #e8f0fe; color: #1a73e8; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Category</span>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-label"><i class="fa-regular fa-calendar"></i> Date</div>
+                        <div id="modal-date" class="info-value">--</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label"><i class="fa-regular fa-clock"></i> Time</div>
+                        <div id="modal-time" class="info-value">--</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label"><i class="fa-solid fa-location-dot"></i> Location</div>
+                        <div id="modal-location" class="info-value">--</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <div class="info-label" style="margin-bottom: 5px;">Description</div>
+                    <div id="modal-desc" style="background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 0.9rem; color: #444; line-height: 1.5; max-height: 150px; overflow-y: auto;">--</div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #f1f8ff; padding: 10px 15px; border-radius: 8px; border: 1px solid #d0e1fd;">
+                    <span style="font-size: 0.9rem; font-weight: 600; color: #0d47a1;">Standard Ticket</span>
+                    <span id="modal-price" style="font-weight: 700; color: #0d47a1;">-- SAR</span>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 10px;">
+                    <button id="modal-approve-btn" class="btn" style="flex: 1; background: #2e7d32; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Approve</button>
+                    <button id="modal-reject-btn" class="btn" style="flex: 1; background: #c62828; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="reject-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header-gradient bg-gradient-red">
+                <h3 style="margin: 0; font-size: 1.1rem;"><i class="fa-solid fa-triangle-exclamation" style="margin-right: 8px;"></i> Reject Event</h3>
+                <button onclick="closeModal('reject-modal')" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="padding: 1.5rem;">
+                <p style="color: #666; font-size: 0.9rem; margin-top: 0;">Please provide a reason for rejection. This will be sent to the organizer.</p>
+
+                <textarea id="reject-reason-input" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-family: inherit; resize: none; margin-bottom: 1rem;" placeholder="e.g., Safety concerns, Missing permit info..."></textarea>
+
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="closeModal('reject-modal')" style="flex: 1; background: white; border: 1px solid #ddd; padding: 10px; border-radius: 6px; cursor: pointer;">Cancel</button>
+                    <button onclick="submitRejection()" style="flex: 1; background: #c62828; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer;">Confirm Rejection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let currentEventId = null;
+
+        // 1. Navigation Logic
+        function switchView(viewId, btn) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+
+            document.querySelectorAll('.content-section').forEach(el => el.style.display = 'none');
             document.getElementById('view-' + viewId).style.display = 'block';
         }
 
-        // 2. History Filter Logic
-        function filterHistory(filterType, btnElement) {
-            // Update Buttons
-            document.querySelectorAll('.history-filter-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
+        // 2. Filter Logic
+        function filterHistory(filterType, btn) {
+            document.querySelectorAll('.history-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-            // Filter Items
-            const items = document.querySelectorAll('.history-item');
-            items.forEach(item => {
-                const status = item.getAttribute('data-status'); // 'APPROVED' or 'REJECTED'
-
-                if (filterType === 'all') {
-                    item.style.display = 'flex';
-                } else if (filterType === 'approved' && status === 'APPROVED') {
-                    item.style.display = 'flex';
-                } else if (filterType === 'rejected' && status === 'REJECTED') {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
+            document.querySelectorAll('.history-item').forEach(item => {
+                const status = item.getAttribute('data-status');
+                if (filterType === 'all') item.style.display = 'flex';
+                else if (filterType === 'approved' && status === 'APPROVED') item.style.display = 'flex';
+                else if (filterType === 'rejected' && status === 'REJECTED') item.style.display = 'flex';
+                else item.style.display = 'none';
             });
+        }
+
+        // 3. Action Submission (Approve/Reject Direct)
+        function submitAction(id, action, reason = '') {
+            document.getElementById('form_event_id').value = id;
+            document.getElementById('form_action').value = action;
+            document.getElementById('form_reason').value = reason;
+            document.getElementById('dashboard-action-form').submit();
+        }
+
+        // 4. Modal Logic
+        function openViewModal(btn) {
+            currentEventId = btn.dataset.id;
+
+            // Populate Data
+            document.getElementById('modal-title').textContent = btn.dataset.title;
+            document.getElementById('modal-category').textContent = btn.dataset.category;
+            document.getElementById('modal-date').textContent = btn.dataset.date;
+            document.getElementById('modal-time').textContent = btn.dataset.time;
+            document.getElementById('modal-location').textContent = btn.dataset.location;
+            document.getElementById('modal-desc').textContent = btn.dataset.desc;
+            document.getElementById('modal-price').textContent = btn.dataset.price + " SAR";
+
+            // Attach ID to buttons inside modal
+            document.getElementById('modal-approve-btn').onclick = function() { submitAction(currentEventId, 'approve'); };
+            document.getElementById('modal-reject-btn').onclick = function() {
+                closeModal('view-modal');
+                openRejectModal(currentEventId);
+            };
+
+            document.getElementById('view-modal').classList.add('open');
+        }
+
+        function openRejectModal(id) {
+            currentEventId = id;
+            document.getElementById('reject-reason-input').value = ''; // Reset
+            document.getElementById('reject-modal').classList.add('open');
+        }
+
+        function submitRejection() {
+            const reason = document.getElementById('reject-reason-input').value;
+            submitAction(currentEventId, 'reject', reason);
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                event.target.classList.remove('open');
+            }
         }
     </script>
 </body>

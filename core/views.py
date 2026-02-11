@@ -135,22 +135,24 @@ def login_scega(request):
 @login_required
 def scega_dashboard(request):
     if request.user.role != 'SCEGA_ADMIN':
-        # This redirect might trigger the login check,
-        # so ensuring URL 'login' exists in urls.py is crucial.
         return redirect('home')
 
-    # Handle Approvals/Rejections
     if request.method == 'POST':
         event_id = request.POST.get('event_id')
         action = request.POST.get('action')
-        # Requires get_object_or_404 (imported at top)
+        reason = request.POST.get('rejection_reason', '')  # Get reason
+
         event = get_object_or_404(Event, id=event_id)
 
         if action == 'approve':
             event.status = 'APPROVED'
+            # Clear any previous rejection reason if approved
+            event.rejection_reason = ""
             messages.success(request, f"Event '{event.title}' Published.")
+
         elif action == 'reject':
             event.status = 'REJECTED'
+            event.rejection_reason = reason  # Save the reason
             messages.warning(request, f"Event '{event.title}' Rejected.")
 
         event.save()
