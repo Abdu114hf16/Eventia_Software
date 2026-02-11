@@ -19,13 +19,9 @@ urlpatterns = [
     path('scega/', lambda request: redirect('scega_login')),
     path('scega/login/', views.login_scega, name='scega_login'),
     path('dashboard/scega/', views.scega_dashboard, name='scega_dashboard'),
-
-    # NEW: Specific Logout for SCEGA that redirects to SCEGA Login
     path('dashboard/scega/logout/', views.logout_scega, name='logout_scega'),
 
     # --- Organizer Routes ---
     path('dashboard/organizer/', views.organizer_dashboard, name='organizer_dashboard'),
-
-    # NEW: Delete Event URL
     path('dashboard/organizer/delete/<int:event_id>/', views.delete_event, name='delete_event'),
 ]
