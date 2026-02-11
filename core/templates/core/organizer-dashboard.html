@@ -8,6 +8,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Gradient Title Style */
+        #page-title {
+            font-size: 1.5rem; /* Smaller size */
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        /* File Upload Area Styling */
+        .file-upload-area {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            height: 100%;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .file-upload-area:hover {
+            border-color: var(--primary-light);
+            background: #f0f7ff;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
 
@@ -46,7 +74,9 @@
         <header class="dashboard-header">
             <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
                 <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
-                <h1 id="page-title">Dashboard Overview</h1>
+                <div class="header-title">
+                    <h1 id="page-title">Dashboard Overview</h1>
+                </div>
             </div>
             <div class="header-profile">
                 <span class="profile-name">{{ user.username }}</span>
@@ -55,6 +85,17 @@
         </header>
 
         <section id="view-overview" class="content-section active">
+
+            {% if messages %}
+            <div style="margin-bottom: 1.5rem;">
+                {% for message in messages %}
+                <div style="padding: 1rem; border-radius: 8px; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9;">
+                    <i class="fa-solid fa-check-circle"></i> {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-info">
@@ -114,16 +155,19 @@
                     <div class="form-row">
                         <div class="input-group">
                             <label>Event Title *</label>
-                            <input type="text" name="title" required>
+                            <input type="text" name="title" placeholder="e.g. Annual Tech Summit 2026" required>
                         </div>
                         <div class="input-group">
-                            <label>Category *</label>
+                            <label><i class="fa-solid fa-tags"></i> Category *</label>
                             <select name="category" required>
                                 <option value="" disabled selected>Select a category</option>
                                 <option value="Tech">Tech</option>
                                 <option value="Art">Art</option>
                                 <option value="Business">Business</option>
                                 <option value="Music">Music</option>
+                                <option value="Education">Education</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
                     </div>
@@ -133,43 +177,72 @@
                     <h3 class="form-section-title"><i class="fa-solid fa-calendar-days"></i> Date & Location</h3>
                     <div class="form-row">
                         <div class="input-group">
-                            <label>Date *</label>
+                            <label><i class="fa-regular fa-calendar"></i> Date *</label>
                             <input type="date" name="date" required>
                         </div>
                         <div class="input-group">
-                            <label>Time *</label>
+                            <label><i class="fa-regular fa-clock"></i> Time *</label>
                             <input type="time" name="time" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="input-group">
-                            <label>Venue / Location *</label>
-                            <input type="text" name="location" placeholder="e.g. Riyadh Front" required>
+                            <label><i class="fa-solid fa-location-dot"></i> Venue / Location *</label>
+                            <input type="text" name="location" placeholder="e.g. Riyadh Front Exhibition Center, Hall A" required>
                         </div>
-
                         <div class="input-group">
-                            <label>Capacity *</label>
+                            <label><i class="fa-solid fa-users"></i> Capacity *</label>
                             <input type="number" name="capacity" placeholder="Max Attendees" min="1" required>
                         </div>
-                        </div>
+                    </div>
                 </div>
 
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-align-left"></i> Event Details</h3>
                     <div class="input-group">
-                        <label>Description *</label>
-                        <textarea name="description" rows="5" required></textarea>
+                        <label><i class="fa-solid fa-pen"></i> Description *</label>
+                        <textarea name="description" rows="5" placeholder="Describe your event, what attendees can expect, key highlights, speakers, etc..." required></textarea>
                     </div>
-                    <div class="input-group">
-                        <label>Ticket Price (SAR) *</label>
-                        <input type="number" name="ticket_price" value="0" min="0">
-                        <small class="input-hint">Enter 0 for free events.</small>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fa-solid fa-ticket"></i> Tickets & Media</h3>
+                    <div class="form-row">
+                        <div class="input-group" style="flex: 1;">
+                            <label><i class="fa-solid fa-ticket"></i> Ticket Categories *</label>
+                            <div id="ticket-categories-container">
+                                <div class="ticket-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                    <input type="text" class="ticket-name" placeholder="Name" value="Standard" required style="flex: 2;">
+                                    <input type="number" name="ticket_price" class="ticket-price" placeholder="Price (SAR)" min="0" required style="flex: 1;">
+                                    <button type="button" class="btn btn-sm btn-outline disabled" style="color: #ccc; border-color: #eee; cursor: not-allowed;"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline" style="margin-top: 10px; width: 100%;" disabled title="Multiple tickets coming soon">
+                                <i class="fa-solid fa-plus"></i> Add Another Category
+                            </button>
+                        </div>
+
+                        <div class="input-group" style="flex: 1;">
+                            <label><i class="fa-solid fa-image"></i> Event Banner</label>
+                            <div class="file-upload-area">
+                                <div style="padding: 1.5rem 0; text-align: center; width: 100%;">
+                                    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 1.5rem; color: var(--primary-light); margin-bottom: 0.5rem;"></i>
+                                    <span style="display: block; margin: 0.2rem 0; font-weight: 500; font-size: 0.9rem;">Click or drag to upload</span>
+                                    <small style="display: block; color: #999; font-size: 0.75rem;">PNG, JPG up to 5MB</small>
+                                    <input type="file" name="banner" style="display: none;" id="banner-upload">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn btn-outline" onclick="switchView('overview')">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Publish Event</button>
+                    <button type="button" class="btn btn-outline" onclick="switchView('overview')">
+                        <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-rocket"></i> Publish Event
+                    </button>
                 </div>
             </form>
         </section>
@@ -236,5 +309,11 @@
     </main>
 
     <script src="{% static 'js/dashboard-ui.js' %}"></script>
+    <script>
+        // Simple script to handle file upload visual cue
+        document.querySelector('.file-upload-area').addEventListener('click', function() {
+            document.getElementById('banner-upload').click();
+        });
+    </script>
 </body>
 </html>
