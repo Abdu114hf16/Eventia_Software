@@ -13,8 +13,10 @@
 
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
+            <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">EVENTIA</span>
         </div>
+
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-view="overview">
                 <i class="fa-solid fa-grid-2"></i> Dashboard
@@ -24,6 +26,15 @@
             </a>
             <a href="#" class="nav-item" data-view="events-list">
                 <i class="fa-regular fa-calendar-days"></i> My Events
+            </a>
+            <a href="#" class="nav-item" data-view="vendors">
+                <i class="fa-solid fa-store"></i> Vendors
+            </a>
+            <a href="#" class="nav-item" data-view="requests">
+                <i class="fa-solid fa-paper-plane"></i> Requests
+            </a>
+            <a href="#" class="nav-item" data-view="analytics">
+                <i class="fa-solid fa-chart-pie"></i> Analytics
             </a>
         </nav>
         <div class="sidebar-footer">
@@ -51,10 +62,24 @@
                         <p>Total Events</p>
                     </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Pending Approval</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <h3>0</h3>
+                        <p>Total Tickets Sold</p>
+                    </div>
+                </div>
             </div>
+
             <div class="section-header">
                 <h2>Recent Events</h2>
             </div>
+
             <div id="recent-events-list">
                 {% for event in events|slice:":3" %}
                 <div class="event-list-item">
@@ -63,11 +88,11 @@
                             <h4>{{ event.title }}</h4>
                             <div class="event-meta-info">
                                 <span>{{ event.date }}</span>
-                                {% if event.approval == 'PENDING' %}
-                                    <span class="status-badge status-pending">Pending License</span>
-                                {% elif event.approval == 'APPROVED' %}
-                                    <span class="status-badge status-approved">Approved</span>
-                                {% elif event.approval == 'REJECTED' %}
+                                {% if event.status == 'PENDING' %}
+                                    <span class="status-badge status-pending">Pending Review</span>
+                                {% elif event.status == 'APPROVED' %}
+                                    <span class="status-badge status-approved">Published</span>
+                                {% elif event.status == 'REJECTED' %}
                                     <span class="status-badge status-rejected">Rejected</span>
                                 {% endif %}
                             </div>
@@ -81,48 +106,69 @@
         </section>
 
         <section id="view-create-event" class="content-section">
-            <form method="POST" action="{% url 'organizer_dashboard' %}">
+            <form id="create-event-form" method="POST" action="{% url 'organizer_dashboard' %}" enctype="multipart/form-data">
                 {% csrf_token %}
+
                 <div class="form-section">
-                    <h3 class="form-section-title">Basic Information</h3>
-                    <div class="input-group">
-                        <label>Event Title</label>
-                        <input type="text" name="title" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Category</label>
-                        <select name="category" required>
-                            <option value="Tech">Tech</option>
-                            <option value="Art">Art</option>
-                            <option value="Music">Music</option>
-                            <option value="Business">Business</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-section">
-                    <h3 class="form-section-title">Date & Time</h3>
+                    <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> Basic Information</h3>
                     <div class="form-row">
                         <div class="input-group">
-                            <label>Date</label>
+                            <label>Event Title *</label>
+                            <input type="text" name="title" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Category *</label>
+                            <select name="category" required>
+                                <option value="" disabled selected>Select a category</option>
+                                <option value="Tech">Tech</option>
+                                <option value="Art">Art</option>
+                                <option value="Business">Business</option>
+                                <option value="Music">Music</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="form-section-title"><i class="fa-solid fa-calendar-days"></i> Date & Location</h3>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Date *</label>
                             <input type="date" name="date" required>
                         </div>
                         <div class="input-group">
-                            <label>Time</label>
+                            <label>Time *</label>
                             <input type="time" name="time" required>
                         </div>
                     </div>
-                    <div class="input-group">
-                        <label>Location</label>
-                        <input type="text" name="location" required>
-                    </div>
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label>Venue / Location *</label>
+                            <input type="text" name="location" placeholder="e.g. Riyadh Front" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Capacity *</label>
+                            <input type="number" name="capacity" placeholder="Max Attendees" min="1" required>
+                        </div>
+                        </div>
                 </div>
+
                 <div class="form-section">
+                    <h3 class="form-section-title"><i class="fa-solid fa-align-left"></i> Event Details</h3>
                     <div class="input-group">
-                        <label>Description</label>
-                        <textarea name="description" rows="4" required></textarea>
+                        <label>Description *</label>
+                        <textarea name="description" rows="5" required></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Ticket Price (SAR) *</label>
+                        <input type="number" name="ticket_price" value="0" min="0">
+                        <small class="input-hint">Enter 0 for free events.</small>
                     </div>
                 </div>
+
                 <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="switchView('overview')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Publish Event</button>
                 </div>
             </form>
@@ -173,6 +219,20 @@
                 {% endfor %}
             </div>
         </section>
+
+        <section id="view-vendors" class="content-section">
+            <h2>Vendor Marketplace</h2>
+            <p>Coming soon...</p>
+        </section>
+        <section id="view-requests" class="content-section">
+            <h2>Requests</h2>
+            <p>Coming soon...</p>
+        </section>
+        <section id="view-analytics" class="content-section">
+            <h2>Analytics</h2>
+            <p>Coming soon...</p>
+        </section>
+
     </main>
 
     <script src="{% static 'js/dashboard-ui.js' %}"></script>

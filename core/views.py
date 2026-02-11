@@ -110,21 +110,55 @@ def dashboard_view(request):
 # --- DASHBOARD VIEWS ---
 
 @login_required
+@login_required
 def organizer_dashboard(request):
+    # Security: Only allow Organizers
     if request.user.role != 'ORGANIZER':
         return redirect('home')
+
+    # Handle Create Event
     if request.method == 'POST':
-        # ... fetch data (title, date, etc) ...
-        Event.objects.create(
-            organizer=request.user.organizer_profile,
-            title=request.POST.get('title'),
-            # ... other fields ...
-            status='PENDING'  # 2) & 3) Saved as Pending
-        )
-        messages.success(request, "Event requested! Waiting for SCEGA approval.")
-        return redirect('organizer_dashboard')
-    my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-date')
-    return render(request, 'core/organizer-dashboard.html', {'events': my_events})
+        try:
+            # 1. Get Data from Form
+            title = request.POST.get('title')
+            category = request.POST.get('category')
+            date = request.POST.get('date')
+            time = request.POST.get('time')
+            location = request.POST.get('location')
+            description = request.POST.get('description')
+            capacity = request.POST.get('capacity')  # <--- Now we capture this
+            price = request.POST.get('ticket_price', 0)
+
+            # 2. Create Event
+            Event.objects.create(
+                organizer=request.user.organizer_profile,
+                title=title,
+                category=category,
+                date=date,
+                time=time,
+                location=location,
+                description=description,
+                capacity=capacity,  # <--- Pass it to DB
+                ticket_price=price,
+                status='PENDING'  # Workflow start
+            )
+            messages.success(request, "Event requested! Waiting for SCEGA approval.")
+            return redirect('organizer_dashboard')
+
+        except Exception as e:
+            # Catch errors like missing fields or DB issues
+            messages.error(request, f"Error creating event: {str(e)}")
+            return redirect('organizer_dashboard')
+
+    # Fetch events
+    try:
+        my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-date')
+    except OrganizerProfile.DoesNotExist:
+        my_events = []
+
+    return render(request, 'core/organizer-dashboard.html', {
+        'events': my_events
+    })
 
 
 @login_required
