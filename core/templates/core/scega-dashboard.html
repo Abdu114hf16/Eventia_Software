@@ -41,50 +41,34 @@
 
         <section id="view-overview" class="content-section active">
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card" style="border-left: 4px solid #ff9800;">
+                    <div class="stat-icon" style="background: rgba(255, 152, 0, 0.15); color: #ff9800;">
+                        <i class="fa-solid fa-hourglass-start"></i>
+                    </div>
                     <div class="stat-info">
-                        <h3>{{ pending_events.count }}</h3>
+                        <h3 id="stat-pending" style="color: #ff9800;">{{ pending_count }}</h3>
                         <p>Pending Requests</p>
                     </div>
                 </div>
-            </div>
-
-            <div class="section-header">
-                <h2>Pending Events Queue</h2>
-            </div>
-
-            <div id="pending-events-cards" style="display: grid; gap: 1rem;">
-                {% for event in pending_events %}
-                <div class="event-card-pending" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-
-                    <div>
-                        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">{{ event.title }}</h4>
-                        <div style="font-size: 0.9rem; color: #666;">
-                            <p style="margin: 0;"><i class="fa-solid fa-user-tie"></i> <strong>Organizer:</strong> {{ event.organizer.organization_name }}</p>
-                            <p style="margin: 5px 0 0 0;"><i class="fa-regular fa-calendar"></i> {{ event.date }} | {{ event.time }}</p>
-                        </div>
+                <div class="stat-card" style="border-left: 4px solid #2e7d32;">
+                    <div class="stat-icon" style="background: rgba(46, 125, 50, 0.15); color: #2e7d32;">
+                        <i class="fa-solid fa-check-double"></i>
                     </div>
-
-                    <div style="display: flex; gap: 10px;">
-                        <form method="POST" action="{% url 'scega_dashboard' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <input type="hidden" name="action" value="approve">
-                            <button type="submit" class="btn btn-sm" style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                <i class="fa-solid fa-check"></i> Approve
-                            </button>
-                        </form>
-
-                        <form method="POST" action="{% url 'scega_dashboard' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="event_id" value="{{ event.id }}">
-                            <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="btn btn-sm" style="background: #c62828; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
-                                <i class="fa-solid fa-xmark"></i> Reject
-                            </button>
-                        </form>
+                    <div class="stat-info">
+                        <h3 id="stat-approved" style="color: #2e7d32;">{{ approved_count }}</h3>
+                        <p>Approved Events</p>
                     </div>
                 </div>
+                <div class="stat-card" style="border-left: 4px solid #c62828;">
+                    <div class="stat-icon" style="background: rgba(198, 40, 40, 0.15); color: #c62828;">
+                        <i class="fa-solid fa-ban"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-rejected" style="color: #c62828;">{{ rejected_count }}</h3>
+                        <p>Rejected Events</p>
+                    </div>
+                </div>
+            </div>
                 {% empty %}
                 <div style="text-align: center; padding: 3rem; color: #999;">
                     <i class="fa-regular fa-circle-check" style="font-size: 2rem; margin-bottom: 1rem;"></i>

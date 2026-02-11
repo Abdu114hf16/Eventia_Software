@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import SignUpForm
 from .models import Event, OrganizerProfile
+from django.shortcuts import render, redirect, get_object_or_404
 
 
 # --- ATTENDEE VIEWS ---
@@ -166,7 +167,7 @@ def scega_dashboard(request):
     if request.user.role != 'SCEGA_ADMIN':
         return redirect('home')
 
-        # 5) SCEGA Chooses Approve or Reject
+    # Handle Actions
     if request.method == 'POST':
         event_id = request.POST.get('event_id')
         action = request.POST.get('action')
@@ -182,41 +183,19 @@ def scega_dashboard(request):
         event.save()
         return redirect('scega_dashboard')
 
-        # 4) SCEGA Receives Requests (Filter by Pending)
+    # Data for the Template
     pending_events = Event.objects.filter(status='PENDING').order_by('date')
-
-    # 6) History Tab (Approved or Rejected)
     history_events = Event.objects.filter(status__in=['APPROVED', 'REJECTED']).order_by('-date')
+
+    # Counts for the Top Cards
+    pending_count = pending_events.count()
+    approved_count = Event.objects.filter(status='APPROVED').count()
+    rejected_count = Event.objects.filter(status='REJECTED').count()
 
     return render(request, 'core/scega-dashboard.html', {
         'pending_events': pending_events,
-        'history_events': history_events
+        'history_events': history_events,
+        'pending_count': pending_count,  # <--- Passing these to template
+        'approved_count': approved_count,  # <--- Passing these to template
+        'rejected_count': rejected_count,  # <--- Passing these to template
     })
-
-def logout_view(request):
-    logout(request)
-    return redirect('home')
-
-
-def login_scega(request):
-    """
-    Dedicated Login for SCEGA Admins.
-    - No Signup link.
-    - Rejects non-SCEGA users (like organizers) even if password is correct.
-    """
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-
-            # SECURITY CHECK: Is this user actually a SCEGA Admin?
-            if user.role == 'SCEGA_ADMIN':
-                login(request, user)
-                return redirect('scega_dashboard')
-            else:
-                # If a normal user/organizer tries to log in here, block them.
-                messages.error(request, "Access Denied. This portal is restricted to SCEGA Administrators.")
-    else:
-        form = AuthenticationForm()
-
-    return render(request, 'core/scega-login.html', {'form': form})
