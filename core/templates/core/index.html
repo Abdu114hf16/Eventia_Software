@@ -23,8 +23,11 @@
             </a>
             <div class="nav-links">
                 <a href="{% url 'dashboard' %}" class="btn-text" id="nav-home-btn">Home</a>
+
                 <a href="{% url 'login_attendee' %}" class="btn btn-outline" id="nav-login-btn">Log In</a>
                 <a href="{% url 'signup_attendee' %}" class="btn btn-primary" id="nav-signup-btn">Sign Up</a>
+
+                <a href="{% url 'login_business' %}" class="btn-text" style="font-size: 0.9rem; margin-left: 10px; color: var(--primary-color);">Partner Login</a>
             </div>
         </div>
     </nav>
@@ -42,7 +45,7 @@
                     <p>The centralized platform for seamless event management in Saudi Arabia. Connect with organizers, vendors, and attendees in one place.</p>
                     <div class="hero-buttons">
                         <button class="btn btn-primary" id="hero-browse-btn">Browse Events</button>
-                        <a href="{% url 'signup_attendee' %}" class="btn btn-outline" id="hero-create-btn">Create Event</a>
+                        <a href="{% url 'signup_business' %}" class="btn btn-outline" id="hero-create-btn">Create Event</a>
                     </div>
                 </div>
                 <div class="hero-image-placeholder">
