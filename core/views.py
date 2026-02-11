@@ -188,32 +188,65 @@ def organizer_dashboard(request):
 
     if request.method == 'POST':
         try:
-            Event.objects.create(
-                organizer=request.user.organizer_profile,
-                title=request.POST.get('title'),
-                category=request.POST.get('category'),
-                date=request.POST.get('date'),
-                time=request.POST.get('time'),
-                location=request.POST.get('location'),
-                description=request.POST.get('description'),
-                capacity=request.POST.get('capacity'),
-                ticket_price=request.POST.get('ticket_price', 0),
-                status='PENDING'
-            )
-            messages.success(request, "Event requested! Waiting for SCEGA approval.")
+            # Check if we are updating an existing event
+            event_id = request.POST.get('event_id')
+
+            if event_id:
+                # --- UPDATE LOGIC ---
+                event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
+                event.title = request.POST.get('title')
+                event.category = request.POST.get('category')
+                event.date = request.POST.get('date')
+                event.time = request.POST.get('time')
+                event.location = request.POST.get('location')
+                event.description = request.POST.get('description')
+                event.capacity = request.POST.get('capacity')
+                event.ticket_price = request.POST.get('ticket_price', 0)
+                # Reset status to PENDING on edit so SCEGA can re-review
+                event.status = 'PENDING'
+                event.save()
+                messages.success(request, "Event updated successfully!")
+            else:
+                # --- CREATE LOGIC ---
+                Event.objects.create(
+                    organizer=request.user.organizer_profile,
+                    title=request.POST.get('title'),
+                    category=request.POST.get('category'),
+                    date=request.POST.get('date'),
+                    time=request.POST.get('time'),
+                    location=request.POST.get('location'),
+                    description=request.POST.get('description'),
+                    capacity=request.POST.get('capacity'),
+                    ticket_price=request.POST.get('ticket_price', 0),
+                    status='PENDING'
+                )
+                messages.success(request, "Event created! Waiting for approval.")
+
             return redirect('organizer_dashboard')
+
         except Exception as e:
             messages.error(request, f"Error: {str(e)}")
             return redirect('organizer_dashboard')
 
-    # Fetch Organizer's Events
+    # Fetch events (Newest first)
     try:
-        # CHANGED: order_by('-id') ensures the most recently created events appear first
         my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-id')
     except OrganizerProfile.DoesNotExist:
         my_events = []
 
     return render(request, 'core/organizer-dashboard.html', {'events': my_events})
+
+
+# --- NEW DELETE VIEW ---
+@login_required
+def delete_event(request, event_id):
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+
+    event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
+    event.delete()
+    messages.success(request, "Event deleted successfully.")
+    return redirect('organizer_dashboard')
 
 def logout_scega(request):
     """
