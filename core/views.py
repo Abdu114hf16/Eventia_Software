@@ -35,7 +35,6 @@ def signup_attendee(request):
     if request.method == 'POST':
         data = request.POST.copy()
         data['role'] = 'ATTENDEE'
-        # Construct date of birth from dropdowns
         day = data.get('day')
         month = data.get('month')
         year = data.get('year')
@@ -125,6 +124,8 @@ def login_scega(request):
 @login_required
 def scega_dashboard(request):
     if request.user.role != 'SCEGA_ADMIN':
+        # This redirect might trigger the login check,
+        # so ensuring URL 'login' exists in urls.py is crucial.
         return redirect('home')
 
     # Handle Approvals/Rejections
