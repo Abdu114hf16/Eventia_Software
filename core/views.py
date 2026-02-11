@@ -4,6 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import SignUpForm
+from .models import Event, OrganizerProfile
 
 
 # --- ATTENDEE VIEWS ---
