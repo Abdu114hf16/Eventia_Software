@@ -196,3 +196,27 @@ def scega_dashboard(request):
 def logout_view(request):
     logout(request)
     return redirect('home')
+
+
+def login_scega(request):
+    """
+    Dedicated Login for SCEGA Admins.
+    - No Signup link.
+    - Rejects non-SCEGA users (like organizers) even if password is correct.
+    """
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+
+            # SECURITY CHECK: Is this user actually a SCEGA Admin?
+            if user.role == 'SCEGA_ADMIN':
+                login(request, user)
+                return redirect('scega_dashboard')
+            else:
+                # If a normal user/organizer tries to log in here, block them.
+                messages.error(request, "Access Denied. This portal is restricted to SCEGA Administrators.")
+    else:
+        form = AuthenticationForm()
+
+    return render(request, 'core/scega-login.html', {'form': form})

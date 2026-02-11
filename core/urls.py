@@ -18,4 +18,11 @@ urlpatterns = [
     path('signup/business/', views.signup_business, name='signup_business'),
     path('login/business/', views.login_business, name='login_business'),
     path('logout/', views.logout_view, name='logout'),
+
+    # --- SCEGA ADMIN ROUTES ---
+    # 1. Redirect root /scega to the login page
+    path('scega/', lambda request: redirect('scega_login')),
+
+    # 2. The Login Page
+    path('scega/login/', views.login_scega, name='scega_login'),
 ]
