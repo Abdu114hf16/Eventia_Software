@@ -1,99 +1,59 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCEGA Admin Dashboard</title>
+    <title>SCEGA Admin Dashboard | Eventia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        /* Specific Overrides for SCEGA Look */
-        .scega-header { background: #0d47a1; } /* Darker blue sidebar */
+        /* --- SCEGA Specific Styles (Refining the Frontend Team Design) --- */
 
-        .stat-card {
-            border: none;
-            border-radius: 12px;
-            padding: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            position: relative;
-            overflow: hidden;
+        .scega-header { background: #0d47a1; } /* Darker blue sidebar override */
+
+        /* History Filter Buttons */
+        .history-filter-btn {
+            background: #f1f3f5;
+            color: #636e72;
+            border: 1px solid #dfe6e9;
+        }
+        .history-filter-btn:hover { background: #e9ecef; }
+        .history-filter-btn.active {
+            background: #0d47a1;
+            color: white;
+            border-color: #0d47a1;
+            box-shadow: 0 2px 6px rgba(13, 71, 161, 0.2);
         }
 
-        /* Colored Side Borders for Cards */
-        .card-pending { border-left: 5px solid #ff9800; }
-        .card-approved { border-left: 5px solid #4caf50; }
-        .card-rejected { border-left: 5px solid #f44336; }
+        /* Status Badges for History */
+        .badge-approved { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge-rejected { background: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
 
-        .stat-icon-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .icon-pending { background: #fff3e0; color: #ff9800; }
-        .icon-approved { background: #e8f5e9; color: #4caf50; }
-        .icon-rejected { background: #ffebee; color: #f44336; }
-
-        .stat-value { font-size: 2rem; font-weight: 700; color: #333; line-height: 1; }
-        .stat-label { color: #666; font-size: 0.9rem; margin-top: 0.2rem; }
-
-        .queue-container {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            min-height: 400px;
-        }
-
-        .queue-header {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #0d47a1;
-            margin-bottom: 1.5rem;
-            padding-left: 10px;
-            border-left: 4px solid #0d47a1;
-        }
-
-        .event-queue-item {
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        .event-queue-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-
-        .btn-action { padding: 8px 20px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer; }
-        .btn-approve { background: #2e7d32; color: white; }
-        .btn-reject { background: #c62828; color: white; }
-        .btn-approve:hover { background: #1b5e20; }
-        .btn-reject:hover { background: #b71c1c; }
+        /* Pending Card Animation */
+        .event-card-pending { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .event-card-pending:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     </style>
 </head>
+
 <body class="dashboard-body">
 
-    <aside class="sidebar scega-header">
+    <aside class="sidebar scega-header" id="sidebar">
         <div class="sidebar-header">
             <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">SCEGA ADMIN</span>
         </div>
 
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" onclick="switchView('overview')">
+            <a href="#" class="nav-item active" data-view="overview" onclick="switchView('overview')">
                 <i class="fa-solid fa-grid-2"></i> Dashboard
             </a>
-            <a href="#" class="nav-item" onclick="switchView('history')">
+            <a href="#" class="nav-item" data-view="history" onclick="switchView('history')">
                 <i class="fa-solid fa-clock-rotate-left"></i> History
             </a>
         </nav>
@@ -106,71 +66,78 @@
     </aside>
 
     <main class="dashboard-main">
+
         <header class="dashboard-header">
-            <h1 style="font-size: 1.8rem; font-weight: 700; color: #1a237e;">Admin Dashboard</h1>
-            <div class="header-profile">
-                <div style="text-align: right; margin-right: 10px;">
-                    <span style="display: block; font-weight: 700; color: #333;">SCEGA Admin</span>
-                    <span style="display: block; font-size: 0.8rem; color: #777;">Administrator</span>
+            <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
+                <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
+                <div class="header-title">
+                    <h1 id="page-title" style="font-size: 1.5rem; font-weight: 700; color: #0d47a1;">Admin Dashboard</h1>
                 </div>
-                <div class="profile-avatar" style="background: #1a237e;">S</div>
+            </div>
+
+            <div class="header-profile">
+                <div class="profile-info" style="text-align: right; margin-right: 10px;">
+                    <span class="profile-name" style="display: block; font-weight: 600;">SCEGA Admin</span>
+                    <span class="profile-role" style="font-size: 0.8rem; color: #666; display: block;">Administrator</span>
+                </div>
+                <div class="profile-avatar" style="background-color: #0d47a1; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">S</div>
             </div>
         </header>
 
         <section id="view-overview" class="content-section active" style="background: transparent; padding: 0; box-shadow: none;">
 
             {% if messages %}
+            <div style="margin-bottom: 1.5rem;">
                 {% for message in messages %}
-                <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #c8e6c9;">
+                <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 8px; border: 1px solid #c8e6c9;">
                     <i class="fa-solid fa-check-circle"></i> {{ message }}
                 </div>
                 {% endfor %}
+            </div>
             {% endif %}
 
             <div class="stats-grid">
-                <div class="stat-card card-pending" style="background: white;">
-                    <div class="stat-icon-circle icon-pending">
-                        <i class="fa-solid fa-hourglass-half"></i>
+                <div class="stat-card" style="border-left: 4px solid #ff9800; background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div class="stat-icon" style="background: rgba(255, 152, 0, 0.15); color: #ff9800; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fa-solid fa-hourglass-start"></i>
                     </div>
-                    <div>
-                        <div class="stat-value">{{ pending_count }}</div>
-                        <div class="stat-label">Pending Requests</div>
-                    </div>
-                </div>
-
-                <div class="stat-card card-approved" style="background: white;">
-                    <div class="stat-icon-circle icon-approved">
-                        <i class="fa-solid fa-check"></i>
-                    </div>
-                    <div>
-                        <div class="stat-value">{{ approved_count }}</div>
-                        <div class="stat-label">Approved Events</div>
+                    <div class="stat-info">
+                        <h3 id="stat-pending" style="color: #ff9800; font-size: 2rem; margin: 0;">{{ pending_count }}</h3>
+                        <p style="margin: 0; color: #666;">Pending Requests</p>
                     </div>
                 </div>
-
-                <div class="stat-card card-rejected" style="background: white;">
-                    <div class="stat-icon-circle icon-rejected">
+                <div class="stat-card" style="border-left: 4px solid #2e7d32; background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div class="stat-icon" style="background: rgba(46, 125, 50, 0.15); color: #2e7d32; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fa-solid fa-check-double"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="stat-approved" style="color: #2e7d32; font-size: 2rem; margin: 0;">{{ approved_count }}</h3>
+                        <p style="margin: 0; color: #666;">Approved Events</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #c62828; background: white; padding: 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1.5rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    <div class="stat-icon" style="background: rgba(198, 40, 40, 0.15); color: #c62828; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
                         <i class="fa-solid fa-ban"></i>
                     </div>
-                    <div>
-                        <div class="stat-value">{{ rejected_count }}</div>
-                        <div class="stat-label">Rejected Events</div>
+                    <div class="stat-info">
+                        <h3 id="stat-rejected" style="color: #c62828; font-size: 2rem; margin: 0;">{{ rejected_count }}</h3>
+                        <p style="margin: 0; color: #666;">Rejected Events</p>
                     </div>
                 </div>
             </div>
 
-            <div class="queue-container">
-                <h2 class="queue-header">Pending Events Queue</h2>
+            <div class="section-header" style="margin-top: 2.5rem; border-bottom: 2px solid #eee; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.3rem; color: #333; border-left: 4px solid #0d47a1; padding-left: 10px;">Pending Events Queue</h2>
+            </div>
 
+            <div id="pending-events-cards" style="display: grid; gap: 1rem;">
                 {% for event in pending_events %}
-                <div class="event-queue-item">
+                <div class="event-card-pending" style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h3 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #333;">{{ event.title }}</h3>
-                        <div style="color: #666; font-size: 0.9rem;">
-                            <i class="fa-solid fa-user-tie"></i> Organizer: <strong>{{ event.organizer.organization_name }}</strong>
-                        </div>
-                        <div style="color: #888; font-size: 0.85rem; margin-top: 4px;">
-                            <i class="fa-regular fa-calendar"></i> {{ event.date|date:"M d, Y" }} | {{ event.time }}
+                        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: #333;">{{ event.title }}</h4>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            <p style="margin: 0;"><i class="fa-solid fa-user-tie"></i> <strong>{{ event.organizer.organization_name }}</strong></p>
+                            <p style="margin: 5px 0 0 0;"><i class="fa-regular fa-calendar"></i> {{ event.date }} | <i class="fa-regular fa-clock"></i> {{ event.time }}</p>
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
@@ -178,7 +145,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="event_id" value="{{ event.id }}">
                             <input type="hidden" name="action" value="approve">
-                            <button type="submit" class="btn-action btn-approve">
+                            <button type="submit" class="btn btn-sm" style="background: #2e7d32; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
                                 <i class="fa-solid fa-check"></i> Approve
                             </button>
                         </form>
@@ -186,39 +153,45 @@
                             {% csrf_token %}
                             <input type="hidden" name="event_id" value="{{ event.id }}">
                             <input type="hidden" name="action" value="reject">
-                            <button type="submit" class="btn-action btn-reject">
+                            <button type="submit" class="btn btn-sm" style="background: #c62828; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
                                 <i class="fa-solid fa-xmark"></i> Reject
                             </button>
                         </form>
                     </div>
                 </div>
                 {% empty %}
-                <div style="text-align: center; padding: 4rem 2rem;">
-                    <div style="background: #f5f5f5; width: 60px; height: 60px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                        <i class="fa-solid fa-calendar-check" style="font-size: 1.5rem; color: #ccc;"></i>
-                    </div>
-                    <h3 style="color: #555; margin: 0;">No pending requests at the moment</h3>
-                    <p style="color: #999;">All caught up! 🎉</p>
+                <div style="text-align: center; padding: 3rem; color: #999; background: white; border-radius: 12px;">
+                    <i class="fa-regular fa-circle-check" style="font-size: 2.5rem; margin-bottom: 1rem; color: #ddd;"></i>
+                    <p>No pending requests. All caught up!</p>
                 </div>
                 {% endfor %}
             </div>
         </section>
 
-        <section id="view-history" class="content-section" style="display: none;">
-            <div class="queue-container">
-                <h2 class="queue-header" style="border-left-color: #555; color: #333;">History Log</h2>
+        <section id="view-history" class="content-section" style="display: none; background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
 
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.3rem; color: #333; margin: 0;">Decision History</h2>
+
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="history-filter-btn active" onclick="filterHistory('all', this)" style="padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">All</button>
+                    <button class="history-filter-btn" onclick="filterHistory('approved', this)" style="padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">Approved</button>
+                    <button class="history-filter-btn" onclick="filterHistory('rejected', this)" style="padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.2s;">Rejected</button>
+                </div>
+            </div>
+
+            <div id="history-events-cards" style="display: grid; gap: 0.75rem;">
                 {% for event in history_events %}
-                <div class="event-queue-item" style="padding: 1rem;">
+                <div class="history-item" data-status="{{ event.status }}" style="background: #f8f9fa; padding: 1rem 1.5rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee;">
                     <div>
-                        <strong style="display: block; font-size: 1.05rem;">{{ event.title }}</strong>
+                        <strong style="display: block; font-size: 1rem; color: #333;">{{ event.title }}</strong>
                         <span style="font-size: 0.85rem; color: #777;">{{ event.organizer.organization_name }} • {{ event.date }}</span>
                     </div>
                     <div>
                         {% if event.status == 'APPROVED' %}
-                            <span style="background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Approved</span>
+                            <span class="badge-approved"><i class="fa-solid fa-check"></i> Approved</span>
                         {% else %}
-                            <span style="background: #ffebee; color: #c62828; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Rejected</span>
+                            <span class="badge-rejected"><i class="fa-solid fa-xmark"></i> Rejected</span>
                         {% endif %}
                     </div>
                 </div>
@@ -231,14 +204,39 @@
     </main>
 
     <script>
+        // 1. View Switcher
         function switchView(viewId) {
-            // Update sidebar active state
+            // Update Sidebar
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            const activeNav = document.querySelector(`.nav-item[data-view="${viewId}"]`);
+            if(activeNav) activeNav.classList.add('active');
 
-            // Toggle sections
+            // Toggle Sections
             document.querySelectorAll('section').forEach(el => el.style.display = 'none');
             document.getElementById('view-' + viewId).style.display = 'block';
+        }
+
+        // 2. History Filter Logic
+        function filterHistory(filterType, btnElement) {
+            // Update Buttons
+            document.querySelectorAll('.history-filter-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            // Filter Items
+            const items = document.querySelectorAll('.history-item');
+            items.forEach(item => {
+                const status = item.getAttribute('data-status'); // 'APPROVED' or 'REJECTED'
+
+                if (filterType === 'all') {
+                    item.style.display = 'flex';
+                } else if (filterType === 'approved' && status === 'APPROVED') {
+                    item.style.display = 'flex';
+                } else if (filterType === 'rejected' && status === 'REJECTED') {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>
