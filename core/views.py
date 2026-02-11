@@ -107,6 +107,13 @@ def login_business(request):
 
 def login_scega(request):
     """Restricted login for SCEGA Admins only."""
+
+    # SECURITY FIX: Clear any old messages (like 'Event Published')
+    # so they don't show up on the login screen.
+    storage = messages.get_messages(request)
+    for _ in storage:
+        pass  # Iterating clears them from the session
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -115,9 +122,13 @@ def login_scega(request):
                 login(request, user)
                 return redirect('scega_dashboard')
             else:
+                # Add a fresh error message just for this failure
                 messages.error(request, "Access Denied. SCEGA Admins only.")
+        else:
+            messages.error(request, "Invalid username or password.")
     else:
         form = AuthenticationForm()
+
     return render(request, 'core/scega-login.html', {'form': form})
 
 
@@ -198,3 +209,12 @@ def organizer_dashboard(request):
         my_events = []
 
     return render(request, 'core/organizer-dashboard.html', {'events': my_events})
+
+def logout_scega(request):
+    """
+    Specific logout for SCEGA admins.
+    Redirects to SCEGA login with a confirmation message.
+    """
+    logout(request)
+    messages.info(request, "You have been successfully logged out.")
+    return redirect('scega_login')
