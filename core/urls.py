@@ -29,4 +29,3 @@ urlpatterns = [
     # NEW: Delete Event URL
     path('dashboard/organizer/delete/<int:event_id>/', views.delete_event, name='delete_event'),
 ]
-]
