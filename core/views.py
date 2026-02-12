@@ -11,16 +11,16 @@ from .models import Event, OrganizerProfile
 
 def dashboard_view(request):
     """Redirects users based on their role."""
-    if not request.user.is_authenticated:
-        return render(request, 'core/index.html')
+    # If user is logged in with a specific role, redirect them
+    if request.user.is_authenticated:
+        if request.user.role == 'ORGANIZER':
+            return redirect('organizer_dashboard')
+        elif request.user.role == 'SCEGA_ADMIN':
+            return redirect('scega_dashboard')
 
-    if request.user.role == 'ORGANIZER':
-        return redirect('organizer_dashboard')
-    elif request.user.role == 'SCEGA_ADMIN':
-        return redirect('scega_dashboard')
-
-    # Default for attendees or others
-    return render(request, 'core/index.html')
+    # Default for guests and attendees: Show Homepage with Events
+    events = Event.objects.filter(status='APPROVED').order_by('date')
+    return render(request, 'core/index.html', {'events': events})
 
 
 def logout_view(request):
