@@ -4,29 +4,41 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import SignUpForm
-from .models import Event, OrganizerProfile
+from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser
 
 
 # --- GENERAL NAVIGATION & AUTH ---
 
 def dashboard_view(request):
     """Redirects users based on their role."""
-    if not request.user.is_authenticated:
-        return render(request, 'core/index.html')
+    # If user is logged in with a specific role, redirect them
+    if request.user.is_authenticated:
+        if request.user.role == 'ORGANIZER':
+            return redirect('organizer_dashboard')
+        elif request.user.role == 'SCEGA_ADMIN':
+            return redirect('scega_dashboard')
 
-    if request.user.role == 'ORGANIZER':
-        return redirect('organizer_dashboard')
-    elif request.user.role == 'SCEGA_ADMIN':
-        return redirect('scega_dashboard')
+    # Default for guests and attendees: Show Homepage with Events
+    events = Event.objects.filter(status='APPROVED').order_by('date')
+    return render(request, 'core/index.html', {'events': events})
 
-    # Default for attendees or others
-    return render(request, 'core/index.html')
+
+def landing_page(request):
+    """Renders the landing page (index.html) without redirection."""
+    events = Event.objects.filter(status='APPROVED').order_by('date')
+    return render(request, 'core/index.html', {'events': events})
 
 
 def logout_view(request):
     """Logs out the user and redirects to home."""
     logout(request)
     return redirect('home')
+
+
+def event_details(request, event_id):
+    """Displays detailed information about a specific event."""
+    event = get_object_or_404(Event, id=event_id)
+    return render(request, 'core/event-details.html', {'event': event})
 
 
 # --- ATTENDEE VIEWS ---
@@ -186,14 +198,38 @@ def organizer_dashboard(request):
     if request.user.role != 'ORGANIZER':
         return redirect('home')
 
+    organizer_profile = request.user.organizer_profile
+
     if request.method == 'POST':
+        # --- Handle Request Creation ---
+        if 'create_request' in request.POST:
+            try:
+                event_id = request.POST.get('event_id')
+                vendor_id = request.POST.get('vendor_id')
+                message = request.POST.get('message')
+
+                event = get_object_or_404(Event, id=event_id, organizer=organizer_profile)
+                vendor = get_object_or_404(VendorProfile, id=vendor_id)
+
+                Request.objects.create(
+                    event=event,
+                    vendor=vendor,
+                    message=message,
+                    sent_by='ORGANIZER',
+                    status='PENDING'
+                )
+                messages.success(request, f"Request sent to {vendor.user.username}!")
+            except Exception as e:
+                messages.error(request, f"Error sending request: {str(e)}")
+            return redirect('organizer_dashboard')
+
         try:
             # Check if we are updating an existing event
             event_id = request.POST.get('event_id')
 
             if event_id:
                 # --- UPDATE LOGIC ---
-                event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
+                event = get_object_or_404(Event, id=event_id, organizer=organizer_profile)
                 event.title = request.POST.get('title')
                 event.category = request.POST.get('category')
                 event.date = request.POST.get('date')
@@ -209,7 +245,7 @@ def organizer_dashboard(request):
             else:
                 # --- CREATE LOGIC ---
                 Event.objects.create(
-                    organizer=request.user.organizer_profile,
+                    organizer=organizer_profile,
                     title=request.POST.get('title'),
                     category=request.POST.get('category'),
                     date=request.POST.get('date'),
@@ -234,7 +270,23 @@ def organizer_dashboard(request):
     except OrganizerProfile.DoesNotExist:
         my_events = []
 
-    return render(request, 'core/organizer-dashboard.html', {'events': my_events})
+    # Fetch Vendors
+    vendors = VendorProfile.objects.all()
+
+    # Fetch Requests
+    outgoing_requests = Request.objects.filter(event__organizer=organizer_profile, sent_by='ORGANIZER').order_by(
+        '-created_at')
+    incoming_requests = Request.objects.filter(event__organizer=organizer_profile, sent_by='VENDOR').order_by(
+        '-created_at')
+
+    context = {
+        'events': my_events,
+        'vendors': vendors,
+        'outgoing_requests': outgoing_requests,
+        'incoming_requests': incoming_requests,
+    }
+
+    return render(request, 'core/organizer-dashboard.html', context)
 
 
 # --- NEW DELETE VIEW ---
@@ -247,6 +299,7 @@ def delete_event(request, event_id):
     event.delete()
     messages.success(request, "Event deleted successfully.")
     return redirect('organizer_dashboard')
+
 
 def logout_scega(request):
     """

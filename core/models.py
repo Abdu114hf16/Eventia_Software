@@ -91,3 +91,21 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+# --- REQUEST MODEL ---
+
+class Request(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='requests')
+    vendor = models.ForeignKey(VendorProfile, on_delete=models.CASCADE, related_name='requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    message = models.TextField()
+    sent_by = models.CharField(max_length=20, choices=[('ORGANIZER', 'Organizer'), ('VENDOR', 'Vendor')], default='ORGANIZER')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Request for {self.event.title} to {self.vendor}"

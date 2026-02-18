@@ -5,7 +5,9 @@ from . import views
 urlpatterns = [
     # --- Home & Dashboard ---
     path('', views.dashboard_view, name='home'),
+    path('landing/', views.landing_page, name='landing_page'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path('event/<int:event_id>/', views.event_details, name='event_details'),
 
     # --- Auth Routes ---
     path('login/', views.login_attendee, name='login'),
