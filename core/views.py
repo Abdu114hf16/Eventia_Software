@@ -5,31 +5,24 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import date
 from .forms import SignUpForm
-from .models import Event, OrganizerProfile, VendorProfile, Ticket, CustomUser
+from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile
 
 
 # --- GENERAL NAVIGATION & AUTH ---
 
 def dashboard_view(request):
-    """
-    Central Router: Redirects users to their specific dashboard based on role.
-    This acts as a fallback if the login redirect doesn't catch them.
-    """
+    """Redirects users to their specific dashboard based on role."""
     if request.user.is_authenticated:
-        # DEBUG: This will show in your PythonAnywhere server log
-        print(f"DEBUG ROUTER: User={request.user.username}, Role={request.user.role}")
-
         if request.user.role == 'ORGANIZER':
             return redirect('organizer_dashboard')
         elif request.user.role == 'SCEGA_ADMIN':
             return redirect('scega_dashboard')
-        elif request.user.role == 'ATTENDEE':
+        elif request.user.role == 'ATTENDEE':  # <--- THIS WAS MISSING
             return redirect('attendee_dashboard')
 
-    # Default for guests or users with no role: Show Homepage
+    # Default for guests: Show Homepage
     events = Event.objects.filter(status='APPROVED').order_by('date')
     return render(request, 'core/index.html', {'events': events})
-
 
 def landing_page(request):
     """Renders the landing page (index.html) without redirection."""

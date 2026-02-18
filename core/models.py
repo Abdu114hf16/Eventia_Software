@@ -1,15 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class Ticket(models.Model):
-    attendee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tickets')
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
-    purchase_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, default='ACTIVE') # ACTIVE, CANCELLED, USED
-
-    def __str__(self):
-        return f"{self.attendee.username} - {self.event.title}"
-
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('ORGANIZER', 'Organizer'),
@@ -44,22 +35,23 @@ class VendorProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.service_type}"
 
-
 class AttendeeProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='attendee_profile')
-
-    GENDER_CHOICES = (
-        ('M', 'Male'),
-        ('F', 'Female'),
-    )
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, null=True)
     date_of_birth = models.DateField(null=True, blank=True)
-
-    # Added Preferences field
-    #preferences = models.TextField(blank=True, null=True, help_text="User preferences for event types, dietary restrictions, etc.")
+    gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], blank=True, null=True)
+    # Add other attendee fields here if needed
 
     def __str__(self):
         return self.user.username
+
+class Ticket(models.Model):
+    attendee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tickets')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='ACTIVE') # ACTIVE, CANCELLED, USED
+
+    def __str__(self):
+        return f"{self.attendee.username} - {self.event.title}"
 
 
 # --- EVENT MODEL ---
