@@ -13,13 +13,18 @@ from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser
 # --- GENERAL NAVIGATION & AUTH ---
 
 def dashboard_view(request):
-    """Redirects users based on their role."""
-    # If user is logged in with a specific role, redirect them
+    """Redirects users to their specific dashboard based on role."""
     if request.user.is_authenticated:
         if request.user.role == 'ORGANIZER':
             return redirect('organizer_dashboard')
         elif request.user.role == 'SCEGA_ADMIN':
             return redirect('scega_dashboard')
+        elif request.user.role == 'ATTENDEE':  # <--- ADD THIS CHECK
+            return redirect('attendee_dashboard')
+
+    # Default for guests: Show Homepage
+    events = Event.objects.filter(status='APPROVED').order_by('date')
+    return render(request, 'core/index.html', {'events': events})
 
     # Default for guests and attendees: Show Homepage with Events
     events = Event.objects.filter(status='APPROVED').order_by('date')
