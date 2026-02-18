@@ -7,7 +7,6 @@ urlpatterns = [
     path('', views.dashboard_view, name='home'),
     path('landing/', views.landing_page, name='landing_page'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
-    path('event/<int:event_id>/', views.event_details, name='event_details'),
 
     # --- Auth Routes ---
     path('login/', views.login_attendee, name='login'),
@@ -27,6 +26,7 @@ urlpatterns = [
     path('dashboard/organizer/', views.organizer_dashboard, name='organizer_dashboard'),
     path('dashboard/organizer/delete/<int:event_id>/', views.delete_event, name='delete_event'),
 
+    # --- Attendee Routes ---
     path('dashboard/attendee/', views.attendee_dashboard, name='attendee_dashboard'),
     path('dashboard/attendee/register/<int:event_id>/', views.attendee_register, name='attendee_register'),
     path('dashboard/attendee/cancel/<int:ticket_id>/', views.attendee_cancel, name='attendee_cancel'),
