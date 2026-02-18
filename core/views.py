@@ -13,24 +13,16 @@ from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser,
 def dashboard_view(request):
     """Redirects users to their specific dashboard based on role."""
     if request.user.is_authenticated:
-        # --- DEBUG MESSAGE: This will appear on screen if redirect fails ---
-        print(f"DEBUG: User={request.user.username}, Role={request.user.role}")
-
         if request.user.role == 'ORGANIZER':
             return redirect('organizer_dashboard')
         elif request.user.role == 'SCEGA_ADMIN':
             return redirect('scega_dashboard')
-        elif request.user.role == 'ATTENDEE':
+        elif request.user.role == 'ATTENDEE':  # <--- THIS WAS MISSING
             return redirect('attendee_dashboard')
-        else:
-            # If we get here, the role is unknown or missing
-            messages.warning(request,
-                             f"Debug: Logged in as '{request.user.username}' but Role is '{request.user.role}' (Expected: 'ATTENDEE').")
 
     # Default for guests: Show Homepage
     events = Event.objects.filter(status='APPROVED').order_by('date')
     return render(request, 'core/index.html', {'events': events})
-
 
 def landing_page(request):
     """Renders the landing page (index.html) without redirection."""
@@ -47,8 +39,11 @@ def logout_view(request):
 
 def signup_attendee(request):
     if request.method == 'POST':
+        # FORCE role to be ATTENDEE regardless of form tampering
         data = request.POST.copy()
         data['role'] = 'ATTENDEE'
+
+        # Date logic construction
         day = data.get('day')
         month = data.get('month')
         year = data.get('year')
@@ -58,10 +53,11 @@ def signup_attendee(request):
         form = SignUpForm(data)
         if form.is_valid():
             user = form.save()
-            # Double check role
+            # Double check role is saved
             if user.role != 'ATTENDEE':
                 user.role = 'ATTENDEE'
                 user.save()
+
             login(request, user)
             return redirect('attendee_dashboard')
         else:
@@ -77,6 +73,16 @@ def login_attendee(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+
+            # --- EXPLICIT REDIRECT LOGIC ---
+            # We redirect directly here to avoid routing issues
+            if user.role == 'ATTENDEE':
+                return redirect('attendee_dashboard')
+            elif user.role == 'ORGANIZER':
+                return redirect('organizer_dashboard')
+            elif user.role == 'SCEGA_ADMIN':
+                return redirect('scega_dashboard')
+
             return redirect('dashboard')
         else:
             messages.error(request, "Invalid credentials.")
@@ -87,11 +93,13 @@ def login_attendee(request):
 
 @login_required
 def attendee_dashboard(request):
-    # If the user reaches here but isn't an Attendee, bounce them back
     if request.user.role != 'ATTENDEE':
         return redirect('home')
 
     today = date.today()
+
+    # 1. Fetch User's Tickets
+    # select_related optimization prevents N+1 queries
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
 
     my_tickets = []
@@ -105,6 +113,7 @@ def attendee_dashboard(request):
         else:
             history_events.append(ticket)
 
+    # 2. Fetch "Browse Events"
     browse_events = Event.objects.filter(
         status='APPROVED',
         date__gte=today
@@ -123,12 +132,15 @@ def attendee_dashboard(request):
 def attendee_register(request, event_id):
     if request.user.role != 'ATTENDEE':
         return redirect('home')
+
     event = get_object_or_404(Event, id=event_id)
+
     if not Ticket.objects.filter(attendee=request.user, event=event).exists():
         Ticket.objects.create(attendee=request.user, event=event, status='ACTIVE')
         messages.success(request, f"Successfully registered for {event.title}!")
     else:
         messages.warning(request, "You are already registered for this event.")
+
     return redirect('attendee_dashboard')
 
 
@@ -136,21 +148,26 @@ def attendee_register(request, event_id):
 def attendee_cancel(request, ticket_id):
     if request.user.role != 'ATTENDEE':
         return redirect('home')
+
     ticket = get_object_or_404(Ticket, id=ticket_id, attendee=request.user)
     ticket.delete()
     messages.info(request, "Registration cancelled.")
     return redirect('attendee_dashboard')
 
 
-# --- OTHER VIEWS (Keep existing ones) ---
+# --- BUSINESS VIEWS ---
+
 def signup_business(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            if user.role == 'ORGANIZER': return redirect('organizer_dashboard')
+            if user.role == 'ORGANIZER':
+                return redirect('organizer_dashboard')
             return redirect('dashboard')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = SignUpForm()
     return render(request, 'core/signup-business.html', {'form': form})
@@ -167,19 +184,28 @@ def login_business(request):
             elif user.role == 'SCEGA_ADMIN':
                 return redirect('scega_dashboard')
             return redirect('dashboard')
+        else:
+            messages.error(request, "Invalid business credentials.")
     else:
         form = AuthenticationForm()
     return render(request, 'core/login-business.html', {'form': form})
 
 
+# --- SCEGA ADMIN VIEWS ---
+
 def login_scega(request):
+    storage = messages.get_messages(request)
+    for _ in storage: pass
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            if user.user.role == 'SCEGA_ADMIN':
+            if user.role == 'SCEGA_ADMIN':
                 login(request, user)
                 return redirect('scega_dashboard')
+            else:
+                messages.error(request, "Access Denied. SCEGA Admins only.")
     else:
         form = AuthenticationForm()
     return render(request, 'core/scega-login.html', {'form': form})
@@ -187,47 +213,121 @@ def login_scega(request):
 
 def logout_scega(request):
     logout(request)
+    messages.info(request, "You have been successfully logged out.")
     return redirect('scega_login')
 
 
 @login_required
 def scega_dashboard(request):
-    if request.user.role != 'SCEGA_ADMIN': return redirect('home')
+    if request.user.role != 'SCEGA_ADMIN':
+        return redirect('home')
+
     if request.method == 'POST':
-        event = get_object_or_404(Event, id=request.POST.get('event_id'))
+        event_id = request.POST.get('event_id')
         action = request.POST.get('action')
+        reason = request.POST.get('rejection_reason', '')
+
+        event = get_object_or_404(Event, id=event_id)
+
         if action == 'approve':
             event.status = 'APPROVED'
+            event.rejection_reason = ""
+            messages.success(request, f"Event '{event.title}' Published.")
         elif action == 'reject':
             event.status = 'REJECTED'
-            event.rejection_reason = request.POST.get('rejection_reason', '')
+            event.rejection_reason = reason
+            messages.warning(request, f"Event '{event.title}' Rejected.")
+
         event.save()
         return redirect('scega_dashboard')
 
+    pending_events = Event.objects.filter(status='PENDING').order_by('date')
+    history_events = Event.objects.filter(status__in=['APPROVED', 'REJECTED']).order_by('-date')
+
     context = {
-        'pending_events': Event.objects.filter(status='PENDING').order_by('date'),
-        'history_events': Event.objects.filter(status__in=['APPROVED', 'REJECTED']).order_by('-date'),
-        'pending_count': Event.objects.filter(status='PENDING').count(),
+        'pending_events': pending_events,
+        'history_events': history_events,
+        'pending_count': pending_events.count(),
         'approved_count': Event.objects.filter(status='APPROVED').count(),
         'rejected_count': Event.objects.filter(status='REJECTED').count(),
     }
     return render(request, 'core/scega-dashboard.html', context)
 
 
+# --- ORGANIZER DASHBOARD ---
+
 @login_required
 def organizer_dashboard(request):
-    if request.user.role != 'ORGANIZER': return redirect('home')
-    # ... (Keep existing organizer logic) ...
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+
+    if request.method == 'POST':
+        try:
+            event_id = request.POST.get('event_id')
+            if event_id:
+                # Update Logic
+                event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
+                event.title = request.POST.get('title')
+                event.category = request.POST.get('category')
+                event.date = request.POST.get('date')
+                event.time = request.POST.get('time')
+                event.location = request.POST.get('location')
+                event.description = request.POST.get('description')
+                event.capacity = request.POST.get('capacity')
+                event.ticket_price = request.POST.get('ticket_price', 0)
+                event.status = 'PENDING'
+                event.save()
+                messages.success(request, "Event updated successfully!")
+            else:
+                # Create Logic
+                Event.objects.create(
+                    organizer=request.user.organizer_profile,
+                    title=request.POST.get('title'),
+                    category=request.POST.get('category'),
+                    date=request.POST.get('date'),
+                    time=request.POST.get('time'),
+                    location=request.POST.get('location'),
+                    description=request.POST.get('description'),
+                    capacity=request.POST.get('capacity'),
+                    ticket_price=request.POST.get('ticket_price', 0),
+                    status='PENDING'
+                )
+                messages.success(request, "Event created! Waiting for approval.")
+            return redirect('organizer_dashboard')
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            return redirect('organizer_dashboard')
+
     try:
         my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-id')
     except OrganizerProfile.DoesNotExist:
         my_events = []
+
     return render(request, 'core/organizer-dashboard.html', {'events': my_events})
 
 
 @login_required
 def delete_event(request, event_id):
-    if request.user.role != 'ORGANIZER': return redirect('home')
-    event = get_object_or_404(Event, id=event_id)
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+    event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
     event.delete()
+    messages.success(request, "Event deleted successfully.")
     return redirect('organizer_dashboard')
+
+from django.http import HttpResponse
+
+def debug_user_role(request):
+    if not request.user.is_authenticated:
+        return HttpResponse("<h1>You are NOT logged in.</h1><a href='/login/'>Log In</a>")
+
+    return HttpResponse(f"""
+        <h1>User Debugger</h1>
+        <ul>
+            <li><strong>Username:</strong> '{request.user.username}'</li>
+            <li><strong>Role (Raw Value):</strong> '{request.user.role}'</li>
+            <li><strong>Is 'ATTENDEE'?:</strong> {request.user.role == 'ATTENDEE'}</li>
+            <li><strong>Length of Role:</strong> {len(request.user.role)}</li>
+        </ul>
+        <p>If "Is ATTENDEE" is False, the redirect will fail.</p>
+    """)

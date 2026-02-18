@@ -2,6 +2,8 @@ from django.urls import path
 from django.shortcuts import redirect
 from . import views
 
+
+path('debug-me/', views.debug_user_role, name='debug_user_role'),
 urlpatterns = [
     # --- Home & Dashboard ---
     path('', views.dashboard_view, name='home'),
