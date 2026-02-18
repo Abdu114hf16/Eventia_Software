@@ -6,6 +6,8 @@ from django.contrib import messages
 from datetime import date
 from .forms import SignUpForm
 from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 # --- GENERAL NAVIGATION & AUTH ---
@@ -98,35 +100,47 @@ def attendee_dashboard(request):
 
     today = date.today()
 
-    # 1. Fetch User's Tickets
-    # select_related optimization prevents N+1 queries
+    # 1. Fetch Data
+    # We fetch ALL approved events for the "Browse" section logic
+    all_events = Event.objects.filter(status='APPROVED').order_by('date')
+
+    # Fetch User's Tickets
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
+    ticket_map = {t.event.id: t.id for t in user_tickets}  # Map Event ID -> Ticket ID
 
-    my_tickets = []
-    history_events = []
-    ticket_event_ids = []
+    # 2. Serialize Events to JSON (Matching your JS Schema)
+    events_data = []
+    for event in all_events:
+        is_registered = event.id in ticket_map
+        events_data.append({
+            'id': event.id,
+            'title': event.title,
+            'category': event.category,
+            'date': event.date.strftime('%Y-%m-%d'),
+            'time': event.time.strftime('%H:%M'),
+            'location': event.location,
+            'description': event.description,
+            'price': float(event.ticket_price),
+            'image': 'assets/event-placeholder.jpg',  # Default or actual image
+            'isRegistered': is_registered,
+            'ticketId': ticket_map.get(event.id) if is_registered else None,
+            'status': 'upcoming' if event.date >= today else 'past'
+        })
 
-    for ticket in user_tickets:
-        ticket_event_ids.append(ticket.event.id)
-        if ticket.event.date >= today:
-            my_tickets.append(ticket)
-        else:
-            history_events.append(ticket)
-
-    # 2. Fetch "Browse Events"
-    browse_events = Event.objects.filter(
-        status='APPROVED',
-        date__gte=today
-    ).exclude(id__in=ticket_event_ids).order_by('date')
+    # 3. Serialize Profile
+    profile_data = {
+        'username': request.user.username,
+        'email': request.user.email,
+        'role': 'Attendee',
+        'initial': request.user.username[0].upper() if request.user.username else 'A'
+    }
 
     context = {
-        'my_tickets': my_tickets,
-        'history_events': history_events,
-        'browse_events': browse_events,
-        'user': request.user
+        # We pass the data as a JSON string to be used by JS
+        'events_json': json.dumps(events_data, cls=DjangoJSONEncoder),
+        'profile_json': json.dumps(profile_data, cls=DjangoJSONEncoder),
     }
     return render(request, 'core/attendee-dashboard.html', context)
-
 
 @login_required
 def attendee_register(request, event_id):

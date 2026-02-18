@@ -5,40 +5,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eventia | My Events</title>
+    <title>My Events | Eventia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        /* Essential View Switching Styles */
-        .view-section {
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-        .view-section.active {
-            display: block;
-        }
-        .att-nav-link.active {
-            color: #004e92 !important;
-            font-weight: 700;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        /* Fix for Ticket Card Grid */
-        .tickets-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
+        /* Essential layout styles to ensure views work */
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+        .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
     </style>
 </head>
 
-<body>
+<body class="dashboard-body">
 
     <nav class="landing-nav" id="landing-navbar" style="background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); padding: 1rem 2rem;">
         <div class="container nav-container" style="display: flex; justify-content: space-between; align-items: center;">
@@ -48,7 +32,6 @@
 
             <div class="nav-links" style="display: flex; gap: 2rem;">
                 <a href="#" class="att-nav-link active" data-view="home">Home</a>
-                <a href="#" class="att-nav-link" data-view="home" onclick="scrollToSection('my-tickets-section')">My Tickets</a>
                 <a href="#" class="att-nav-link" data-view="history">History</a>
                 <a href="#" class="att-nav-link" data-view="profile">Profile</a>
             </div>
@@ -66,201 +49,33 @@
         </div>
     </nav>
 
-    <div class="container" style="margin-top: 1rem;">
+    <main class="container" style="padding: 2rem 0; min-height: 80vh; max-width: 1200px; margin: 0 auto;">
+
         {% if messages %}
+        <div style="margin-bottom: 2rem;">
             {% for message in messages %}
-            <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #c8e6c9;">
-                <i class="fa-solid fa-check-circle"></i> {{ message }}
-            </div>
+            <div style="padding: 1rem; background: #e8f5e9; color: #2e7d32; border-radius: 8px; border: 1px solid #c8e6c9;">{{ message }}</div>
             {% endfor %}
+        </div>
         {% endif %}
-    </div>
 
-    <main class="container" style="padding: 2rem 0; min-height: 80vh;">
-
-        <section id="view-home" class="view-section active">
-
-            <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 3rem; border-radius: 20px; color: white; margin-bottom: 3rem; text-align: center;">
-                <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Find Your Next Experience</h1>
-                <p style="opacity: 0.9; margin-bottom: 2rem;">Discover events tailored to your interests in Saudi Arabia.</p>
-                <div class="search-bar" style="max-width: 600px; margin: 0 auto; position: relative;">
-                    <input type="text" placeholder="Search for events, venues, or categories..." style="width: 100%; padding: 15px 20px; border-radius: 50px; border: none; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                    <button style="position: absolute; right: 5px; top: 5px; background: #004e92; color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;">
-                        <i class="fa-solid fa-search"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div id="my-tickets-section" style="margin-bottom: 4rem;">
-                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2 style="font-size: 1.8rem; color: #333;">My Upcoming Tickets</h2>
-                    <span class="badge" style="background: #e3f2fd; color: #004e92; padding: 5px 12px; border-radius: 15px; font-weight: 600;">{{ my_tickets|length }} Active</span>
-                </div>
-
-                <div class="tickets-grid">
-                    {% for ticket in my_tickets %}
-                    <div class="ticket-card" style="background: white; border: 1px solid #eee; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03); transition: transform 0.2s;">
-                        <div class="ticket-header" style="height: 100px; background: linear-gradient(135deg, #004e92, #2a5298); position: relative; padding: 1.5rem;">
-                            <span style="background: rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;">{{ ticket.event.category }}</span>
-                        </div>
-                        <div class="ticket-body" style="padding: 1.5rem;">
-                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">{{ ticket.event.title }}</h3>
-                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;"><i class="fa-solid fa-location-dot"></i> {{ ticket.event.location }}</p>
-
-                            <div style="display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 1rem;">
-                                <div>
-                                    <span style="display: block; font-size: 0.8rem; color: #888;">Date</span>
-                                    <strong style="color: #333;">{{ ticket.event.date|date:"M d, Y" }}</strong>
-                                </div>
-                                <div>
-                                    <span style="display: block; font-size: 0.8rem; color: #888;">Time</span>
-                                    <strong style="color: #333;">{{ ticket.event.time }}</strong>
-                                </div>
-                            </div>
-
-                            <form method="POST" action="{% url 'attendee_cancel' ticket.id %}" onsubmit="return confirm('Are you sure you want to cancel?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-outline" style="width: 100%; border: 1px solid #ffcdd2; color: #c62828;">Cancel Ticket</button>
-                            </form>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: 16px; border: 2px dashed #eee;">
-                        <i class="fa-solid fa-ticket" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                        <h3 style="color: #666;">No upcoming tickets</h3>
-                        <p style="color: #999;">Browse events below to get started!</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-
-            <div id="browse-events-section">
-                <h2 style="font-size: 1.8rem; color: #333; margin-bottom: 1.5rem;">Browse Popular Events</h2>
-
-                <div class="tickets-grid">
-                    {% for event in browse_events %}
-                    <div class="ticket-card" style="background: white; border: 1px solid #eee; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-                        <div class="ticket-header" style="height: 120px; background: linear-gradient(135deg, #667eea, #764ba2); padding: 1.5rem;">
-                            <span style="background: rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;">{{ event.category }}</span>
-                        </div>
-                        <div class="ticket-body" style="padding: 1.5rem;">
-                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">{{ event.title }}</h3>
-                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem; min-height: 40px;">{{ event.description|truncatechars:80 }}</p>
-
-                            <div style="display: flex; gap: 10px; margin-bottom: 1rem; font-size: 0.85rem; color: #555;">
-                                <span><i class="fa-regular fa-calendar"></i> {{ event.date|date:"M d" }}</span>
-                                <span><i class="fa-solid fa-map-pin"></i> {{ event.location }}</span>
-                            </div>
-
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
-                                <span style="font-weight: 700; color: #004e92; font-size: 1.1rem;">
-                                    {% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} SAR{% endif %}
-                                </span>
-                                <form method="POST" action="{% url 'attendee_register' event.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-primary" style="background: #004e92; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">Register</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p style="color: #666;">No new events available to browse.</p>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
-
-        <section id="view-history" class="view-section">
-            <h2 style="font-size: 1.8rem; color: #333; margin-bottom: 1.5rem;">Event History</h2>
-
-            <div style="background: white; border-radius: 16px; border: 1px solid #eee; overflow: hidden;">
-                {% for ticket in history_events %}
-                <div style="display: flex; padding: 1.5rem; border-bottom: 1px solid #eee; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; gap: 1.5rem; align-items: center;">
-                        <div style="background: #f1f3f5; width: 60px; height: 60px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                            <span style="font-weight: 700; color: #999; font-size: 1.2rem;">{{ ticket.event.date|date:"d" }}</span>
-                            <span style="font-size: 0.7rem; color: #999; text-transform: uppercase;">{{ ticket.event.date|date:"M" }}</span>
-                        </div>
-                        <div>
-                            <h4 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #666;">{{ ticket.event.title }}</h4>
-                            <p style="margin: 0; color: #999; font-size: 0.9rem;">{{ ticket.event.location }}</p>
-                        </div>
-                    </div>
-                    <span style="background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Attended</span>
-                </div>
-                {% empty %}
-                <div style="padding: 3rem; text-align: center; color: #999;">
-                    <p>No past events found.</p>
-                </div>
-                {% endfor %}
-            </div>
-        </section>
-
-        <section id="view-profile" class="view-section">
-            <h2 style="font-size: 1.8rem; color: #333; margin-bottom: 1.5rem;">My Profile</h2>
-
-            <div style="max-width: 600px; background: white; padding: 2rem; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem;">
-                    <div style="width: 80px; height: 80px; background: #004e92; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700;">
-                        {{ user.username|slice:":1"|upper }}
-                    </div>
-                    <div>
-                        <h3 style="margin: 0;">{{ user.username }}</h3>
-                        <p style="color: #666; margin: 0;">{{ user.email }}</p>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Username</label>
-                    <input type="text" value="{{ user.username }}" disabled style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
-                </div>
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Email</label>
-                    <input type="text" value="{{ user.email }}" disabled style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
-                </div>
-                <div class="form-group" style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Role</label>
-                    <input type="text" value="{{ user.get_role_display }}" disabled style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
-                </div>
-            </div>
-        </section>
-
+        <section id="view-home" class="view-section active"></section>
+        <section id="view-history" class="view-section"></section>
+        <section id="view-profile" class="view-section"></section>
     </main>
 
-    <footer class="site-footer" style="background: white; border-top: 1px solid #eee; padding: 3rem 0;">
+    <footer class="site-footer" style="background: white; border-top: 1px solid #eee; padding: 3rem 0; margin-top: auto;">
         <div class="container" style="text-align: center; color: #666;">
-            <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" style="height: 30px; margin-bottom: 1rem; opacity: 0.8;">
             <p>&copy; 2026 Eventia. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const navLinks = document.querySelectorAll('.att-nav-link');
-            const sections = document.querySelectorAll('.view-section');
-
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    const view = link.dataset.view;
-                    if(view) {
-                        e.preventDefault();
-
-                        // Update Active Link
-                        navLinks.forEach(l => l.classList.remove('active'));
-                        link.classList.add('active');
-
-                        // Show Section
-                        sections.forEach(sec => sec.classList.remove('active'));
-                        document.getElementById('view-' + view).classList.add('active');
-                    }
-                });
-            });
-        });
-
-        function scrollToSection(id) {
-            const el = document.getElementById(id);
-            if(el) el.scrollIntoView({ behavior: 'smooth' });
-        }
+        window.DJANGO_EVENTS = {{ events_json|safe }};
+        window.DJANGO_PROFILE = {{ profile_json|safe }};
     </script>
+
+    <script src="{% static 'js/attendee-logic.js' %}"></script>
+
 </body>
 </html>
