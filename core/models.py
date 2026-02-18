@@ -1,6 +1,15 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+class Ticket(models.Model):
+    attendee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tickets')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='ACTIVE') # ACTIVE, CANCELLED, USED
+
+    def __str__(self):
+        return f"{self.attendee.username} - {self.event.title}"
+
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
         ('ORGANIZER', 'Organizer'),

@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from datetime import date
+from .models import Ticket
 from django.contrib import messages
 from .forms import SignUpForm
 from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser
+
 
 
 # --- GENERAL NAVIGATION & AUTH ---
@@ -309,3 +312,68 @@ def logout_scega(request):
     logout(request)
     messages.info(request, "You have been successfully logged out.")
     return redirect('scega_login')
+
+
+@login_required
+def attendee_dashboard(request):
+    if request.user.role != 'ATTENDEE':
+        return redirect('home')
+
+    today = date.today()
+
+    # 1. Fetch User's Tickets
+    user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
+
+    # Separate into Upcoming (My Tickets) and Past (History)
+    my_tickets = []
+    history_events = []
+    ticket_event_ids = []
+
+    for ticket in user_tickets:
+        ticket_event_ids.append(ticket.event.id)
+        if ticket.event.date >= today:
+            my_tickets.append(ticket)
+        else:
+            history_events.append(ticket)
+
+    # 2. Fetch "Browse Events" (Upcoming, Approved, Not already registered)
+    browse_events = Event.objects.filter(
+        status='APPROVED',
+        date__gte=today
+    ).exclude(id__in=ticket_event_ids).order_by('date')
+
+    context = {
+        'my_tickets': my_tickets,
+        'history_events': history_events,
+        'browse_events': browse_events,
+        'user': request.user
+    }
+    return render(request, 'core/attendee-dashboard.html', context)
+
+
+@login_required
+def attendee_register(request, event_id):
+    if request.user.role != 'ATTENDEE':
+        return redirect('home')
+
+    event = get_object_or_404(Event, id=event_id)
+
+    # Check if already registered
+    if not Ticket.objects.filter(attendee=request.user, event=event).exists():
+        Ticket.objects.create(attendee=request.user, event=event, status='ACTIVE')
+        messages.success(request, f"Successfully registered for {event.title}!")
+    else:
+        messages.warning(request, "You are already registered for this event.")
+
+    return redirect('attendee_dashboard')
+
+
+@login_required
+def attendee_cancel(request, ticket_id):
+    if request.user.role != 'ATTENDEE':
+        return redirect('home')
+
+    ticket = get_object_or_404(Ticket, id=ticket_id, attendee=request.user)
+    ticket.delete()  # Or set status='CANCELLED' if you prefer soft delete
+    messages.info(request, "Registration cancelled.")
+    return redirect('attendee_dashboard')
