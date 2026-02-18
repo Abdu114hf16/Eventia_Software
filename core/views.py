@@ -331,3 +331,8 @@ def debug_user_role(request):
         </ul>
         <p>If "Is ATTENDEE" is False, the redirect will fail.</p>
     """)
+
+def event_details(request, event_id):
+    """Renders the details page for a specific event."""
+    event = get_object_or_404(Event, id=event_id)
+    return render(request, 'core/event_details.html', {'event': event})

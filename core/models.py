@@ -49,8 +49,8 @@ class Ticket(models.Model):
     def __str__(self):
         return f"{self.attendee.username} - {self.event.title}"
 
-# --- EVENT MODEL ---
 
+# --- EVENT MODEL ---
 class Event(models.Model):
     STATUS_CHOICES = (
         ('PENDING', 'Pending Approval'),
@@ -71,8 +71,11 @@ class Event(models.Model):
     category = models.CharField(max_length=100)
     capacity = models.PositiveIntegerField()
     age_restriction = models.PositiveIntegerField(default=0, help_text="Minimum age required (0 for no restriction)")
+
     date = models.DateField()
     time = models.TimeField()
+
+    # REMOVED DUPLICATE APPROVAL FIELD HERE
     approval = models.CharField(max_length=20, choices=APPROVAL_CHOICES, default='PENDING')
     location = models.CharField(max_length=255)
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

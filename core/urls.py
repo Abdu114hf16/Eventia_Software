@@ -27,6 +27,7 @@ urlpatterns = [
     # --- Organizer Routes ---
     path('dashboard/organizer/', views.organizer_dashboard, name='organizer_dashboard'),
     path('dashboard/organizer/delete/<int:event_id>/', views.delete_event, name='delete_event'),
+    path('event/<int:event_id>/', views.event_details, name='event_details'),
 
     # --- Attendee Routes ---
     path('dashboard/attendee/', views.attendee_dashboard, name='attendee_dashboard'),

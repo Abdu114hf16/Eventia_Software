@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.title }} | Eventia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="background: #f8f9fa;">
+
+    <nav class="navbar" style="background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+        <div class="logo">
+            <a href="{% url 'home' %}" style="text-decoration: none; font-weight: 700; font-size: 1.5rem; color: #004e92;">EVENTIA</a>
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">Dashboard</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline">Log In</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <header style="background: linear-gradient(135deg, #004e92, #000428); color: white; padding: 4rem 2rem; text-align: center;">
+        <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">{{ event.category }}</span>
+        <h1 style="font-size: 3rem; margin: 1rem 0;">{{ event.title }}</h1>
+        <p style="font-size: 1.2rem; opacity: 0.9;"><i class="fa-solid fa-location-dot"></i> {{ event.location }}</p>
+    </header>
+
+    <main style="max-width: 900px; margin: -50px auto 4rem; padding: 0 1rem;">
+        <div style="background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+
+            <div style="display: flex; gap: 2rem; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 2rem;">
+                <div style="flex: 1; text-align: center; border-right: 1px solid #eee;">
+                    <i class="fa-regular fa-calendar" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
+                    <h3 style="margin: 0;">{{ event.date }}</h3>
+                    <p style="color: #666; margin: 0;">Date</p>
+                </div>
+                <div style="flex: 1; text-align: center; border-right: 1px solid #eee;">
+                    <i class="fa-regular fa-clock" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
+                    <h3 style="margin: 0;">{{ event.time }}</h3>
+                    <p style="color: #666; margin: 0;">Time</p>
+                </div>
+                <div style="flex: 1; text-align: center;">
+                    <i class="fa-solid fa-ticket" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
+                    <h3 style="margin: 0;">{% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} SAR{% endif %}</h3>
+                    <p style="color: #666; margin: 0;">Price</p>
+                </div>
+            </div>
+
+            <h2 style="margin-bottom: 1rem;">About This Event</h2>
+            <p style="line-height: 1.8; color: #444; font-size: 1.05rem; margin-bottom: 2rem;">{{ event.description }}</p>
+
+            <div style="background: #f0f7ff; padding: 1.5rem; border-radius: 12px; border: 1px solid #cce5ff;">
+                <h3 style="margin-top: 0; color: #004e92;">Ready to attend?</h3>
+                {% if user.is_authenticated %}
+                    {% if user.role == 'ATTENDEE' %}
+                        <form method="POST" action="{% url 'attendee_register' event.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Register Now</button>
+                        </form>
+                    {% else %}
+                         <p>Please log in as an Attendee to register.</p>
+                         <a href="{% url 'logout' %}" class="btn btn-outline">Log Out & Switch Account</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary" style="width: 100%; text-align: center; display: block; padding: 1rem;">Log In to Register</a>
+                {% endif %}
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>
