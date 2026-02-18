@@ -11,10 +11,13 @@ from .models import Event, OrganizerProfile, VendorProfile, Ticket, CustomUser
 # --- GENERAL NAVIGATION & AUTH ---
 
 def dashboard_view(request):
-    """Redirects users to their specific dashboard based on role."""
+    """
+    Central Router: Redirects users to their specific dashboard based on role.
+    This acts as a fallback if the login redirect doesn't catch them.
+    """
     if request.user.is_authenticated:
-        # Debugging: Check your server logs if redirection fails
-        print(f"DEBUG: User {request.user.username} has role: {request.user.role}")
+        # DEBUG: This will show in your PythonAnywhere server log
+        print(f"DEBUG ROUTER: User={request.user.username}, Role={request.user.role}")
 
         if request.user.role == 'ORGANIZER':
             return redirect('organizer_dashboard')
@@ -23,7 +26,7 @@ def dashboard_view(request):
         elif request.user.role == 'ATTENDEE':
             return redirect('attendee_dashboard')
 
-    # Default for guests (or users with no specific role): Show Homepage
+    # Default for guests or users with no role: Show Homepage
     events = Event.objects.filter(status='APPROVED').order_by('date')
     return render(request, 'core/index.html', {'events': events})
 
@@ -35,7 +38,6 @@ def landing_page(request):
 
 
 def logout_view(request):
-    """Logs out the user and redirects to home."""
     logout(request)
     return redirect('home')
 
@@ -44,9 +46,11 @@ def logout_view(request):
 
 def signup_attendee(request):
     if request.method == 'POST':
+        # FORCE role to be ATTENDEE regardless of form tampering
         data = request.POST.copy()
         data['role'] = 'ATTENDEE'
-        # Date logic
+
+        # Date logic construction
         day = data.get('day')
         month = data.get('month')
         year = data.get('year')
@@ -56,8 +60,13 @@ def signup_attendee(request):
         form = SignUpForm(data)
         if form.is_valid():
             user = form.save()
+            # Double check role is saved
+            if user.role != 'ATTENDEE':
+                user.role = 'ATTENDEE'
+                user.save()
+
             login(request, user)
-            return redirect('attendee_dashboard')  # Explicit redirect after signup
+            return redirect('attendee_dashboard')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
@@ -71,7 +80,16 @@ def login_attendee(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            # Redirect to the main dashboard router
+
+            # --- EXPLICIT REDIRECT LOGIC ---
+            # We redirect directly here to avoid routing issues
+            if user.role == 'ATTENDEE':
+                return redirect('attendee_dashboard')
+            elif user.role == 'ORGANIZER':
+                return redirect('organizer_dashboard')
+            elif user.role == 'SCEGA_ADMIN':
+                return redirect('scega_dashboard')
+
             return redirect('dashboard')
         else:
             messages.error(request, "Invalid credentials.")
@@ -88,6 +106,7 @@ def attendee_dashboard(request):
     today = date.today()
 
     # 1. Fetch User's Tickets
+    # select_related optimization prevents N+1 queries
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
 
     my_tickets = []
@@ -101,7 +120,7 @@ def attendee_dashboard(request):
         else:
             history_events.append(ticket)
 
-    # 2. Fetch "Browse Events" (Upcoming, Approved, Not already registered)
+    # 2. Fetch "Browse Events"
     browse_events = Event.objects.filter(
         status='APPROVED',
         date__gte=today
@@ -143,7 +162,7 @@ def attendee_cancel(request, ticket_id):
     return redirect('attendee_dashboard')
 
 
-# --- BUSINESS VIEWS (Organizer/Vendor) ---
+# --- BUSINESS VIEWS ---
 
 def signup_business(request):
     if request.method == 'POST':
