@@ -100,15 +100,15 @@ def attendee_dashboard(request):
 
     today = date.today()
 
-    # 1. Fetch Data
-    # We fetch ALL approved events for the "Browse" section logic
+    # 1. Fetch All Approved Events (for Browse section)
     all_events = Event.objects.filter(status='APPROVED').order_by('date')
 
-    # Fetch User's Tickets
+    # 2. Fetch User's Tickets (to check registration status)
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
-    ticket_map = {t.event.id: t.id for t in user_tickets}  # Map Event ID -> Ticket ID
+    # Create a map: Event_ID -> Ticket_ID (for cancellation)
+    ticket_map = {t.event.id: t.id for t in user_tickets}
 
-    # 2. Serialize Events to JSON (Matching your JS Schema)
+    # 3. Serialize Events to JSON (Matching Frontend Schema)
     events_data = []
     for event in all_events:
         is_registered = event.id in ticket_map
@@ -121,13 +121,12 @@ def attendee_dashboard(request):
             'location': event.location,
             'description': event.description,
             'price': float(event.ticket_price),
-            'image': 'assets/event-placeholder.jpg',  # Default or actual image
             'isRegistered': is_registered,
-            'ticketId': ticket_map.get(event.id) if is_registered else None,
+            'ticketId': ticket_map.get(event.id),  # Needed for cancel link
             'status': 'upcoming' if event.date >= today else 'past'
         })
 
-    # 3. Serialize Profile
+    # 4. Serialize Profile Data
     profile_data = {
         'username': request.user.username,
         'email': request.user.email,
@@ -136,7 +135,7 @@ def attendee_dashboard(request):
     }
 
     context = {
-        # We pass the data as a JSON string to be used by JS
+        # Inject data as safe JSON strings
         'events_json': json.dumps(events_data, cls=DjangoJSONEncoder),
         'profile_json': json.dumps(profile_data, cls=DjangoJSONEncoder),
     }

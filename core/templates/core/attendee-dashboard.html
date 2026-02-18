@@ -5,46 +5,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Events | Eventia</title>
+    <title>Eventia | My Events</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <link rel="stylesheet" href="{% static 'css/style2.css' %}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Essential View Switching & Animation */
+        /* Essential View Switching (Preserved from Frontend Team) */
         .view-section { display: none; animation: fadeIn 0.4s ease; }
         .view-section.active { display: block; }
         .att-nav-link.active { color: #004e92 !important; font-weight: 700; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Ticket Card Layout */
-        .tickets-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
-        }
-
-        .ticket-card {
-            background: white;
-            border: 1px solid #eee;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-            transition: transform 0.2s;
-            display: flex;
-            flex-direction: column;
-        }
-        .ticket-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
-
-        .ticket-header { padding: 1.5rem; height: 100px; position: relative; }
-        .ticket-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .tickets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
     </style>
 </head>
 
@@ -58,7 +33,6 @@
 
             <div class="nav-links" style="display: flex; gap: 2rem;">
                 <a href="#" class="att-nav-link active" data-view="home">Home</a>
-                <a href="#" class="att-nav-link" data-view="home" onclick="scrollToSection('my-tickets-section')">My Tickets</a>
                 <a href="#" class="att-nav-link" data-view="history">History</a>
                 <a href="#" class="att-nav-link" data-view="profile">Profile</a>
             </div>
@@ -76,7 +50,7 @@
         </div>
     </nav>
 
-    <div class="container" style="margin-top: 1rem; max-width: 1200px; margin: 1rem auto;">
+    <div class="container" style="margin-top: 1rem;">
         {% if messages %}
             {% for message in messages %}
             <div style="background: #e8f5e9; color: #2e7d32; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #c8e6c9;">
@@ -86,13 +60,10 @@
         {% endif %}
     </div>
 
-    <main class="container" style="padding: 2rem 0; min-height: 80vh; max-width: 1200px; margin: 0 auto;">
-
+    <main class="container" style="padding: 2rem 0; min-height: 80vh;">
         <section id="view-home" class="view-section active">
-
             <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 3rem; border-radius: 20px; color: white; margin-bottom: 3rem; text-align: center;">
                 <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Find Your Next Experience</h1>
-                <p style="opacity: 0.9; margin-bottom: 2rem;">Discover events tailored to your interests in Saudi Arabia.</p>
                 <div class="search-bar" style="max-width: 600px; margin: 0 auto; position: relative;">
                     <input type="text" id="event-search-input" placeholder="Search events..." style="width: 100%; padding: 15px 20px; border-radius: 50px; border: none; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                 </div>
@@ -120,194 +91,21 @@
             <h2 style="font-size: 1.8rem; color: #333; margin-bottom: 1.5rem;">My Profile</h2>
             <div id="profile-card"></div>
         </section>
-
     </main>
 
-    <footer class="site-footer" style="background: white; border-top: 1px solid #eee; padding: 3rem 0; margin-top: auto;">
+    <footer class="site-footer" style="background: white; border-top: 1px solid #eee; padding: 3rem 0;">
         <div class="container" style="text-align: center; color: #666;">
-            <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" style="height: 30px; margin-bottom: 1rem; opacity: 0.8;">
             <p>&copy; 2026 Eventia. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        (function() {
-            console.log("Initializing Attendee Dashboard...");
-
-            // 1. DATA INJECTION (From Django)
-            const eventsData = {{ events_json|safe }};
-            const profileData = {{ profile_json|safe }};
-
-            // 2. DOM ELEMENTS
-            const myTicketsGrid = document.getElementById('my-tickets-grid');
-            const browseGrid = document.getElementById('browse-grid');
-            const historyList = document.getElementById('history-list');
-            const profileCard = document.getElementById('profile-card');
-            const searchInput = document.getElementById('event-search-input');
-
-            // 3. RENDER FUNCTIONS
-
-            function createCard(evt, isBrowse) {
-                // Determine Colors
-                let grad = 'linear-gradient(135deg, #004e92, #2a5298)';
-                if(evt.category === 'Art') grad = 'linear-gradient(135deg, #e84393, #6c5ce7)';
-                if(evt.category === 'Tech') grad = 'linear-gradient(135deg, #0984e3, #00cec9)';
-                if(isBrowse) grad = 'linear-gradient(135deg, #667eea, #764ba2)';
-
-                // Determine Button
-                let btnHtml = '';
-                if (isBrowse) {
-                    if (evt.isRegistered) {
-                        btnHtml = `<button class="btn btn-sm" style="border: 1px solid #27ae60; color: #27ae60; background:none; cursor:default;">Registered</button>`;
-                    } else {
-                        btnHtml = `<a href="/dashboard/attendee/register/${evt.id}/" class="btn btn-primary" style="background: #004e92; color: white; border: none; padding: 8px 20px; border-radius: 8px; text-decoration: none;">Register</a>`;
-                    }
-                } else {
-                    // Cancel button for My Tickets
-                    btnHtml = `<a href="/dashboard/attendee/cancel/${evt.ticketId}/" class="btn btn-outline" onclick="return confirm('Cancel this ticket?')" style="width: 100%; border: 1px solid #ef5350; color: #ef5350; text-align:center; padding: 8px; border-radius: 8px; text-decoration:none;">Cancel Ticket</a>`;
-                }
-
-                // Date Formatting
-                const d = new Date(evt.date);
-                const day = d.getDate();
-                const month = d.toLocaleString('default', { month: 'short' });
-
-                return `
-                <div class="ticket-card">
-                    <div class="ticket-header" style="background: ${grad};">
-                        <span style="background: rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600;">${evt.category}</span>
-                    </div>
-                    <div class="ticket-body">
-                        <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">${evt.title}</h3>
-                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;"><i class="fa-solid fa-location-dot"></i> ${evt.location}</p>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 1rem;">
-                            <div><strong style="color: #333;">${day} ${month}</strong></div>
-                            <div><strong style="color: #333;">${evt.time}</strong></div>
-                        </div>
-
-                        ${isBrowse ? `<p style="font-size:0.85rem; color:#666; margin-bottom:1rem; height:40px; overflow:hidden;">${evt.description.substring(0,80)}...</p>` : ''}
-
-                        <div style="margin-top: auto; display:flex; justify-content:space-between; align-items:center;">
-                            ${isBrowse ? `<span style="font-weight:700; color:#004e92;">${evt.price == 0 ? 'Free' : evt.price + ' SAR'}</span>` : ''}
-                            ${btnHtml}
-                        </div>
-                    </div>
-                </div>`;
-            }
-
-            function renderHome() {
-                // My Tickets
-                const myTickets = eventsData.filter(e => e.isRegistered && e.status === 'upcoming');
-                if(myTickets.length === 0) {
-                    myTicketsGrid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: 16px; border: 2px dashed #eee; color:#999;">No upcoming tickets.</div>`;
-                } else {
-                    myTicketsGrid.innerHTML = myTickets.map(e => createCard(e, false)).join('');
-                }
-
-                // Browse
-                const browseEvents = eventsData.filter(e => e.status === 'upcoming');
-                if(browseEvents.length === 0) {
-                    browseGrid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #666;">No events available.</p>`;
-                } else {
-                    browseGrid.innerHTML = browseEvents.map(e => createCard(e, true)).join('');
-                }
-            }
-
-            function renderHistory() {
-                const history = eventsData.filter(e => e.isRegistered && e.status === 'past');
-                if(history.length === 0) {
-                    historyList.innerHTML = `<div style="padding: 3rem; text-align: center; color: #999;">No past events found.</div>`;
-                    return;
-                }
-
-                historyList.innerHTML = history.map(evt => {
-                    const d = new Date(evt.date);
-                    return `
-                    <div style="display: flex; padding: 1.5rem; border-bottom: 1px solid #eee; align-items: center; justify-content: space-between;">
-                        <div style="display: flex; gap: 1.5rem; align-items: center;">
-                            <div style="background: #f1f3f5; width: 60px; height: 60px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                <span style="font-weight: 700; color: #999; font-size: 1.2rem;">${d.getDate()}</span>
-                                <span style="font-size: 0.7rem; color: #999; text-transform: uppercase;">${d.toLocaleString('default', { month: 'short' })}</span>
-                            </div>
-                            <div>
-                                <h4 style="margin: 0 0 5px 0; font-size: 1.1rem; color: #666;">${evt.title}</h4>
-                                <p style="margin: 0; color: #999; font-size: 0.9rem;">${evt.location}</p>
-                            </div>
-                        </div>
-                        <span style="background: #e8f5e9; color: #2e7d32; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">Attended</span>
-                    </div>`;
-                }).join('');
-            }
-
-            function renderProfile() {
-                profileCard.innerHTML = `
-                <div style="max-width: 600px; background: white; padding: 2rem; border-radius: 16px; border: 1px solid #eee; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
-                    <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem;">
-                        <div style="width: 80px; height: 80px; background: #004e92; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700;">
-                            ${profileData.initial}
-                        </div>
-                        <div>
-                            <h3 style="margin: 0;">${profileData.username}</h3>
-                            <p style="color: #666; margin: 0;">${profileData.email}</p>
-                        </div>
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Username</label>
-                        <input type="text" value="${profileData.username}" disabled style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Email</label>
-                        <input type="text" value="${profileData.email}" disabled style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
-                    </div>
-                    <div class="form-group" style="margin-bottom: 1.5rem;">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #555;">Role</label>
-                        <input type="text" value="${profileData.role}" disabled style="width: 100%; padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #f9f9f9;">
-                    </div>
-                </div>`;
-            }
-
-            // 4. NAVIGATION
-            window.scrollToSection = function(id) {
-                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-            };
-
-            const navLinks = document.querySelectorAll('.att-nav-link');
-            const sections = document.querySelectorAll('.view-section');
-
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    const view = link.dataset.view;
-                    if(view) {
-                        e.preventDefault();
-                        navLinks.forEach(l => l.classList.remove('active'));
-                        link.classList.add('active');
-                        sections.forEach(s => s.classList.remove('active'));
-                        document.getElementById('view-' + view).classList.add('active');
-
-                        // Re-render to ensure fresh data views
-                        if(view === 'history') renderHistory();
-                        if(view === 'profile') renderProfile();
-                    }
-                });
-            });
-
-            // 5. SEARCH LOGIC
-            if(searchInput) {
-                searchInput.addEventListener('input', (e) => {
-                    const term = e.target.value.toLowerCase();
-                    const cards = document.querySelectorAll('#browse-grid .ticket-card');
-                    cards.forEach(card => {
-                        const title = card.querySelector('h3').innerText.toLowerCase();
-                        card.style.display = title.includes(term) ? 'flex' : 'none';
-                    });
-                });
-            }
-
-            // INITIAL RENDER
-            renderHome();
-            renderProfile(); // Pre-load profile
-        })();
+        // This bridges the gap between Django Database and Frontend Team's JS
+        window.DJANGO_EVENTS = {{ events_json|safe }};
+        window.DJANGO_PROFILE = {{ profile_json|safe }};
     </script>
+
+    <script src="{% static 'js/attendee-logic.js' %}"></script>
+
 </body>
 </html>
