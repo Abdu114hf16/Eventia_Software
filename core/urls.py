@@ -29,8 +29,13 @@ urlpatterns = [
     path('dashboard/organizer/delete/<int:event_id>/', views.delete_event, name='delete_event'),
     path('event/<int:event_id>/', views.event_details, name='event_details'),
 
-    # --- Attendee Routes ---
+    # Attendee Dashboard (The Page)
     path('dashboard/attendee/', views.attendee_dashboard, name='attendee_dashboard'),
+
+    # Attendee API (The Data Pipeline)
+    path('api/attendee/data/', views.api_attendee_data, name='api_attendee_data'),
+
+    # Actions (Register/Cancel)
     path('dashboard/attendee/register/<int:event_id>/', views.attendee_register, name='attendee_register'),
     path('dashboard/attendee/cancel/<int:ticket_id>/', views.attendee_cancel, name='attendee_cancel'),
 ]

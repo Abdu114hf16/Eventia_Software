@@ -8,6 +8,7 @@ from .forms import SignUpForm
 from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import JsonResponse
 
 
 # --- GENERAL NAVIGATION & AUTH ---
@@ -93,22 +94,28 @@ def login_attendee(request):
     return render(request, 'core/login.html', {'form': form})
 
 
+# 1. The Page View (Just renders the file)
 @login_required
 def attendee_dashboard(request):
     if request.user.role != 'ATTENDEE':
         return redirect('home')
+    return render(request, 'core/attendee-dashboard.html')
+
+
+# 2. The API Endpoint (Returns Data)
+@login_required
+def api_attendee_data(request):
+    if request.user.role != 'ATTENDEE':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     today = date.today()
 
-    # 1. Fetch All Approved Events (for Browse section)
+    # Fetch Data
     all_events = Event.objects.filter(status='APPROVED').order_by('date')
-
-    # 2. Fetch User's Tickets (to check registration status)
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
-    # Create a map: Event_ID -> Ticket_ID (for cancellation)
     ticket_map = {t.event.id: t.id for t in user_tickets}
 
-    # 3. Serialize Events to JSON (Matching Frontend Schema)
+    # Format Events
     events_data = []
     for event in all_events:
         is_registered = event.id in ticket_map
@@ -121,25 +128,27 @@ def attendee_dashboard(request):
             'location': event.location,
             'description': event.description,
             'price': float(event.ticket_price),
+            'image': 'assets/event-placeholder.jpg',
             'isRegistered': is_registered,
-            'ticketId': ticket_map.get(event.id),  # Needed for cancel link
+            'ticketId': ticket_map.get(event.id),
             'status': 'upcoming' if event.date >= today else 'past'
         })
 
-    # 4. Serialize Profile Data
+    # Format Profile
     profile_data = {
         'username': request.user.username,
         'email': request.user.email,
         'role': 'Attendee',
+        'firstName': request.user.first_name or request.user.username,
+        'lastName': request.user.last_name or '',
+        'phone': getattr(request.user, 'phone_number', ''),
         'initial': request.user.username[0].upper() if request.user.username else 'A'
     }
 
-    context = {
-        # Inject data as safe JSON strings
-        'events_json': json.dumps(events_data, cls=DjangoJSONEncoder),
-        'profile_json': json.dumps(profile_data, cls=DjangoJSONEncoder),
-    }
-    return render(request, 'core/attendee-dashboard.html', context)
+    return JsonResponse({
+        'events': events_data,
+        'profile': profile_data
+    })
 
 @login_required
 def attendee_register(request, event_id):
