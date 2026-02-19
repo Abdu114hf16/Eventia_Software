@@ -1,6 +1,7 @@
 /**
  * ATTENDEE PAGE LOGIC (API CONNECTED)
  * Features:
+ * 1. Digital Ticket Design (No Cancellation)
  * 1. Digital Ticket Design (Clean Footer)
  * 2. Square Details Modal
  * 3. Real Django Data
@@ -120,6 +121,7 @@
         }).join('');
     }
 
+    // --- 4. RENDER MY TICKETS (CANCEL BUTTON REMOVED) ---
     // --- 4. RENDER MY TICKETS (CLEAN DESIGN) ---
     function renderMyTickets() {
         const container = document.getElementById('my-tickets-container');
@@ -168,6 +170,11 @@
                             <div style="font-family: monospace; font-size: 1.2rem; font-weight: 700; color: #1565c0; letter-spacing: 2px;">${ticketCode}</div>
                             <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">Date: ${evt.date}</div>
                         </div>
+                        <div style="margin-top: 1rem; text-align: center;">
+                            <span style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                                <i class="fa-solid fa-check-circle"></i> Booking Confirmed
+                            </span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -177,9 +184,11 @@
     // --- 5. VIEW EVENT DETAILS (SQUARE MODAL) ---
     window.viewEventDetails = function(eventId) {
         const events = getEvents();
+        // Loose comparison for ID
         const evt = events.find(e => e.id == eventId);
         if (!evt) return;
 
+        // Remove existing modal if any
         const existing = document.getElementById('event-detail-modal');
         if (existing) existing.remove();
 
@@ -312,5 +321,3 @@
 
     // Init
     await initData();
-
-})();
