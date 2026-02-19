@@ -1,10 +1,10 @@
 /**
  * ATTENDEE PAGE LOGIC (API CONNECTED)
  * Features:
- * 1. Digital Ticket Design (No Cancellation)
  * 1. Digital Ticket Design (Clean Footer)
  * 2. Square Details Modal
  * 3. Real Django Data
+ * 4. Search & Filter Triggers
  */
 
 (async function () {
@@ -25,7 +25,6 @@
             loadProfile();
         } catch (error) {
             console.error("API Error:", error);
-            // Fallback for demo purposes if API fails
             showToast("Error loading data. Please refresh.");
         }
     }
@@ -71,17 +70,20 @@
         const catVal = document.querySelector('.cat-pill.active')?.dataset.category || 'all';
 
         let filtered = events.filter(e => {
+            // Ensure we don't show past events in the browse section
             if (e.status === 'past') return false;
+
             const matchesCat = catVal === 'all' || e.category === catVal;
             const matchesLoc = locVal === 'all' || (e.location && e.location.includes(locVal));
             const matchesSearch = !searchVal ||
                 e.title.toLowerCase().includes(searchVal) ||
                 (e.description && e.description.toLowerCase().includes(searchVal));
+
             return matchesCat && matchesLoc && matchesSearch;
         });
 
         if (filtered.length === 0) {
-            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #888;">No events found.</div>`;
+            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: #888;">No events found matching your criteria.</div>`;
             return;
         }
 
@@ -121,8 +123,7 @@
         }).join('');
     }
 
-    // --- 4. RENDER MY TICKETS (CANCEL BUTTON REMOVED) ---
-    // --- 4. RENDER MY TICKETS (CLEAN DESIGN) ---
+    // --- 4. RENDER MY TICKETS ---
     function renderMyTickets() {
         const container = document.getElementById('my-tickets-container');
         if (!container) return;
@@ -138,11 +139,10 @@
         container.innerHTML = myTickets.map(evt => {
             const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
             const eventDate = new Date(evt.date);
-            const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
-            const day = eventDate.getDate();
+            const month = isNaN(eventDate) ? '' : eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
+            const day = isNaN(eventDate) ? '' : eventDate.getDate();
             const ticketCode = `EVT-${evt.id}-TKT-${evt.ticketId}`;
 
-            // Clean Ticket Card: Ends after the digital code section
             return `
                 <div style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid #e8e8e8;">
                     <div style="background: ${gradient}; padding: 1.25rem; color: white; position: relative;">
@@ -181,14 +181,12 @@
         }).join('');
     }
 
-    // --- 5. VIEW EVENT DETAILS (SQUARE MODAL) ---
+    // --- 5. VIEW EVENT DETAILS ---
     window.viewEventDetails = function(eventId) {
         const events = getEvents();
-        // Loose comparison for ID
         const evt = events.find(e => e.id == eventId);
         if (!evt) return;
 
-        // Remove existing modal if any
         const existing = document.getElementById('event-detail-modal');
         if (existing) existing.remove();
 
@@ -297,14 +295,35 @@
         }
     }
 
+    // --- 9. EVENT LISTENERS & TRIGGERS ---
+
+    // View Navigation Listeners
     document.querySelectorAll('.att-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
+            if(link.getAttribute('href') !== '#') return; // Let actual links pass
             e.preventDefault();
             switchAttendeeView(link.dataset.view, link.dataset.scroll);
         });
     });
 
-    // --- 9. HELPERS ---
+    // Search and Filter Listeners
+    const searchInput = document.getElementById('landing-search');
+    const locationSelect = document.getElementById('landing-location-filter');
+    const searchBtn = document.getElementById('landing-search-btn');
+
+    if (searchInput) searchInput.addEventListener('input', renderBrowseEvents);
+    if (locationSelect) locationSelect.addEventListener('change', renderBrowseEvents);
+    if (searchBtn) searchBtn.addEventListener('click', renderBrowseEvents);
+
+    // Category Pill Listeners
+    document.querySelectorAll('.cat-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+            document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            renderBrowseEvents();
+        });
+    });
+
     function showToast(msg) {
         const toast = document.createElement('div');
         toast.textContent = msg;
@@ -319,5 +338,7 @@
         renderHistory();
     }
 
-    // Init
+    // --- INITIALIZE ---
     await initData();
+
+})(); // <-- FIX: Properly closes and invokes the function!
