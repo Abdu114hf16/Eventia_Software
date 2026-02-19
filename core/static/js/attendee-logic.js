@@ -170,11 +170,6 @@
                             <div style="font-family: monospace; font-size: 1.2rem; font-weight: 700; color: #1565c0; letter-spacing: 2px;">${ticketCode}</div>
                             <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">Date: ${evt.date}</div>
                         </div>
-                        <div style="margin-top: 1rem; text-align: center;">
-                            <span style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
-                                <i class="fa-solid fa-check-circle"></i> Booking Confirmed
-                            </span>
-                        </div>
                     </div>
                 </div>
             `;
