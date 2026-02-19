@@ -8,6 +8,7 @@ from .forms import SignUpForm
 from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile
 import json
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import JsonResponse
 
 
 # --- GENERAL NAVIGATION & AUTH ---
@@ -93,62 +94,68 @@ def login_attendee(request):
     return render(request, 'core/login.html', {'form': form})
 
 
+# 1. The Page View (Just renders the file)
 @login_required
 def attendee_dashboard(request):
     if request.user.role != 'ATTENDEE':
         return redirect('home')
+    return render(request, 'core/attendee-dashboard.html')
+
+
+@login_required
+def api_attendee_data(request):
+    if request.user.role != 'ATTENDEE':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     today = date.today()
 
-    # 1. Fetch Data
-    # We fetch ALL approved events for the "Browse" section logic
-    # 1. Fetch All Approved Events (for Browse section)
+    # Fetch Data
     all_events = Event.objects.filter(status='APPROVED').order_by('date')
-
-    # Fetch User's Tickets
-    # 2. Fetch User's Tickets (to check registration status)
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
-    ticket_map = {t.event.id: t.id for t in user_tickets}  # Map Event ID -> Ticket ID
-    # Create a map: Event_ID -> Ticket_ID (for cancellation)
     ticket_map = {t.event.id: t.id for t in user_tickets}
 
-    # 2. Serialize Events to JSON (Matching your JS Schema)
-    # 3. Serialize Events to JSON (Matching Frontend Schema)
+    # Format Events
     events_data = []
     for event in all_events:
         is_registered = event.id in ticket_map
+
+        # --- SAFE DATA EXTRACTION ---
+        # Prevents Server 500 errors if an event is missing a date, time, or price
+        evt_date = event.date.strftime('%Y-%m-%d') if event.date else 'TBD'
+        evt_time = event.time.strftime('%H:%M') if event.time else 'TBD'
+        evt_price = float(event.ticket_price) if event.ticket_price else 0.0
+        evt_status = 'upcoming' if (event.date and event.date >= today) else 'past'
+
         events_data.append({
             'id': event.id,
-            'title': event.title,
-            'category': event.category,
-            'date': event.date.strftime('%Y-%m-%d'),
-            'time': event.time.strftime('%H:%M'),
-            'location': event.location,
-            'description': event.description,
-            'price': float(event.ticket_price),
-            'image': 'assets/event-placeholder.jpg',  # Default or actual image
+            'title': event.title or 'Untitled Event',
+            'category': event.category or 'Other',
+            'date': evt_date,
+            'time': evt_time,
+            'location': event.location or 'TBD',
+            'description': event.description or '',
+            'price': evt_price,
+            'image': 'assets/event-placeholder.jpg',
             'isRegistered': is_registered,
-            'ticketId': ticket_map.get(event.id) if is_registered else None,
-            'ticketId': ticket_map.get(event.id),  # Needed for cancel link
-            'status': 'upcoming' if event.date >= today else 'past'
+            'ticketId': ticket_map.get(event.id),
+            'status': evt_status
         })
 
-    # 3. Serialize Profile
-    # 4. Serialize Profile Data
+    # Format Profile
     profile_data = {
         'username': request.user.username,
         'email': request.user.email,
         'role': 'Attendee',
+        'firstName': request.user.first_name or request.user.username,
+        'lastName': request.user.last_name or '',
+        'phone': getattr(request.user, 'phone_number', ''),
         'initial': request.user.username[0].upper() if request.user.username else 'A'
     }
 
-    context = {
-        # We pass the data as a JSON string to be used by JS
-        # Inject data as safe JSON strings
-        'events_json': json.dumps(events_data, cls=DjangoJSONEncoder),
-        'profile_json': json.dumps(profile_data, cls=DjangoJSONEncoder),
-    }
-    return render(request, 'core/attendee-dashboard.html', context)
+    return JsonResponse({
+        'events': events_data,
+        'profile': profile_data
+    })
 
 @login_required
 def attendee_register(request, event_id):
@@ -357,3 +364,4 @@ def debug_user_role(request):
 def event_details(request, event_id):
     """Renders the details page for a specific event."""
     event = get_object_or_404(Event, id=event_id)
+    return render(request, 'core/event_details.html', {'event': event})
