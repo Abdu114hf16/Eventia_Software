@@ -1,7 +1,9 @@
 /**
  * ATTENDEE PAGE LOGIC (API CONNECTED)
- * Replaces LocalStorage with Django Backend API
- * Restores UI Modals and Ticket Designs
+ * Features:
+ * 1. Digital Ticket Design (No Cancellation)
+ * 2. Square Details Modal
+ * 3. Real Django Data
  */
 
 (async function () {
@@ -22,7 +24,8 @@
             loadProfile();
         } catch (error) {
             console.error("API Error:", error);
-            showToast("Error loading data. Please refresh the page.");
+            // Fallback for demo purposes if API fails
+            showToast("Error loading data. Please refresh.");
         }
     }
 
@@ -117,7 +120,7 @@
         }).join('');
     }
 
-    // --- 4. RENDER MY TICKETS (Detailed Digital Ticket) ---
+    // --- 4. RENDER MY TICKETS (CANCEL BUTTON REMOVED) ---
     function renderMyTickets() {
         const container = document.getElementById('my-tickets-container');
         if (!container) return;
@@ -135,7 +138,6 @@
             const eventDate = new Date(evt.date);
             const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
             const day = eventDate.getDate();
-            // Generate a visual code based on ID
             const ticketCode = `EVT-${evt.id}-TKT-${evt.ticketId}`;
 
             return `
@@ -165,23 +167,23 @@
                             <div style="font-family: monospace; font-size: 1.2rem; font-weight: 700; color: #1565c0; letter-spacing: 2px;">${ticketCode}</div>
                             <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">Date: ${evt.date}</div>
                         </div>
-                        <a href="/dashboard/attendee/cancel/${evt.ticketId}/" class="btn btn-outline" style="width:100%; margin-top: 1rem; border-color:#ef5350; color:#ef5350; display:block; text-align:center; text-decoration:none;" onclick="return confirm('Cancel this ticket?')">Cancel Ticket</a>
+                        <div style="margin-top: 1rem; text-align: center;">
+                            <span style="display: inline-block; padding: 6px 12px; background: #e8f5e9; color: #2e7d32; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                                <i class="fa-solid fa-check-circle"></i> Booking Confirmed
+                            </span>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
     }
 
-    // --- 5. VIEW EVENT DETAILS (MODAL) ---
-    // This is the function that makes the button work!
+    // --- 5. VIEW EVENT DETAILS (SQUARE MODAL) ---
     window.viewEventDetails = function(eventId) {
         const events = getEvents();
-        // ID might be string or int, so we use == for loose comparison
+        // Loose comparison for ID
         const evt = events.find(e => e.id == eventId);
-        if (!evt) {
-            console.error("Event not found:", eventId);
-            return;
-        }
+        if (!evt) return;
 
         // Remove existing modal if any
         const existing = document.getElementById('event-detail-modal');
@@ -254,7 +256,7 @@
         }).join('');
     }
 
-    // --- 7. PROFILE & STATS ---
+    // --- 7. PROFILE ---
     function loadProfile() {
         const profile = getProfile();
         const fields = {
@@ -271,12 +273,6 @@
                 else el.textContent = val || '';
             }
         }
-    }
-
-    function updateStats() {
-        const events = getEvents();
-        const registeredCount = events.filter(e => e.isRegistered).length;
-        // ... (rest of stats logic) ...
     }
 
     // --- 8. NAVIGATION ---
