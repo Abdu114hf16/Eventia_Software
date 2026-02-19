@@ -176,61 +176,206 @@
         }).join('');
     }
 
-    // --- 5. VIEW EVENT DETAILS ---
+    const modalStyle = document.createElement('style');
+    modalStyle.innerHTML = `
+        .eventia-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); animation: fadeIn 0.2s ease; padding: 20px; box-sizing: border-box; }
+        .eventia-modal { background: white; width: 100%; max-width: 450px; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25); display: flex; flex-direction: column; max-height: 90vh; position: relative; animation: slideUp 0.3s ease; }
+
+        /* Details Modal */
+        .em-header { position: relative; height: 220px; background: #f0f4f8; }
+        .em-header-img { width: 100%; height: 100%; object-fit: cover; }
+        .em-back-btn { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; justify-content: center; align-items: center; border: none; cursor: pointer; color: #333; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s; }
+        .em-back-btn:hover { background: white; transform: scale(1.05); }
+        .em-content { padding: 24px; overflow-y: auto; flex: 1; }
+        .em-badge { display: inline-block; padding: 6px 14px; background: #e3f2fd; color: #004e92; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 12px; text-transform: uppercase; }
+        .em-title { font-size: 1.6rem; font-weight: 800; color: #111; margin: 0 0 20px 0; line-height: 1.3; }
+
+        .em-info-row { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+        .em-icon-box { width: 48px; height: 48px; min-width: 48px; border-radius: 14px; background: #f4f6f9; display: flex; align-items: center; justify-content: center; color: #004e92; font-size: 1.2rem; }
+        .em-info-text h4 { margin: 0 0 4px 0; font-size: 0.95rem; color: #111; font-weight: 700; }
+        .em-info-text p { margin: 0; font-size: 0.85rem; color: #666; line-height: 1.4; }
+
+        .em-about h3 { font-size: 1.1rem; font-weight: 700; margin: 24px 0 10px 0; color: #111; }
+        .em-about p { font-size: 0.95rem; color: #555; line-height: 1.6; margin: 0; }
+
+        .em-footer { padding: 20px 24px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: white; }
+
+        /* Registration Modal */
+        .reg-header { padding: 20px 24px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .reg-header h2 { margin: 0; font-size: 1.2rem; font-weight: 700; }
+        .reg-close { background: none; border: none; font-size: 1.2rem; color: #888; cursor: pointer; }
+        .reg-body { padding: 24px; overflow-y: auto; flex: 1; }
+
+        .ticket-card { border: 2px solid #eee; border-radius: 16px; padding: 16px; margin-bottom: 16px; transition: all 0.2s; }
+        .ticket-card.selected { border-color: #004e92; background: #f8fbff; }
+        .ticket-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .ticket-title { font-weight: 700; font-size: 1.1rem; color: #111; margin: 0 0 4px 0; }
+        .ticket-desc { font-size: 0.8rem; color: #666; margin: 0; }
+        .ticket-price { font-weight: 800; font-size: 1.1rem; color: #004e92; }
+
+        .qty-controls { display: inline-flex; align-items: center; gap: 12px; background: #f4f6f9; padding: 6px; border-radius: 30px; }
+        .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: none; background: white; color: #111; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.08); font-size: 1.2rem; }
+        .qty-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .qty-val { font-weight: 700; font-size: 1rem; width: 20px; text-align: center; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    `;
+    document.head.appendChild(modalStyle);
+
+    // 5A. VIEW DETAILS MODAL (Screenshot 1)
     window.viewEventDetails = function(eventId) {
         const events = getEvents();
         const evt = events.find(e => e.id == eventId);
         if (!evt) return;
 
-        const existing = document.getElementById('event-detail-modal');
+        const existing = document.getElementById('eventia-modal-container');
         if (existing) existing.remove();
 
         const priceDisplay = evt.price > 0 ? `${evt.price} SAR` : 'Free';
-        const actionBtn = evt.isRegistered
-            ? `<button style="width:100%; padding: 12px; background: #e8f5e9; color: #2e7d32; border: none; border-radius: 8px; font-weight: 600;" disabled>Registered</button>`
-            : `<a href="/dashboard/attendee/register/${evt.id}/" style="display:block; text-align:center; width:100%; padding: 12px; background: #004e92; color: white; border: none; border-radius: 8px; font-weight: 600; text-decoration:none;">Register Now</a>`;
+        const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
 
-        const modal = document.createElement('div');
-        modal.id = 'event-detail-modal';
-        modal.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px);" onclick="if(event.target === this) this.parentElement.remove()">
-                <div style="background: white; border-radius: 16px; width: 90%; max-width: 500px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: fadeIn 0.3s ease;">
-                    <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 1.5rem; color: white; display: flex; justify-content: space-between; align-items: flex-start;">
-                        <div>
-                            <div style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; display: inline-block; margin-bottom: 0.5rem;">${evt.category}</div>
-                            <h2 style="margin: 0; font-size: 1.4rem;">${evt.title}</h2>
-                        </div>
-                        <button onclick="this.closest('#event-detail-modal').remove()" style="background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+        const actionBtn = evt.isRegistered
+            ? `<button style="padding: 14px 28px; background: #e8f5e9; color: #2e7d32; border: none; border-radius: 14px; font-weight: 700; font-size: 1rem;" disabled>Registered <i class="fa-solid fa-check"></i></button>`
+            : `<button onclick="openRegistrationModal('${evt.id}')" style="padding: 14px 28px; background: #004e92; color: white; border: none; border-radius: 14px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,78,146,0.3);">Register <i class="fa-solid fa-arrow-right" style="margin-left: 8px;"></i></button>`;
+
+        const modalHtml = `
+            <div id="eventia-modal-container" class="eventia-modal-overlay" onclick="if(event.target === this) this.remove()">
+                <div class="eventia-modal">
+                    <div class="em-header" style="background: ${gradient};">
+                        <button class="em-back-btn" onclick="document.getElementById('eventia-modal-container').remove()">
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </button>
                     </div>
-                    <div style="padding: 1.5rem;">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase;">Date</div>
-                                <div style="font-weight: 600;">${evt.date}</div>
-                            </div>
-                            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase;">Time</div>
-                                <div style="font-weight: 600;">${evt.time}</div>
-                            </div>
-                            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase;">Location</div>
-                                <div style="font-weight: 600;">${evt.location}</div>
-                            </div>
-                            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px;">
-                                <div style="font-size: 0.75rem; color: #666; text-transform: uppercase;">Price</div>
-                                <div style="font-weight: 600; color: #004e92;">${priceDisplay}</div>
+                    <div class="em-content">
+                        <div class="em-badge">${evt.category}</div>
+                        <h2 class="em-title">${evt.title}</h2>
+
+                        <div class="em-info-row">
+                            <div class="em-icon-box"><i class="fa-regular fa-calendar-days"></i></div>
+                            <div class="em-info-text">
+                                <h4>Date & Time</h4>
+                                <p>${evt.date} • ${evt.time}</p>
                             </div>
                         </div>
-                        <div style="margin-bottom: 2rem;">
-                            <h4 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #333;">About Event</h4>
-                            <p style="color: #666; line-height: 1.6; font-size: 0.95rem;">${evt.description}</p>
+
+                        <div class="em-info-row">
+                            <div class="em-icon-box"><i class="fa-solid fa-location-dot"></i></div>
+                            <div class="em-info-text">
+                                <h4>Location</h4>
+                                <p>${evt.location}</p>
+                            </div>
+                        </div>
+
+                        <div class="em-about">
+                            <h3>About Event</h3>
+                            <p>${evt.description || 'Join us for this amazing event to learn, connect, and grow.'}</p>
+                        </div>
+                    </div>
+                    <div class="em-footer">
+                        <div>
+                            <div style="font-size: 0.8rem; color: #666; text-transform: uppercase; font-weight: 700; margin-bottom: 2px;">Price</div>
+                            <div style="font-size: 1.4rem; font-weight: 800; color: #111;">${priceDisplay}</div>
                         </div>
                         ${actionBtn}
                     </div>
                 </div>
             </div>
         `;
-        document.body.appendChild(modal);
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    };
+
+    // 5B. TICKET SELECTION MODAL (Screenshot 2)
+    window.openRegistrationModal = function(eventId) {
+        const events = getEvents();
+        const evt = events.find(e => e.id == eventId);
+        if (!evt) return;
+
+        // Close details modal
+        const detailsModal = document.getElementById('eventia-modal-container');
+        if (detailsModal) detailsModal.remove();
+
+        const basePrice = evt.price || 0;
+        const vipPrice = basePrice > 0 ? basePrice * 2.5 : 150; // Mock VIP price logic
+
+        const modalHtml = `
+            <div id="eventia-modal-container" class="eventia-modal-overlay" onclick="if(event.target === this) this.remove()">
+                <div class="eventia-modal" style="max-width: 420px;">
+                    <div class="reg-header">
+                        <h2>Select Tickets</h2>
+                        <button class="reg-close" onclick="document.getElementById('eventia-modal-container').remove()"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+
+                    <div class="reg-body">
+                        <div class="ticket-card selected" id="tc-std">
+                            <div class="ticket-header">
+                                <div>
+                                    <h3 class="ticket-title">General Admission</h3>
+                                    <p class="ticket-desc">Access to all main stages and networking areas.</p>
+                                </div>
+                                <div class="ticket-price">${basePrice > 0 ? basePrice + ' SAR' : 'Free'}</div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <div class="qty-controls">
+                                    <button class="qty-btn" onclick="updateQty('std', -1)" id="btn-minus-std" disabled><i class="fa-solid fa-minus"></i></button>
+                                    <span class="qty-val" id="qty-std">1</span>
+                                    <button class="qty-btn" onclick="updateQty('std', 1)"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ticket-card" id="tc-vip">
+                            <div class="ticket-header">
+                                <div>
+                                    <h3 class="ticket-title">VIP Pass</h3>
+                                    <p class="ticket-desc">Front row seating, exclusive lounge, and catering.</p>
+                                </div>
+                                <div class="ticket-price">${vipPrice} SAR</div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end;">
+                                <div class="qty-controls">
+                                    <button class="qty-btn" onclick="updateQty('vip', -1)" id="btn-minus-vip" disabled><i class="fa-solid fa-minus"></i></button>
+                                    <span class="qty-val" id="qty-vip">0</span>
+                                    <button class="qty-btn" onclick="updateQty('vip', 1)"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="em-footer">
+                        <div>
+                            <div style="font-size: 0.8rem; color: #666; font-weight: 600;">Total Amount</div>
+                            <div style="font-size: 1.4rem; font-weight: 800; color: #111;" id="total-price">${basePrice > 0 ? basePrice + ' SAR' : 'Free'}</div>
+                        </div>
+                        <a href="/dashboard/attendee/register/${evt.id}/" style="padding: 14px 24px; background: #004e92; color: white; border: none; border-radius: 12px; font-weight: 700; text-decoration: none; box-shadow: 0 4px 15px rgba(0,78,146,0.3);">
+                            Confirm Registration
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        // Simple State Management for the Ticket Math
+        window.ticketState = { std: 1, vip: 0, pStd: basePrice, pVip: vipPrice };
+
+        window.updateQty = function(type, change) {
+            let newVal = window.ticketState[type] + change;
+            if (newVal < 0) newVal = 0;
+            if (newVal > 10) newVal = 10; // Max 10 tickets
+            window.ticketState[type] = newVal;
+
+            // Update UI
+            document.getElementById(`qty-${type}`).innerText = newVal;
+            document.getElementById(`btn-minus-${type}`).disabled = (newVal === 0);
+
+            // Highlight active card
+            document.getElementById(`tc-${type}`).classList.toggle('selected', newVal > 0);
+
+            // Calculate Total
+            let total = (window.ticketState.std * window.ticketState.pStd) + (window.ticketState.vip * window.ticketState.pVip);
+            document.getElementById('total-price').innerText = total > 0 ? `${total} SAR` : 'Free';
+        }
     };
 
     // --- 6. RENDER HISTORY ---
