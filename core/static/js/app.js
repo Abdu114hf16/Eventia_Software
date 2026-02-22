@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', () => {
 
 
@@ -446,11 +445,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Form Submit Mock
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert("Login functionality would trigger here!");
+   // const loginForm = document.getElementById('login-form');
+   // if (loginForm) {
+     //   loginForm.addEventListener('submit', (e) => {
+         //   e.preventDefault();
+         //   alert("Login functionality would trigger here!");
         });
     }
 
@@ -513,8 +512,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (isValid) {
-                alert("Signup functionality would trigger here!");
+           // if (isValid) {
+              //  alert("Signup functionality would trigger here!");
+         //   }
+             if (isValid) {
+                e.target.submit();
             }
         });
     }
