@@ -906,32 +906,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Form Submit Mock
-    // Form Submit Logic for Login
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            // Check active role tab
-            const activeTab = document.querySelector('.role-tab.active');
-            const role = activeTab ? activeTab.dataset.role : 'attendee';
-
-            // Simple role-based redirect for demo
-            if (role === 'organizer') {
-                window.location.href = 'organizer-dashboard.html';
-            } else if (role === 'vendor') {
-                window.location.href = 'vendor-dashboard.html';
-            } else if (role === 'scega') {
-                window.location.href = 'scega-dashboard.html';
-            } else {
-                // Default attendee
-                alert("Login successful! Redirecting to home...");
-                window.location.href = 'index.html';
-            }
-        });
-    }
-
 
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
@@ -992,7 +966,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isValid) {
-                alert("Signup functionality would trigger here!");
+               // alert("Signup functionality would trigger here!");
+                 e.target.submit();
             }
         });
     }
@@ -1220,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem; font-size: 0.9rem;">${cat.group}</div>
                         <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                             ${cat.items.map(item => `
-                                <button class="modal-category-btn" data-category="${item}" 
+                                <button class="modal-category-btn" data-category="${item}"
                                     style="padding: 6px 14px; border: 1px solid #e0e0e0; border-radius: 16px; background: white; cursor: pointer; font-size: 0.8rem; transition: all 0.2s ease;">
                                     ${item}
                                 </button>
@@ -1399,8 +1374,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const addBtn = document.getElementById('add-ticket-btn');
 
             if (addBtn && container) {
-                // Check if listener already attached to avoid duplicates? 
-                // A simple way is to clone and replace or just use a flag. 
+                // Check if listener already attached to avoid duplicates?
+                // A simple way is to clone and replace or just use a flag.
                 // Since initDashboard runs once, we are safe.
 
                 addBtn.addEventListener('click', () => {
@@ -1699,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                     <i class="fa-solid fa-store-slash" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                     <p style="color: #888; margin: 0;">No vendors found matching your criteria.</p>
-                    <button onclick="document.getElementById('vendor-search').value=''; document.getElementById('vendor-category-select').value='all'; document.querySelectorAll('.category-pill').forEach(p => { p.classList.remove('active'); p.style.background='white'; p.style.color='#333'; p.style.border='1px solid #e0e0e0'; }); document.querySelector('.category-pill[data-category=\\'all\\']').classList.add('active'); document.querySelector('.category-pill[data-category=\\'all\\']').style.background='#004e92'; document.querySelector('.category-pill[data-category=\\'all\\']').style.color='white'; renderVendors();" 
+                    <button onclick="document.getElementById('vendor-search').value=''; document.getElementById('vendor-category-select').value='all'; document.querySelectorAll('.category-pill').forEach(p => { p.classList.remove('active'); p.style.background='white'; p.style.color='#333'; p.style.border='1px solid #e0e0e0'; }); document.querySelector('.category-pill[data-category=\\'all\\']').classList.add('active'); document.querySelector('.category-pill[data-category=\\'all\\']').style.background='#004e92'; document.querySelector('.category-pill[data-category=\\'all\\']').style.color='white'; renderVendors();"
                         style="margin-top: 1rem; padding: 8px 16px; border: 1px solid #004e92; border-radius: 8px; background: white; color: #004e92; cursor: pointer; font-size: 0.85rem;">
                         Clear Filters
                     </button>
@@ -1722,7 +1697,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-location-dot"></i> ${vendor.location}
                         </div>
                         <p class="vendor-description">${vendor.description}</p>
-                        
+
                         <div class="vendor-footer">
                             <span class="vendor-price">${vendor.priceRange}</span>
                             <button class="btn btn-sm btn-outline send-request-btn" data-id="${vendor.id}" data-name="${vendor.name}">Send Request</button>
@@ -1909,7 +1884,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="date-month">${month}</span>
                         <span class="date-day">${day}</span>
                     </div>
-                    
+
                     <!-- Event Info Column -->
                     <div class="event-details-text">
                         <h4 style="margin: 0 0 0.25rem 0;">${evt.title} ${eventStateBadge}</h4>
@@ -1919,7 +1894,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span><i class="fa-solid fa-ticket"></i> ${priceDisplay}</span>
                         </div>
                     </div>
-                    
+
                     <!-- SCEGA Approval Status Column -->
                     <div class="scega-status-column" style="text-align: center; min-width: 120px;">
                         <div style="background: ${scegaStatusBg}; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid ${scegaStatusColor}20;">
@@ -1928,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${rejectionInfo}
                         </div>
                     </div>
-                    
+
                     <!-- Actions Column -->
                     <div class="event-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
                         ${actionButtons}
