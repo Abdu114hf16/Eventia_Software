@@ -1,14 +1,8 @@
-
 document.addEventListener('DOMContentLoaded', () => {
 
-
     // --- Navigation & View Management ---
-    // Note: Routing is now handled by multi-page structure (index.html, login.html, signup.html)
-
-    // Check which dashboard we are on
     const isScegaDashboard = document.querySelector('.sidebar-brand') && document.querySelector('.sidebar-brand').textContent.includes('SCEGA');
     const isOrganiserDashboard = document.querySelector('.sidebar-brand') && document.querySelector('.sidebar-brand').textContent.includes('EVENTIA');
-
 
     const heroBrowseBtn = document.getElementById('hero-browse-btn');
 
@@ -20,28 +14,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Role Management (Login & Signup) ---
+    // FIXED: Added name="..." attributes to all inputs so Django can read the data!
     const roleFields = {
         organizer: `
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" placeholder="organizer123" required>
+                <input type="text" name="username" placeholder="organizer123" required>
             </div>
             <div class="input-group">
                 <label>Organization Name</label>
-                <input type="text" placeholder="" required>
+                <input type="text" name="organization_name" placeholder="" required>
             </div>
             <div class="input-group">
                 <label>Phone Number</label>
-                <input type="tel" placeholder="+966 5x xxx xxxx" required>
+                <input type="tel" name="phone_number" placeholder="+966 5x xxx xxxx" required>
             </div>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email" class="signup-email" placeholder="name@company.org" required>
+                <input type="email" name="email" class="signup-email" placeholder="name@company.org" required>
                 <div class="error-message email-error">Please enter a valid email address</div>
             </div>
             <div class="input-group">
                 <label>Password</label>
-                <input type="password" class="signup-password" placeholder="Create a strong password" required>
+                <input type="password" name="password" class="signup-password" placeholder="Create a strong password" required>
                 <div class="password-policy-text">
                     Password must include: At least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character.
                 </div>
@@ -49,61 +44,55 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label>Confirm Password</label>
-                <input type="password" class="signup-confirm-password" placeholder="Re-enter password" required>
+                <input type="password" name="confirm_password" class="signup-confirm-password" placeholder="Re-enter password" required>
                 <div class="error-message password-match-error">Passwords do not match</div>
             </div>
         `,
         vendor: `
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" placeholder="vendor123" required>
+                <input type="text" name="username" placeholder="vendor123" required>
             </div>
             <div class="input-group">
                 <label>Vendor Name</label>
-                <input type="text" placeholder="Event Services Ltd." required>
+                <input type="text" name="organization_name" placeholder="Event Services Ltd." required>
             </div>
             <div class="input-group">
                 <label>Phone Number</label>
-                <input type="tel" placeholder="+966 5x xxx xxxx" required>
+                <input type="tel" name="phone_number" placeholder="+966 5x xxx xxxx" required>
             </div>
             <div class="input-group">
                 <label>Service Type</label>
-                <select required>
+                <select name="service_type" required>
                     <option value="" disabled selected>Select Service Type</option>
-
                     <optgroup label="Food & Beverages">
                         <option value="Catering">Catering</option>
                         <option value="Bakery & Desserts">Bakery & Desserts</option>
                         <option value="Beverages">Beverages</option>
                         <option value="Food Trucks">Food Trucks</option>
                     </optgroup>
-
                     <optgroup label="Venues">
                         <option value="Venue">Venue / Hall</option>
                         <option value="Conference Hall">Conference Hall</option>
                         <option value="Outdoor Venue">Outdoor Venue</option>
                     </optgroup>
-
                     <optgroup label="AV & Technology">
                         <option value="AV Equipment">AV Equipment</option>
                         <option value="LED Screens">LED Screens</option>
                         <option value="Stage & Rigging">Stage & Rigging</option>
                         <option value="Live Streaming">Live Streaming</option>
                     </optgroup>
-
                     <optgroup label="Decoration & Design">
                         <option value="Decoration">Decoration</option>
                         <option value="Floral Design">Floral Design</option>
                         <option value="Balloon Decor">Balloon Decor</option>
                         <option value="Event Lighting">Event Lighting</option>
                     </optgroup>
-
                     <optgroup label="Photography & Media">
                         <option value="Photography">Photography</option>
                         <option value="Aerial Photography">Aerial Photography</option>
                         <option value="Photo Booth">Photo Booth</option>
                     </optgroup>
-
                     <optgroup label="Entertainment">
                         <option value="DJ Services">DJ Services</option>
                         <option value="Live Entertainment">Live Entertainment</option>
@@ -111,48 +100,40 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="Traditional Music">Traditional Music</option>
                         <option value="Fireworks & Pyro">Fireworks & Pyro</option>
                     </optgroup>
-
                     <optgroup label="Transportation">
                         <option value="Transportation">Transportation</option>
                         <option value="Shuttle Services">Shuttle Services</option>
                         <option value="Valet Parking">Valet Parking</option>
                     </optgroup>
-
                     <optgroup label="Security & Safety">
                         <option value="Security">Security</option>
                         <option value="VIP Security">VIP Security</option>
                         <option value="Medical Services">Medical Services</option>
                     </optgroup>
-
                     <optgroup label="Staffing & Services">
                         <option value="Event Staff">Event Staff</option>
                         <option value="Translation">Translation</option>
                         <option value="MC & Hosting">MC & Hosting</option>
                     </optgroup>
-
                     <optgroup label="Rentals & Equipment">
                         <option value="Tent Rentals">Tent Rentals</option>
                         <option value="Furniture Rentals">Furniture Rentals</option>
                         <option value="Table/Chair Rentals">Table/Chair Rentals</option>
                         <option value="Power Supply">Power Supply</option>
                     </optgroup>
-
                     <optgroup label="Marketing & Promotion">
                         <option value="Printing">Printing</option>
                         <option value="Social Media Marketing">Social Media Marketing</option>
                         <option value="Influencer Marketing">Influencer Marketing</option>
                     </optgroup>
-
                     <optgroup label="Government & Permits">
                         <option value="Government Permits">Government Permits</option>
                         <option value="Safety Permits">Safety Permits</option>
                     </optgroup>
-
                     <optgroup label="Sponsors & Partners">
                         <option value="Sponsors">Sponsors</option>
                         <option value="Brand Partners">Brand Partners</option>
                     </optgroup>
-
                     <optgroup label="Saudi Cultural">
                         <option value="Henna Artists">Henna Artists</option>
                         <option value="Falconry Shows">Falconry Shows</option>
@@ -160,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="Arabian Perfumes">Arabian Perfumes</option>
                         <option value="Arabic Calligraphy">Arabic Calligraphy</option>
                     </optgroup>
-
                     <optgroup label="Specialized Services">
                         <option value="VR/AR Experiences">VR/AR Experiences</option>
                         <option value="Eco-Friendly Services">Eco-Friendly Services</option>
@@ -170,12 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email" class="signup-email" placeholder="contact@vendor.com" required>
+                <input type="email" name="email" class="signup-email" placeholder="contact@vendor.com" required>
                 <div class="error-message email-error">Please enter a valid email address</div>
             </div>
             <div class="input-group">
                 <label>Password</label>
-                <input type="password" class="signup-password" placeholder="Create a strong password" required>
+                <input type="password" name="password" class="signup-password" placeholder="Create a strong password" required>
                 <div class="password-policy-text">
                     Password must include: At least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character.
                 </div>
@@ -183,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label>Confirm Password</label>
-                <input type="password" class="signup-confirm-password" placeholder="Re-enter password" required>
+                <input type="password" name="confirm_password" class="signup-confirm-password" placeholder="Re-enter password" required>
                 <div class="error-message password-match-error">Passwords do not match</div>
             </div>
         `,
@@ -191,29 +171,29 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="form-row">
                 <div class="input-group">
                     <label>First Name</label>
-                    <input type="text" placeholder="" required>
+                    <input type="text" name="first_name" placeholder="" required>
                 </div>
                 <div class="input-group">
                     <label>Last Name</label>
-                    <input type="text" placeholder="" required>
+                    <input type="text" name="last_name" placeholder="" required>
                 </div>
             </div>
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" placeholder="abdulrahman123" required>
+                <input type="text" name="username" placeholder="abdulrahman123" required>
             </div>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email" class="signup-email" placeholder="name@example.com" required>
+                <input type="email" name="email" class="signup-email" placeholder="name@example.com" required>
                 <div class="error-message email-error">Please enter a valid email address</div>
             </div>
             <div class="input-group">
                 <label>Phone Number</label>
-                <input type="tel" placeholder="+966 5x xxx xxxx" required>
+                <input type="tel" name="phone_number" placeholder="+966 5x xxx xxxx" required>
             </div>
             <div class="input-group">
                 <label>Gender</label>
-                <select required>
+                <select name="gender" required>
                     <option value="" disabled selected>Select Gender</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
@@ -222,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="input-group">
                 <label>Birthday</label>
                 <div class="date-inputs-wrapper">
-                    <select class="date-select month-select" required>
+                    <select name="month" class="date-select month-select" required>
                         <option value="" disabled selected>Month</option>
                         <option value="1">January</option>
                         <option value="2">February</option>
@@ -237,9 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="11">November</option>
                         <option value="12">December</option>
                     </select>
-                    <select class="date-select day-select" required>
+                    <select name="day" class="date-select day-select" required>
                         <option value="" disabled selected>Day</option>
-                        <!-- Days will be populated or static 1-31 -->
                         <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
                         <option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
                         <option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option>
@@ -248,14 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option>
                         <option value="31">31</option>
                     </select>
-                    <select class="date-select year-select" required>
+                    <select name="year" class="date-select year-select" required>
                         <option value="" disabled selected>Year</option>
                     </select>
                 </div>
             </div>
             <div class="input-group">
                 <label>Password</label>
-                <input type="password" class="signup-password" placeholder="Create a strong password" required>
+                <input type="password" name="password" class="signup-password" placeholder="Create a strong password" required>
                 <div class="password-policy-text">
                     Password must include: At least 8 characters, 1 uppercase letter, 1 lowercase letter, 1 number, 1 special character.
                 </div>
@@ -263,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label>Confirm Password</label>
-                <input type="password" class="signup-confirm-password" placeholder="Re-enter password" required>
+                <input type="password" name="confirm_password" class="signup-confirm-password" placeholder="Re-enter password" required>
                 <div class="error-message password-match-error">Passwords do not match</div>
             </div>
         `
@@ -273,9 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const signupDynamicContainer = document.getElementById('signup-dynamic-fields');
     const signupForm = document.getElementById('signup-form');
 
-    // Initialize Signup Fields - check for role tabs or data-role attribute
     if (signupDynamicContainer) {
-        // If there are role tabs, find the active one; otherwise use data-role from form
         const activeTab = document.querySelector('.role-tab.active');
         const initialRole = activeTab?.dataset.role || signupForm?.dataset.role || 'attendee';
         updateSignupFields(initialRole);
@@ -283,24 +260,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     roleTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            const targetForm = tab.dataset.target; // 'login' or 'signup'
+            const targetForm = tab.dataset.target; 
             const role = tab.dataset.role;
 
-            // 1. Update Tabs Visual State
             const parent = tab.parentElement;
             if (parent) {
                 parent.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
             }
             tab.classList.add('active');
 
-            // 2. Update Submit Button Text
             const formContainer = document.getElementById(`${targetForm}-form-container`);
             if (formContainer) {
                 const btnSpan = formContainer.querySelector('.current-role-text');
                 if (btnSpan) btnSpan.textContent = role.charAt(0).toUpperCase() + role.slice(1);
             }
 
-            // 3. If Signup, inject fully dynamic fields
             if (targetForm === 'signup' && signupDynamicContainer) {
                 updateSignupFields(role);
             }
@@ -314,7 +288,6 @@ document.addEventListener('DOMContentLoaded', () => {
             signupDynamicContainer.innerHTML = roleFields[role] || '';
             signupDynamicContainer.style.opacity = '1';
 
-            // Populate Year Dropdown if attendee
             if (role === 'attendee') {
                 const yearSelect = signupDynamicContainer.querySelector('.year-select');
                 if (yearSelect) {
@@ -329,7 +302,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Attach Password Validators after injection
             attachPasswordValidators();
             attachEmailCleaners();
 
@@ -352,72 +324,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachPasswordValidators() {
         const passwordInput = signupDynamicContainer.querySelector('.signup-password');
         const confirmInput = signupDynamicContainer.querySelector('.signup-confirm-password');
-        const strengthError = signupDynamicContainer.querySelector('.password-strength-error');
-        const matchError = signupDynamicContainer.querySelector('.password-match-error');
-        const submitButton = document.querySelector('#signup-form button[type="submit"]');
+        const form = document.getElementById('signup-form');
 
         if (!passwordInput || !confirmInput) return;
 
-        function checkStrength(password) {
-            let errors = [];
-            if (password.length < 8) errors.push("At least 8 characters");
-            if (!/[A-Z]/.test(password)) errors.push("1 uppercase letter");
-            if (!/[a-z]/.test(password)) errors.push("1 lowercase letter");
-            if (!/[0-9]/.test(password)) errors.push("1 number");
-            if (!/[^A-Za-z0-9]/.test(password)) errors.push("and 1 special character");
-            return errors;
-        }
-
-        function validate() {
-            const pwd = passwordInput.value;
-            const confirm = confirmInput.value;
-            let isValid = true;
-
-            // Strength Check
-            const strengthErrors = checkStrength(pwd);
-            if (pwd && strengthErrors.length > 0) {
-                strengthError.textContent = "Password must include: " + strengthErrors.join(", ");
-                strengthError.classList.add('visible');
-                passwordInput.classList.add('input-error');
-                passwordInput.classList.remove('input-success');
-                isValid = false;
-            } else {
-                strengthError.classList.remove('visible');
-                if (pwd) {
-                    passwordInput.classList.remove('input-error');
-                    passwordInput.classList.add('input-success');
-                } else {
-                    passwordInput.classList.remove('input-success'); // reset if empty
-                }
-            }
-
-            // Match Check
-            if (confirm && pwd !== confirm) {
-                matchError.classList.add('visible');
-                confirmInput.classList.add('input-error');
-                confirmInput.classList.remove('input-success');
-                isValid = false;
-            } else {
-                matchError.classList.remove('visible');
-                if (confirm) {
-                    confirmInput.classList.remove('input-error');
-                    confirmInput.classList.add('input-success');
-                } else {
-                    confirmInput.classList.remove('input-success');
-                }
-            }
-
-            // Also disable submit if invalid (optional, but good UX)
-            // submitButton.disabled = !isValid;
-            return isValid;
-        }
-
-        // Validate on Blur (when user leaves the field)
-        // REMOVED per user request - only validate on submit
-        // passwordInput.addEventListener('blur', validate);
-        // confirmInput.addEventListener('blur', validate);
-
-        // Clear error when user starts typing again (to remove the red text while they are fixing it)
         passwordInput.addEventListener('input', () => {
             if (passwordInput.classList.contains('input-error')) {
                 const strengthError = signupDynamicContainer.querySelector('.password-strength-error');
@@ -434,32 +344,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Validate on Submit
-        const form = document.getElementById('signup-form');
         if (form) {
-            // Remove any existing listener to prevent duplicates if function called multiple times
-            // Note: In this simple structure, we are relying on 'signupForm' event listener at bottom.
-            // But we need to intercept it.
-            // Better approach: Let the global submit listener call a validation check.
-            form.setAttribute('novalidate', true); // Disable browser default
+            form.setAttribute('novalidate', true); 
         }
     }
 
-    // Form Submit Mock
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert("Login functionality would trigger here!");
-        });
-    }
 
+    // FIXED: Form Submit Logic
+    // Login form simply submits to Django normally now. The preventDefault mock is gone.
+    const loginForm = document.getElementById('login-form');
+    // We do NOT add a submit event listener to loginForm, so it naturally POSTs.
 
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            // Trigger validation on all password fields before submitting
+            
             const passwordInput = signupDynamicContainer.querySelector('.signup-password');
             const confirmInput = signupDynamicContainer.querySelector('.signup-confirm-password');
             const emailInput = signupDynamicContainer.querySelector('.signup-email');
@@ -481,8 +379,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Password Validation
             if (passwordInput && confirmInput) {
-                // We can manually trigger the blur event or call logic that creates the errors
-                // But simply checking validity is better.
                 function checkStrength(password) {
                     let errors = [];
                     if (password.length < 8) errors.push("At least 8 characters");
@@ -513,12 +409,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (isValid) {
-                alert("Signup functionality would trigger here!");
+            // ONLY prevent submission if there are validation errors!
+            if (!isValid) {
+                e.preventDefault(); 
             }
+            // If isValid is true, we do nothing and let the browser POST data to Django naturally!
         });
     }
-
 
     // --- DASHBOARD LOGIC ---
     if (document.body.classList.contains('dashboard-body')) {
@@ -533,47 +430,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const sidebar = document.getElementById('sidebar');
 
-        let currentEditingId = null; // State for Edit Mode
+        let currentEditingId = null;
 
-        // Toast Notification Helper
         function showToast(message) {
-            // Remove existing toasts
             const existing = document.querySelectorAll('.toast-notification');
             existing.forEach(t => t.remove());
 
-            // Create new toast
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
             toast.innerHTML = `
                 <div class="toast-icon"><i class="fa-solid fa-check"></i></div>
                 <div class="toast-message">${message}</div>
             `;
-
             document.body.appendChild(toast);
-
-            // Animate in
-            setTimeout(() => {
-                toast.classList.add('show');
-            }, 10);
-
-            // Remove after 3s
+            setTimeout(() => { toast.classList.add('show'); }, 10);
             setTimeout(() => {
                 toast.classList.remove('show');
-                setTimeout(() => {
-                    toast.remove();
-                }, 400);
+                setTimeout(() => { toast.remove(); }, 400);
             }, 3000);
         }
 
-        // Show full rejection reason in a modal popup
         window.showFullRejectionReason = function (encodedReason) {
             const reason = decodeURIComponent(encodedReason);
-
-            // Remove existing modal if any
             const existing = document.getElementById('rejection-comment-modal');
             if (existing) existing.remove();
 
-            // Create modal
             const modal = document.createElement('div');
             modal.id = 'rejection-comment-modal';
             modal.innerHTML = `
@@ -593,16 +474,13 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(modal);
         }
 
-        // Sidebar Toggle (Mobile)
         if (sidebarToggle) {
             sidebarToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('open');
             });
         }
 
-        // View Switching Logic
         window.switchView = function (viewId) {
-            // Update Sidebar Active State
             sidebarItems.forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.view === viewId) {
@@ -610,7 +488,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Show Target Section
             sections.forEach(sec => {
                 sec.classList.remove('active');
                 if (sec.id === `view-${viewId}`) {
@@ -618,7 +495,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Update Header Title
             const titles = {
                 'overview': 'Dashboard Overview',
                 'create-event': 'Create New Event',
@@ -628,12 +504,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             if (pageTitle) pageTitle.textContent = titles[viewId] || 'Dashboard';
 
-            // Close sidebar on mobile after selection
             if (window.innerWidth < 992) {
                 sidebar.classList.remove('open');
             }
 
-            // Refresh data if needed
             if (viewId === 'overview' || viewId === 'events-list') {
                 renderEvents();
                 updateStats();
@@ -642,7 +516,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Attach Click Handlers to Sidebar
         sidebarItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -656,11 +529,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Initialize Vendor Category Pills
         const categoryPills = document.querySelectorAll('.category-pill');
         categoryPills.forEach(pill => {
             pill.addEventListener('click', () => {
-                // Update active state
                 categoryPills.forEach(p => {
                     p.classList.remove('active');
                     p.style.background = 'white';
@@ -672,7 +543,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 pill.style.color = 'white';
                 pill.style.border = 'none';
 
-                // Update hidden select and render
                 const vendorFilterSelect = document.getElementById('vendor-category-select');
                 if (vendorFilterSelect) {
                     vendorFilterSelect.value = pill.dataset.category;
@@ -681,7 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Initialize Vendor Filter Listener (hidden select for programmatic use)
         const vendorFilterSelect = document.getElementById('vendor-category-select');
         if (vendorFilterSelect) {
             vendorFilterSelect.addEventListener('change', () => {
@@ -696,7 +565,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Location filter
         const vendorLocationFilter = document.getElementById('vendor-location-filter');
         if (vendorLocationFilter) {
             vendorLocationFilter.addEventListener('change', () => {
@@ -704,7 +572,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // View All Categories Modal
         const showAllCategoriesBtn = document.getElementById('show-all-categories');
         if (showAllCategoriesBtn) {
             showAllCategoriesBtn.addEventListener('click', () => {
@@ -713,7 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function showAllCategoriesModal() {
-            // Remove existing modal
             const existing = document.getElementById('categories-modal');
             if (existing) existing.remove();
 
@@ -773,15 +639,12 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             document.body.appendChild(modal);
 
-            // Add click handlers to modal category buttons
             modal.querySelectorAll('.modal-category-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const category = btn.dataset.category;
-                    // Update hidden select
                     const vendorFilterSelect = document.getElementById('vendor-category-select');
                     if (vendorFilterSelect) vendorFilterSelect.value = category;
 
-                    // Update pills active state
                     const pills = document.querySelectorAll('.category-pill');
                     pills.forEach(p => {
                         p.classList.remove('active');
@@ -790,7 +653,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         p.style.border = '1px solid #e0e0e0';
                     });
 
-                    // Try to find matching pill
                     const matchingPill = document.querySelector(`.category-pill[data-category="${category}"]`);
                     if (matchingPill) {
                         matchingPill.classList.add('active');
@@ -803,7 +665,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderVendors();
                 });
 
-                // Hover effect
                 btn.addEventListener('mouseenter', () => {
                     btn.style.background = '#004e92';
                     btn.style.color = 'white';
@@ -824,11 +685,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btn = createEventForm.querySelector('button[type="submit"]');
                 if (btn) btn.textContent = 'Publish Event';
 
-                // Reset Headings
                 const formHeader = document.querySelector('#view-create-event .section-header h2');
                 if (formHeader) formHeader.textContent = 'Create New Event';
 
-                // Reset Ticket Categories to Default
                 const container = document.getElementById('ticket-categories-container');
                 if (container) {
                     container.innerHTML = `
@@ -850,15 +709,10 @@ document.addEventListener('DOMContentLoaded', () => {
             currentEditingId = id;
             switchView('create-event');
 
-            // Override Page Title
             if (pageTitle) pageTitle.textContent = 'Edit Event';
-
-            // Override Form Header
             const formHeader = document.querySelector('#view-create-event .section-header h2');
             if (formHeader) formHeader.textContent = 'Edit Event';
 
-
-            // Populate Form
             document.getElementById('event-title').value = evt.title;
             document.getElementById('event-category').value = evt.category;
             document.getElementById('event-date').value = evt.date;
@@ -866,18 +720,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('event-location').value = evt.location;
             document.getElementById('event-description').value = evt.description;
 
-            // Handle Tickets
             const container = document.getElementById('ticket-categories-container');
-            container.innerHTML = ''; // Clear default
+            container.innerHTML = ''; 
 
             let ticketsToLoad = evt.tickets || [];
             if (ticketsToLoad.length === 0 && evt.price !== undefined) {
-                // Backward compatibility for old single-price events
                 ticketsToLoad.push({ name: 'Standard', price: evt.price });
             }
 
             if (ticketsToLoad.length === 0) {
-                // Fallback for completely empty (shouldn't happen but safe)
                 ticketsToLoad.push({ name: 'General', price: '' });
             }
 
@@ -893,15 +744,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.appendChild(row);
             });
 
-            // Update Button
             const btn = createEventForm.querySelector('button[type="submit"]');
             if (btn) btn.textContent = 'Update Event';
         }
 
-        // --- CRUD Operations ---
         const EVENTS_DB_KEY = 'eventia_events_db';
         const VENDORS_DB_KEY = 'eventia_vendors_db';
-
 
         function getEvents() {
             const stored = localStorage.getItem(EVENTS_DB_KEY);
@@ -913,16 +761,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return stored ? JSON.parse(stored) : [];
         }
 
-        // Logic to setup Ticket UI handlers
         function setupTicketHandlers() {
             const container = document.getElementById('ticket-categories-container');
             const addBtn = document.getElementById('add-ticket-btn');
 
             if (addBtn && container) {
-                // Check if listener already attached to avoid duplicates?
-                // A simple way is to clone and replace or just use a flag.
-                // Since initDashboard runs once, we are safe.
-
                 addBtn.addEventListener('click', () => {
                     const row = document.createElement('div');
                     row.className = 'ticket-row';
@@ -938,11 +781,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.addEventListener('click', (e) => {
                     if (e.target.closest('.remove-ticket-btn')) {
                         const row = e.target.closest('.ticket-row');
-                        // Ensure at least one row remains
                         if (container.querySelectorAll('.ticket-row').length > 1) {
                             row.remove();
                         } else {
-                            // Optionally clear values instead of removing
                             row.querySelector('.ticket-name').value = '';
                             row.querySelector('.ticket-price').value = '';
                             showToast('At least one ticket category is required.');
@@ -951,20 +792,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
-        setupTicketHandlers(); // Call it
-
-
+        setupTicketHandlers(); 
 
         function saveEvent(eventData) {
             const events = getEvents();
             if (currentEditingId) {
-                // Update existing
                 const index = events.findIndex(e => e.id === currentEditingId);
                 if (index !== -1) {
-                    events[index] = { ...events[index], ...eventData, id: currentEditingId }; // Keep ID
+                    events[index] = { ...events[index], ...eventData, id: currentEditingId };
                 }
             } else {
-                // Create new
                 events.push(eventData);
             }
             localStorage.setItem(EVENTS_DB_KEY, JSON.stringify(events));
@@ -985,13 +822,10 @@ document.addEventListener('DOMContentLoaded', () => {
             let changed = false;
 
             const updatedEvents = events.map(evt => {
-                // IMPORTANT: Preserve Pending and Rejected statuses
-                // These are set by SCEGA and should NOT be overwritten by date logic
                 if (evt.status === 'Pending' || evt.status === 'Rejected') {
-                    return evt; // Keep as-is, don't change status
+                    return evt; 
                 }
 
-                // Only update date-based status for approved events
                 let newStatus = evt.status;
 
                 if (evt.date === todayStr) {
@@ -1014,14 +848,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Form Handling
         const createEventForm = document.getElementById('create-event-form');
         if (createEventForm) {
             createEventForm.addEventListener('submit', (e) => {
                 e.preventDefault();
 
-
-                // Collect Tickets
                 const ticketRows = document.querySelectorAll('.ticket-row');
                 const tickets = [];
                 ticketRows.forEach(row => {
@@ -1032,33 +863,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // Calculate display price (min price)
                 const prices = tickets.map(t => parseFloat(t.price));
                 const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
                 const newEvent = {
-                    id: Date.now().toString(), // Will be ignored if editing
+                    id: Date.now().toString(), 
                     title: document.getElementById('event-title').value,
                     category: document.getElementById('event-category').value,
                     date: document.getElementById('event-date').value,
                     time: document.getElementById('event-time').value,
                     location: document.getElementById('event-location').value,
                     description: document.getElementById('event-description').value,
-                    price: minPrice, // For sorting/display logic compatibility
-                    tickets: tickets, // New Structure
-                    status: 'Pending', // Default status for new events
-                    attendees: 0 // Should preserve if editing
+                    price: minPrice, 
+                    tickets: tickets, 
+                    status: 'Pending', 
+                    attendees: 0 
                 };
 
-                // Preserve status/attendees if editing
                 if (currentEditingId) {
                     const existing = getEvents().find(e => e.id === currentEditingId);
                     if (existing) {
-                        // If editing a rejected event, maybe set back to Pending? For now keep status unless re-submitted logic.
-                        // Let's reset to Pending if it was Rejected to allow re-approval
                         if (existing.status === 'Rejected') {
                             newEvent.status = 'Pending';
-                            // Clear rejection reason
                             newEvent.rejectionReason = null;
                         } else {
                             newEvent.status = existing.status;
@@ -1069,33 +895,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 saveEvent(newEvent);
 
-                // Determine Message BEFORE resetting state
                 const msg = currentEditingId
                     ? 'Event Updated Successfully!'
                     : 'Event Submitted for Approval! SCEGA will review your event shortly.';
 
-                // Show Toast
                 showToast(msg);
-
-                // Reset state
                 resetCreateForm();
-
-                // Return to overview
                 switchView('overview');
             });
         }
 
-        // Render Functions
         function renderEvents() {
-            // 1. Update Statuses first
             updateEventStatuses();
-
             const events = getEvents();
-
-            // 2. Render in Overview (Recent Events) - ONLY APPROVED EVENTS (Ongoing/Upcoming, no Past)
             const recentContainer = document.getElementById('recent-events-list');
             if (recentContainer) {
-                // Dashboard only shows approved events that are ongoing or upcoming (not Past)
                 const todayStr = new Date().toISOString().split('T')[0];
                 const activeEvents = events.filter(e =>
                     (e.status === 'Upcoming' || e.status === 'Ongoing') ||
@@ -1105,23 +919,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (activeEvents.length === 0) {
                     recentContainer.innerHTML = '<p class="text-muted" style="text-align: center; padding: 2rem;">No upcoming or ongoing events. Create an event and wait for SCEGA approval.</p>';
                 } else {
-                    // Sort by Date and show only 3
                     const sorted = activeEvents.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 3);
                     recentContainer.innerHTML = sorted.map(evt => createDashboardEventItem(evt)).join('');
                 }
             }
 
-            // 3. Render in All Events List - WITH FILTER INPUT
             const allContainer = document.getElementById('all-events-container');
             const filterSelect = document.getElementById('event-filter-select');
             const filterValue = filterSelect ? filterSelect.value : 'all';
 
             if (allContainer) {
                 let displayedEvents = events;
-
-                if (filterValue !== 'all') {
-                    displayedEvents = events.filter(e => e.status === filterValue);
-                }
 
                 if (filterValue !== 'all') {
                     displayedEvents = events.filter(e => e.status === filterValue);
@@ -1134,31 +942,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p class="text-muted">No ${filterValue !== 'all' ? filterValue.toLowerCase() : ''} events found.</p>
                         </div>`;
                 } else {
-                    // Sort by event state: Ongoing first, then Upcoming, then Past
-                    // Within each group, sort by date
                     const todayStr = new Date().toISOString().split('T')[0];
 
                     const getEventPriority = (evt) => {
-                        if (evt.date === todayStr) return 0; // Ongoing
-                        if (evt.date > todayStr) return 1;   // Upcoming
-                        return 2;                            // Past
+                        if (evt.date === todayStr) return 0; 
+                        if (evt.date > todayStr) return 1;   
+                        return 2;                            
                     };
 
                     const sorted = displayedEvents.slice().sort((a, b) => {
                         const priorityDiff = getEventPriority(a) - getEventPriority(b);
                         if (priorityDiff !== 0) return priorityDiff;
-                        // Within same priority, sort by date (nearest first for Ongoing/Upcoming, latest first for Past)
                         if (getEventPriority(a) === 2) {
-                            return new Date(b.date) - new Date(a.date); // Past: latest first
+                            return new Date(b.date) - new Date(a.date); 
                         }
-                        return new Date(a.date) - new Date(b.date); // Others: earliest first
+                        return new Date(a.date) - new Date(b.date); 
                     });
 
                     allContainer.innerHTML = sorted.map(evt => createEventListItem(evt)).join('');
                 }
             }
-
-            // Attach listeners (Delete/Edit) - Logic remains same
             attachActionListeners();
         }
 
@@ -1174,10 +977,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let filtered = vendors;
 
-            // Category Filter
             if (filterSelect && filterSelect.value !== 'all') {
                 const selectedCategory = filterSelect.value;
-                // Also match parent categories (e.g., "Entertainment" matches "DJ Services", "Live Entertainment", etc.)
                 const entertainmentCategories = ['DJ Services', 'Live Entertainment', 'Kids Entertainment', 'Traditional Music', 'Fireworks & Pyro'];
                 const venueCategories = ['Venue', 'Conference Hall', 'Outdoor Venue'];
 
@@ -1190,12 +991,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Location Filter
             if (locationFilter && locationFilter.value !== 'all') {
                 filtered = filtered.filter(v => v.location === locationFilter.value || v.location === 'Any' || v.location === 'Global');
             }
 
-            // Search Filter
             if (searchInput && searchInput.value.trim() !== '') {
                 const term = searchInput.value.toLowerCase();
                 filtered = filtered.filter(v =>
@@ -1206,7 +1005,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
             }
 
-            // Update results count
             if (resultsCount) {
                 const categoryLabel = filterSelect && filterSelect.value !== 'all' ? filterSelect.value : 'all categories';
                 resultsCount.innerHTML = `<strong>${filtered.length}</strong> vendors found${filterSelect && filterSelect.value !== 'all' ? ` in ${categoryLabel}` : ''}`;
@@ -1249,7 +1047,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
 
-            // Attach listeners to new buttons
             document.querySelectorAll('.send-request-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const vendorId = e.target.dataset.id;
@@ -1259,19 +1056,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Helper to attach listeners to avoid code dup
         function attachActionListeners() {
-            // Attach Delete Listeners
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent triggering other clicks
+                    e.stopPropagation(); 
                     if (confirm('Are you sure you want to delete this event?')) {
                         deleteEvent(btn.dataset.id);
                     }
                 });
             });
 
-            // Attach Edit Listeners (New)
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1280,13 +1074,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Simplified event item for Dashboard Overview (no SCEGA status column)
         function createDashboardEventItem(evt) {
             const dateObj = new Date(evt.date);
             const month = dateObj.toLocaleString('default', { month: 'short' });
             const day = dateObj.getDate();
 
-            // Price Display Logic
             let priceDisplay = 'Free';
             if (evt.price > 0) {
                 priceDisplay = `${evt.price} SAR`;
@@ -1295,17 +1087,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Calculate Event State with consistent colors
             const todayStr = new Date().toISOString().split('T')[0];
             let stateColor, stateBg;
             if (evt.date === todayStr) {
-                stateColor = '#2e7d32'; // Green for Ongoing
+                stateColor = '#2e7d32'; 
                 stateBg = 'rgba(46, 125, 50, 0.15)';
             } else if (evt.date > todayStr) {
-                stateColor = '#7b1fa2'; // Purple for Upcoming
+                stateColor = '#7b1fa2'; 
                 stateBg = 'rgba(123, 31, 162, 0.15)';
             } else {
-                stateColor = '#757575'; // Grey for Past
+                stateColor = '#757575'; 
                 stateBg = 'rgba(117, 117, 117, 0.15)';
             }
 
@@ -1336,7 +1127,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const month = dateObj.toLocaleString('default', { month: 'short' });
             const day = dateObj.getDate();
 
-            // Price Display Logic
             let priceDisplay = 'Free';
             if (evt.price > 0) {
                 priceDisplay = `${evt.price} SAR`;
@@ -1345,12 +1135,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Calculate Event State (temporal) - based on date comparison
             const todayStr = new Date().toISOString().split('T')[0];
             let eventState, stateColor, stateBg;
             if (evt.date === todayStr) {
                 eventState = 'Ongoing';
-                stateColor = '#2e7d32'; // Green
+                stateColor = '#2e7d32'; 
                 stateBg = 'rgba(46, 125, 50, 0.15)';
             } else if (evt.date > todayStr) {
                 eventState = 'Upcoming';
@@ -1363,7 +1152,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const eventStateBadge = `<span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background: ${stateBg}; color: ${stateColor}; font-weight: 500; margin-left: 8px;">${eventState}</span>`;
 
-            // SCEGA Approval Status Column - Dedicated visual display
             let scegaStatusIcon, scegaStatusColor, scegaStatusBg, scegaStatusText;
             switch (evt.status) {
                 case 'Pending':
@@ -1378,14 +1166,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     scegaStatusBg = 'rgba(198, 40, 40, 0.1)';
                     scegaStatusText = 'Rejected';
                     break;
-                default: // Upcoming, Ongoing, Past = Approved
+                default: 
                     scegaStatusIcon = 'fa-circle-check';
                     scegaStatusColor = '#2e7d32';
                     scegaStatusBg = 'rgba(46, 125, 50, 0.1)';
                     scegaStatusText = 'Approved';
             }
 
-            // Rejection info for rejected events
             let rejectionInfo = '';
             if (evt.status === 'Rejected' && evt.rejectionReason) {
                 const maxLen = 40;
@@ -1408,7 +1195,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Action buttons - add Resubmit for rejected events
             let actionButtons = `
                 <button class="btn btn-sm btn-outline edit-btn" data-id="${evt.id}"><i class="fa-solid fa-pen"></i> Edit</button>
                 <button class="btn btn-sm btn-outline delete-btn" data-id="${evt.id}" style="color: #c62828; border-color: #c62828;"><i class="fa-solid fa-trash"></i></button>
@@ -1422,13 +1208,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             return `
                 <div class="event-list-item" style="display: grid; grid-template-columns: 80px 1fr 140px 120px; align-items: center; gap: 1.5rem;">
-                    <!-- Date Column -->
                     <div class="event-date-box">
                         <span class="date-month">${month}</span>
                         <span class="date-day">${day}</span>
                     </div>
 
-                    <!-- Event Info Column -->
                     <div class="event-details-text">
                         <h4 style="margin: 0 0 0.25rem 0;">${evt.title} ${eventStateBadge}</h4>
                         <div class="event-meta-info" style="display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: var(--text-muted);">
@@ -1438,7 +1222,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- SCEGA Approval Status Column -->
                     <div class="scega-status-column" style="text-align: center; min-width: 120px;">
                         <div style="background: ${scegaStatusBg}; padding: 0.75rem 1rem; border-radius: 12px; border: 1px solid ${scegaStatusColor}20;">
                             <i class="fa-solid ${scegaStatusIcon}" style="font-size: 1.25rem; color: ${scegaStatusColor}; display: block; margin-bottom: 0.25rem;"></i>
@@ -1447,7 +1230,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- Actions Column -->
                     <div class="event-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
                         ${actionButtons}
                     </div>
@@ -1461,7 +1243,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const upcoming = events.filter(e => e.status === 'Upcoming').length;
             const pending = events.filter(e => e.status === 'Pending').length;
 
-            // Safe Update
             const totalEl = document.getElementById('stat-total-events');
             if (totalEl) totalEl.textContent = total;
 
@@ -1472,7 +1253,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (pendingEl) pendingEl.textContent = pending;
         }
 
-        // Filter Change Listener
         const filterSelect = document.getElementById('event-filter-select');
         if (filterSelect) {
             filterSelect.addEventListener('change', () => {
@@ -1480,11 +1260,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Initial Load
         renderEvents();
         updateStats();
 
-        // Make functions global for inline onclicks if needed
         window.deleteEvent = deleteEvent;
 
         // --- REQUESTS LOGIC ---
@@ -1527,7 +1305,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noMsg) noMsg.style.display = 'none';
             if (tableEl) tableEl.style.display = 'table';
 
-            // Sort by Date (newest first)
             filtered.sort((a, b) => new Date(b.dateSent) - new Date(a.dateSent));
 
             tableBody.innerHTML = filtered.map(req => {
@@ -1547,7 +1324,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     statusIcon = '<i class="fa-solid fa-circle-xmark"></i>';
                 }
 
-                // Format date nicely
                 const dateObj = new Date(req.dateSent);
                 const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -1585,7 +1361,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         }
 
-        // Request Modal Logic
         const requestModal = document.getElementById('request-modal');
         const closeModalBtns = document.querySelectorAll('.close-modal-btn');
         const requestForm = document.getElementById('send-request-form');
@@ -1642,7 +1417,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Incoming Requests Functions
         const INCOMING_REQUESTS_KEY = 'eventia_incoming_requests';
 
         function getIncomingRequests() {
@@ -1664,7 +1438,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!tableBody) return;
 
-            // Update badge count (pending only)
             const pendingCount = requests.filter(r => r.status === 'Pending').length;
             if (badge) {
                 if (pendingCount > 0) {
@@ -1690,7 +1463,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noMsg) noMsg.style.display = 'none';
             if (tableEl) tableEl.style.display = 'table';
 
-            // Sort by Date (newest first)
             filtered.sort((a, b) => new Date(b.dateReceived) - new Date(a.dateReceived));
 
             tableBody.innerHTML = filtered.map(req => {
@@ -1718,7 +1490,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     actionButtons = `<span style="color: #c62828; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;"><i class="fa-solid fa-circle-xmark"></i>Rejected</span>`;
                 }
 
-                // Format date nicely
                 const dateObj = new Date(req.dateReceived);
                 const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
@@ -1759,7 +1530,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }).join('');
         }
 
-        // Handle incoming request approval/rejection
         window.handleIncomingRequest = function (requestId, action) {
             const requests = getIncomingRequests();
             const requestIndex = requests.findIndex(r => r.id === requestId);
@@ -1772,24 +1542,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Tab switching for Requests page
         const requestTabs = document.querySelectorAll('.request-tab');
         requestTabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Reset all tabs to inactive (white card with border)
                 requestTabs.forEach(t => {
                     t.classList.remove('active');
                     t.style.border = '2px solid #e0e0e0';
                     t.style.background = 'white';
                     t.style.boxShadow = 'none';
-                    // Reset icon container and text
                     const iconContainer = t.querySelector('div:first-child');
                     if (iconContainer) {
                         iconContainer.style.background = 'linear-gradient(135deg, #f0f4f8, #e3e8ed)';
                         const icon = iconContainer.querySelector('i');
                         if (icon) icon.style.color = '#1565c0';
                     }
-                    // Reset text colors
                     const textContainer = t.querySelector('div:nth-child(2)');
                     if (textContainer) {
                         const title = textContainer.querySelector('div:first-child');
@@ -1799,19 +1565,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // Style active tab (blue gradient)
                 tab.classList.add('active');
                 tab.style.border = 'none';
                 tab.style.background = 'linear-gradient(135deg, #1565c0, #0d47a1)';
                 tab.style.boxShadow = '0 4px 15px rgba(21, 101, 192, 0.3)';
-                // Style active icon container
                 const activeIconContainer = tab.querySelector('div:first-child');
                 if (activeIconContainer) {
                     activeIconContainer.style.background = 'rgba(255,255,255,0.2)';
                     const activeIcon = activeIconContainer.querySelector('i');
                     if (activeIcon) activeIcon.style.color = 'white';
                 }
-                // Style active text colors
                 const activeTextContainer = tab.querySelector('div:nth-child(2)');
                 if (activeTextContainer) {
                     const title = activeTextContainer.querySelector('div:first-child');
@@ -1820,7 +1583,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (subtitle) subtitle.style.color = 'rgba(255,255,255,0.8)';
                 }
 
-                // Show correct section
                 const outgoingSection = document.getElementById('outgoing-requests-section');
                 const incomingSection = document.getElementById('incoming-requests-section');
 
@@ -1836,7 +1598,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Listeners for Request View
         const reqFilter = document.getElementById('request-status-filter');
         if (reqFilter) {
             reqFilter.addEventListener('change', renderRequests);
@@ -1847,10 +1608,8 @@ document.addEventListener('DOMContentLoaded', () => {
             incomingFilter.addEventListener('change', renderIncomingRequests);
         }
 
-        // Update SwitchView to handle requests
         const originalSwitchView = window.switchView;
         window.switchView = function (viewId) {
-            // Update Sidebar Active State
             sidebarItems.forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.view === viewId) {
@@ -1858,7 +1617,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Show Target Section
             sections.forEach(sec => {
                 sec.classList.remove('active');
                 if (sec.id === `view-${viewId}`) {
@@ -1866,7 +1624,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Update Header Title
             const titles = {
                 'overview': 'Dashboard Overview',
                 'create-event': 'Create New Event',
@@ -1877,12 +1634,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             if (pageTitle) pageTitle.textContent = titles[viewId] || 'Dashboard';
 
-            // Close sidebar on mobile
             if (window.innerWidth < 992) {
                 sidebar.classList.remove('open');
             }
 
-            // Data Refresh
             if (viewId === 'overview' || viewId === 'events-list') {
                 renderEvents();
                 updateStats();
@@ -1893,7 +1648,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Message Modal Logic
         window.openMessageModal = function (message) {
             const modal = document.getElementById('message-modal');
             const content = document.getElementById('full-message-content');
@@ -1925,8 +1679,3 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
-
-
-// --- SCEGA DASHBOARD LOGIC ---
-// REMOVED: initScegaDashboard is now in scega-logic.js
-// This comment prevents app.js from overwriting the updated function
