@@ -40,15 +40,32 @@ class AttendeeProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+
 class Ticket(models.Model):
     attendee = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tickets')
     event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='tickets')
     purchase_date = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='ACTIVE')
 
+    # --- NEW FIELDS FOR FR3.0 ---
+    ticket_type = models.CharField(max_length=50, default='Standard')
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    attended = models.BooleanField(default=False)
+    rating = models.IntegerField(null=True, blank=True)
+    feedback = models.TextField(null=True, blank=True)
+
     def __str__(self):
         return f"{self.attendee.username} - {self.event.title}"
 
+
+# --- NEW BROADCAST MODEL ---
+class Broadcast(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='broadcasts')
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Broadcast for {self.event.title}"
 
 # --- EVENT MODEL ---
 class Event(models.Model):

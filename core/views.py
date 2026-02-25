@@ -107,75 +107,102 @@ def attendee_dashboard(request):
 
 
 @login_required
+@login_required
 def api_attendee_data(request):
     if request.user.role != 'ATTENDEE':
         return JsonResponse({'error': 'Unauthorized'}, status=403)
 
     today = date.today()
 
-    # Fetch Data
+    # 1. Fetch Events & Tickets
     all_events = Event.objects.filter(status='APPROVED').order_by('date')
     user_tickets = Ticket.objects.filter(attendee=request.user).select_related('event')
-    ticket_map = {t.event.id: t.id for t in user_tickets}
+    ticket_map = {t.event.id: t for t in user_tickets}
+    registered_event_ids = list(ticket_map.keys())
 
-    # Format Events
+    # 2. Fetch Broadcasts (ONLY for registered events)
+    from .models import Broadcast
+    broadcasts = Broadcast.objects.filter(event__id__in=registered_event_ids).order_by('-timestamp')
+
+    # 3. Format Events
     events_data = []
     for event in all_events:
-        is_registered = event.id in ticket_map
-
-        # --- SAFE DATA EXTRACTION ---
-        # Prevents Server 500 errors if an event is missing a date, time, or price
-        evt_date = event.date.strftime('%Y-%m-%d') if event.date else 'TBD'
-        evt_time = event.time.strftime('%H:%M') if event.time else 'TBD'
-        evt_price = float(event.ticket_price) if event.ticket_price else 0.0
-        evt_status = 'upcoming' if (event.date and event.date >= today) else 'past'
-
         events_data.append({
-            'id': event.id,
+            'id': str(event.id),
             'title': event.title or 'Untitled Event',
             'category': event.category or 'Other',
-            'date': evt_date,
-            'time': evt_time,
+            'date': event.date.strftime('%Y-%m-%d') if event.date else 'TBD',
+            'time': event.time.strftime('%H:%M') if event.time else 'TBD',
             'location': event.location or 'TBD',
             'description': event.description or '',
-            'price': evt_price,
-            'image': 'assets/event-placeholder.jpg',
-            'isRegistered': is_registered,
-            'ticketId': ticket_map.get(event.id),
-            'status': evt_status
+            'price': float(event.ticket_price) if event.ticket_price else 0.0,
+            'status': 'upcoming' if (event.date and event.date >= today) else 'past'
         })
 
-    # Format Profile
-    profile_data = {
-        'username': request.user.username,
-        'email': request.user.email,
-        'role': 'Attendee',
-        'firstName': request.user.first_name or request.user.username,
-        'lastName': request.user.last_name or '',
-        'phone': getattr(request.user, 'phone_number', ''),
-        'initial': request.user.username[0].upper() if request.user.username else 'A'
-    }
+    # 4. Format Registrations (Tickets)
+    regs_data = []
+    for t in user_tickets:
+        regs_data.append({
+            'id': str(t.id),
+            'eventId': str(t.event.id),
+            'ticketType': t.ticket_type,
+            'ticketPrice': float(t.amount_paid),
+            'registeredDate': t.purchase_date.strftime('%Y-%m-%d'),
+            'ticketCode': f"EVT-{t.event.id}-TKT-{t.id}",
+            'attended': t.attended,
+            'rating': t.rating,
+            'feedback': t.feedback,
+            'feedbackDate': t.purchase_date.strftime('%Y-%m-%d') if t.feedback else None
+        })
+
+    # 5. Format Broadcasts
+    broadcasts_data = [{
+        'id': str(b.id),
+        'eventId': str(b.event.id),
+        'message': b.message,
+        'timestamp': b.timestamp.isoformat()
+    } for b in broadcasts]
 
     return JsonResponse({
         'events': events_data,
-        'profile': profile_data
+        'registrations': regs_data,
+        'broadcasts': broadcasts_data,
+        'profile': {
+            'firstName': request.user.first_name or request.user.username,
+            'lastName': request.user.last_name or '',
+            'email': request.user.email,
+        }
     })
 
 @login_required
-def attendee_register(request, event_id):
-    if request.user.role != 'ATTENDEE':
-        return redirect('home')
+def api_attendee_register_json(request, event_id):
+    """Silently handles the mock payment success"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        event = get_object_or_404(Event, id=event_id)
 
-    event = get_object_or_404(Event, id=event_id)
+        if not Ticket.objects.filter(attendee=request.user, event=event).exists():
+            Ticket.objects.create(
+                attendee=request.user,
+                event=event,
+                status='ACTIVE',
+                ticket_type=data.get('ticketType', 'Standard'),
+                amount_paid=data.get('ticketPrice', 0.0)
+            )
+            return JsonResponse({'success': True})
+        return JsonResponse({'error': 'Already registered'}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
-    if not Ticket.objects.filter(attendee=request.user, event=event).exists():
-        Ticket.objects.create(attendee=request.user, event=event, status='ACTIVE')
-        messages.success(request, f"Successfully registered for {event.title}!")
-    else:
-        messages.warning(request, "You are already registered for this event.")
-
-    return redirect('attendee_dashboard')
-
+@login_required
+def api_attendee_feedback_json(request, reg_id):
+    """Saves rating/feedback without reloading the page"""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        ticket = get_object_or_404(Ticket, id=reg_id, attendee=request.user)
+        ticket.rating = data.get('rating')
+        ticket.feedback = data.get('feedback')
+        ticket.save()
+        return JsonResponse({'success': True})
 
 @login_required
 def attendee_cancel(request, ticket_id):

@@ -47,6 +47,9 @@ urlpatterns = [
 
     # Attendee API (The Data Pipeline)
     path('api/attendee/data/', views.api_attendee_data, name='api_attendee_data'),
+    # New Hidden Endpoints for Dashboard Modals
+    path('api/attendee/register-json/<int:event_id>/', views.api_attendee_register_json, name='api_attendee_register_json'),
+    path('api/attendee/feedback/<int:reg_id>/', views.api_attendee_feedback_json, name='api_attendee_feedback_json'),
 
     # Actions (Register/Cancel)
     path('dashboard/attendee/register/<int:event_id>/', views.attendee_register, name='attendee_register'),
