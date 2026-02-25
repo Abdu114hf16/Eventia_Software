@@ -3,7 +3,7 @@
  * Handles all FR3.0 features: Browse, Register, Tickets, Profile, History, Feedback
  */
 
-(function () {
+(async function () {
     const EVENTS_DB = 'eventia_events_db';
     const REGISTRATIONS_DB = 'eventia_registrations_db';
     const PROFILE_DB = 'eventia_attendee_profile';
