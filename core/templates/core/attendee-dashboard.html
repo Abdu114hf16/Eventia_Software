@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,19 +10,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="base.css?v=1">
-    <link rel="stylesheet" href="landing.css?v=1">
-    <link rel="stylesheet" href="attendee.css?v=1">
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/attendee.css' %}?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="landing-body">
 
-    <!-- Navigation (Attendee Logged-in) -->
     <nav class="navbar landing-nav" id="landing-navbar">
         <div class="container nav-container">
-            <a href="attendee.html" class="logo" id="nav-logo">
-                <img src="assets/eventia_logo_new.png" alt="Eventia Logo" class="logo-img">
+            <a href="{% url 'attendee_dashboard' %}" class="logo" id="nav-logo">
+                <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
             </a>
             <div class="nav-links" style="display: flex; align-items: center; gap: 0.75rem;">
                 <a href="#" class="btn btn-outline btn-sm att-nav-link active" data-view="home"
@@ -40,7 +41,6 @@
                     style="border-radius: 20px; font-size: 0.85rem;">
                     <i class="fa-solid fa-user"></i> Profile
                 </a>
-                <!-- Notification Bell -->
                 <div id="notif-bell-wrapper" style="position: relative;">
                     <button id="notif-bell-btn" onclick="switchAttendeeViewPublic('notifications')"
                         title="Notifications"
@@ -52,17 +52,15 @@
                             style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid white;">0</span>
                     </button>
                 </div>
-                <a href="login.html" class="btn btn-primary btn-sm" style="border-radius: 20px; font-size: 0.85rem;">
+                <a href="{% url 'logout' %}" class="btn btn-primary btn-sm" style="border-radius: 20px; font-size: 0.85rem;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </div>
         </div>
     </nav>
 
-    <!-- ==================== VIEW: NOTIFICATIONS ==================== -->
     <div id="view-notifications" class="attendee-view" style="display:none;">
 
-        <!-- Hero Header -->
         <section
             style="background:linear-gradient(135deg,#004e92,#4dabf7);padding:6rem 0 3rem;color:white;text-align:center;">
             <div class="container">
@@ -75,11 +73,9 @@
             </div>
         </section>
 
-        <!-- Notifications Content -->
         <section style="background:#f0f4f8;min-height:40vh;padding:2.5rem 0;">
             <div class="container">
                 <div style="max-width:780px;margin:0 auto;">
-                    <!-- Toolbar -->
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
                         <div id="notif-count-label" style="font-size:0.875rem;color:#666;"></div>
                         <button onclick="markAllNotifsRead()" id="mark-all-btn"
@@ -89,18 +85,13 @@
                             <i class="fa-solid fa-check-double"></i> Mark all as read
                         </button>
                     </div>
-                    <!-- Cards -->
                     <div id="notif-list"></div>
                 </div>
             </div>
         </section>
 
-    </div><!-- /view-notifications -->
+    </div><div id="view-home" class="attendee-view">
 
-    <!-- ==================== VIEW: HOME ==================== -->
-    <div id="view-home" class="attendee-view">
-
-        <!-- HERO SECTION (Attendee Version) -->
         <section class="hero-landing" id="hero">
             <div class="hero-bg">
                 <div class="hero-gradient"></div>
@@ -155,7 +146,6 @@
             </div>
         </section>
 
-        <!-- SEARCH & FILTER SECTION -->
         <section class="search-section" id="events-section">
             <div class="container">
                 <div class="search-bar-wrapper">
@@ -202,7 +192,6 @@
             </div>
         </section>
 
-        <!-- EVENTS GRID (Dynamic) -->
         <section class="landing-events">
             <div class="container">
                 <div class="section-heading">
@@ -210,12 +199,10 @@
                     <p class="section-desc">Don't miss out on these exciting upcoming events across Saudi Arabia</p>
                 </div>
                 <div class="landing-events-grid" id="landing-events-grid">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                    </div>
             </div>
         </section>
 
-        <!-- MY TICKETS SECTION -->
         <section class="landing-events" id="my-tickets-section" style="background: white;">
             <div class="container">
                 <div class="section-heading">
@@ -224,17 +211,12 @@
                 </div>
                 <div id="my-tickets-container"
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                    </div>
             </div>
         </section>
 
-    </div><!-- /view-home -->
+    </div><div id="view-history" class="attendee-view" style="display: none;">
 
-    <!-- ==================== VIEW: HISTORY ==================== -->
-    <div id="view-history" class="attendee-view" style="display: none;">
-
-        <!-- History Page Header -->
         <section
             style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 6rem 0 3rem; color: white; text-align: center;">
             <div class="container">
@@ -251,17 +233,12 @@
         <section class="landing-events" id="history-section" style="background: #f0f4f8; min-height: 40vh;">
             <div class="container">
                 <div id="history-container" style="display: grid; gap: 1rem; max-width: 900px; margin: 0 auto;">
-                    <!-- Populated dynamically via JS -->
-                </div>
+                    </div>
             </div>
         </section>
 
-    </div><!-- /view-history -->
+    </div><div id="view-profile" class="attendee-view" style="display: none;">
 
-    <!-- ==================== VIEW: PROFILE ==================== -->
-    <div id="view-profile" class="attendee-view" style="display: none;">
-
-        <!-- Profile Page Header -->
         <section
             style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 6rem 0 3rem; color: white; text-align: center;">
             <div class="container">
@@ -280,7 +257,6 @@
                 <div style="max-width: 700px; margin: 0 auto;">
                     <div
                         style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e8e8e8;">
-                        <!-- Profile Header -->
                         <div
                             style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
                             <div id="profile-avatar"
@@ -302,7 +278,6 @@
                                 Member</p>
                         </div>
 
-                        <!-- Profile Form -->
                         <div style="padding: 2rem;">
                             <form id="profile-form">
                                 <div
@@ -384,14 +359,11 @@
             </div>
         </section>
 
-    </div><!-- /view-profile -->
-
-    <!-- FOOTER -->
-    <footer class="site-footer">
+    </div><footer class="site-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="assets/logo_fixed.png" alt="Eventia" class="footer-logo">
+                    <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="footer-logo">
                     <p>Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees
                         for exceptional experiences.</p>
                 </div>
@@ -417,9 +389,13 @@
         </div>
     </footer>
 
+    <script>
+        window.CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="dummy_data.js"></script>
-    <script src="attendee-logic.js"></script>
+
+    <script src="{% static 'js/attendee-logic.js' %}?v=3"></script>
 </body>
 
 </html>
