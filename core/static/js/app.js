@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Role Management (Login & Signup) ---
     // FIXED: Added name="..." attributes to all inputs so Django can read the data!
+    // --- Role Management (Login & Signup) ---
     const roleFields = {
         organizer: `
+            <input type="hidden" name="role" value="ORGANIZER">
             <div class="input-group">
                 <label>Username</label>
                 <input type="text" name="username" placeholder="organizer123" required>
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `,
         vendor: `
+            <input type="hidden" name="role" value="VENDOR">
             <div class="input-group">
                 <label>Username</label>
                 <input type="text" name="username" placeholder="vendor123" required>
@@ -168,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `,
         attendee: `
+            <input type="hidden" name="role" value="ATTENDEE">
             <div class="form-row">
                 <div class="input-group">
                     <label>First Name</label>
@@ -195,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label>Gender</label>
                 <select name="gender" required>
                     <option value="" disabled selected>Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
                 </select>
             </div>
             <div class="input-group">
@@ -260,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     roleTabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            const targetForm = tab.dataset.target; 
+            const targetForm = tab.dataset.target;
             const role = tab.dataset.role;
 
             const parent = tab.parentElement;
@@ -345,7 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (form) {
-            form.setAttribute('novalidate', true); 
+            form.setAttribute('novalidate', true);
         }
     }
 
@@ -357,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
-            
+
             const passwordInput = signupDynamicContainer.querySelector('.signup-password');
             const confirmInput = signupDynamicContainer.querySelector('.signup-confirm-password');
             const emailInput = signupDynamicContainer.querySelector('.signup-email');
@@ -411,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ONLY prevent submission if there are validation errors!
             if (!isValid) {
-                e.preventDefault(); 
+                e.preventDefault();
             }
             // If isValid is true, we do nothing and let the browser POST data to Django naturally!
         });
@@ -721,7 +725,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('event-description').value = evt.description;
 
             const container = document.getElementById('ticket-categories-container');
-            container.innerHTML = ''; 
+            container.innerHTML = '';
 
             let ticketsToLoad = evt.tickets || [];
             if (ticketsToLoad.length === 0 && evt.price !== undefined) {
@@ -792,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
-        setupTicketHandlers(); 
+        setupTicketHandlers();
 
         function saveEvent(eventData) {
             const events = getEvents();
@@ -823,7 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const updatedEvents = events.map(evt => {
                 if (evt.status === 'Pending' || evt.status === 'Rejected') {
-                    return evt; 
+                    return evt;
                 }
 
                 let newStatus = evt.status;
@@ -867,17 +871,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
                 const newEvent = {
-                    id: Date.now().toString(), 
+                    id: Date.now().toString(),
                     title: document.getElementById('event-title').value,
                     category: document.getElementById('event-category').value,
                     date: document.getElementById('event-date').value,
                     time: document.getElementById('event-time').value,
                     location: document.getElementById('event-location').value,
                     description: document.getElementById('event-description').value,
-                    price: minPrice, 
-                    tickets: tickets, 
-                    status: 'Pending', 
-                    attendees: 0 
+                    price: minPrice,
+                    tickets: tickets,
+                    status: 'Pending',
+                    attendees: 0
                 };
 
                 if (currentEditingId) {
@@ -945,18 +949,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     const todayStr = new Date().toISOString().split('T')[0];
 
                     const getEventPriority = (evt) => {
-                        if (evt.date === todayStr) return 0; 
-                        if (evt.date > todayStr) return 1;   
-                        return 2;                            
+                        if (evt.date === todayStr) return 0;
+                        if (evt.date > todayStr) return 1;
+                        return 2;
                     };
 
                     const sorted = displayedEvents.slice().sort((a, b) => {
                         const priorityDiff = getEventPriority(a) - getEventPriority(b);
                         if (priorityDiff !== 0) return priorityDiff;
                         if (getEventPriority(a) === 2) {
-                            return new Date(b.date) - new Date(a.date); 
+                            return new Date(b.date) - new Date(a.date);
                         }
-                        return new Date(a.date) - new Date(b.date); 
+                        return new Date(a.date) - new Date(b.date);
                     });
 
                     allContainer.innerHTML = sorted.map(evt => createEventListItem(evt)).join('');
@@ -1059,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function attachActionListeners() {
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
+                    e.stopPropagation();
                     if (confirm('Are you sure you want to delete this event?')) {
                         deleteEvent(btn.dataset.id);
                     }
@@ -1090,13 +1094,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const todayStr = new Date().toISOString().split('T')[0];
             let stateColor, stateBg;
             if (evt.date === todayStr) {
-                stateColor = '#2e7d32'; 
+                stateColor = '#2e7d32';
                 stateBg = 'rgba(46, 125, 50, 0.15)';
             } else if (evt.date > todayStr) {
-                stateColor = '#7b1fa2'; 
+                stateColor = '#7b1fa2';
                 stateBg = 'rgba(123, 31, 162, 0.15)';
             } else {
-                stateColor = '#757575'; 
+                stateColor = '#757575';
                 stateBg = 'rgba(117, 117, 117, 0.15)';
             }
 
@@ -1139,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let eventState, stateColor, stateBg;
             if (evt.date === todayStr) {
                 eventState = 'Ongoing';
-                stateColor = '#2e7d32'; 
+                stateColor = '#2e7d32';
                 stateBg = 'rgba(46, 125, 50, 0.15)';
             } else if (evt.date > todayStr) {
                 eventState = 'Upcoming';
@@ -1166,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     scegaStatusBg = 'rgba(198, 40, 40, 0.1)';
                     scegaStatusText = 'Rejected';
                     break;
-                default: 
+                default:
                     scegaStatusIcon = 'fa-circle-check';
                     scegaStatusColor = '#2e7d32';
                     scegaStatusBg = 'rgba(46, 125, 50, 0.1)';

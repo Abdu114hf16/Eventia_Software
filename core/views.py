@@ -7,6 +7,7 @@ from datetime import date
 from .forms import SignUpForm
 from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile
 import json
+import random
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 
@@ -18,6 +19,8 @@ def dashboard_view(request):
     if request.user.is_authenticated:
         if request.user.role == 'ORGANIZER':
             return redirect('organizer_dashboard')
+        elif request.user.role == 'VENDOR':
+            return redirect('vendor_dashboard')
         elif request.user.role == 'SCEGA_ADMIN':
             return redirect('scega_dashboard')
         elif request.user.role == 'ATTENDEE':  # <--- THIS WAS MISSING
@@ -64,7 +67,8 @@ def signup_attendee(request):
             login(request, user)
             return redirect('attendee_dashboard')
         else:
-            messages.error(request, "Please correct the errors below.")
+            print("ATTENDEE SIGNUP ERRORS:", form.errors)
+            messages.error(request, f"Validation Failed: {form.errors}")
     else:
         form = SignUpForm()
     return render(request, 'core/signup.html', {'form': form})
@@ -194,9 +198,12 @@ def signup_business(request):
             login(request, user)
             if user.role == 'ORGANIZER':
                 return redirect('organizer_dashboard')
+            elif user.role == 'VENDOR':
+                return redirect('vendor_dashboard')
             return redirect('dashboard')
         else:
-            messages.error(request, "Please correct the errors below.")
+            print("BUSINESS SIGNUP ERRORS:", form.errors)
+            messages.error(request, f"Validation Failed: {form.errors}")
     else:
         form = SignUpForm()
     return render(request, 'core/signup-business.html', {'form': form})
@@ -210,6 +217,8 @@ def login_business(request):
             login(request, user)
             if user.role == 'ORGANIZER':
                 return redirect('organizer_dashboard')
+            elif user.role == 'VENDOR':
+                return redirect('vendor_dashboard')
             elif user.role == 'SCEGA_ADMIN':
                 return redirect('scega_dashboard')
             return redirect('dashboard')
@@ -221,6 +230,53 @@ def login_business(request):
 
 
 # --- SCEGA ADMIN VIEWS ---
+
+@login_required
+def vendor_dashboard(request):
+    if request.user.role != 'VENDOR':
+        return redirect('home')
+
+    try:
+        vendor_profile = request.user.vendor_profile
+        incoming_requests = Request.objects.filter(vendor=vendor_profile, sent_by='ORGANIZER').order_by('-created_at')
+        outgoing_requests = Request.objects.filter(vendor=vendor_profile, sent_by='VENDOR').order_by('-created_at')
+
+        # Pending incoming invitations
+        pending_invitations_count = incoming_requests.filter(status='PENDING').count()
+        today = date.today()
+
+        approved_requests = Request.objects.filter(vendor=vendor_profile, status='APPROVED')
+        active_events_count = approved_requests.filter(event__date__gte=today).count()
+        completed_events_count = approved_requests.filter(event__date__lt=today).count()
+
+        my_events = approved_requests.order_by('event__date')
+
+         # Removed date__gte=today so older test events can still show up during development
+        all_upcoming_events = Event.objects.filter(status='APPROVED').order_by('date')
+
+        applied_event_ids = list(incoming_requests.values_list('event_id', flat=True)) + list(outgoing_requests.values_list('event_id', flat=True))
+
+    except Exception as e:
+        incoming_requests = []
+        outgoing_requests = []
+        pending_invitations_count = 0
+        active_events_count = 0
+        completed_events_count = 0
+        my_events = []
+        all_upcoming_events = []
+        applied_event_ids = []
+
+    context = {
+        'incoming_requests': incoming_requests,
+        'outgoing_requests': outgoing_requests,
+        'pending_invitations_count': pending_invitations_count,
+        'active_events_count': active_events_count,
+        'completed_events_count': completed_events_count,
+        'my_events': my_events,
+        'all_upcoming_events': all_upcoming_events,
+        'applied_event_ids': applied_event_ids,
+    }
+    return render(request, 'core/vendor-dashboard.html', context)
 
 def login_scega(request):
     storage = messages.get_messages(request)
@@ -292,6 +348,30 @@ def organizer_dashboard(request):
 
     if request.method == 'POST':
         try:
+            # Handle Vendor Request Creation
+            if request.POST.get('create_request') == 'true':
+                vendor_id = request.POST.get('vendor_id')
+                event_id = request.POST.get('event_id')
+                message = request.POST.get('message')
+
+                vendor = get_object_or_404(VendorProfile, id=vendor_id)
+                event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
+
+                # Check if request already exists
+                if Request.objects.filter(event=event, vendor=vendor).exists():
+                    messages.warning(request, "A request for this vendor and event already exists.")
+                else:
+                    Request.objects.create(
+                        event=event,
+                        vendor=vendor,
+                        message=message,
+                        sent_by='ORGANIZER',
+                        status='PENDING'
+                    )
+                    messages.success(request, f"Request sent to {vendor.user.username} successfully!")
+                return redirect('organizer_dashboard')
+
+            # Handle Event Creation/Update
             event_id = request.POST.get('event_id')
             if event_id:
                 # Update Logic
@@ -328,11 +408,52 @@ def organizer_dashboard(request):
             return redirect('organizer_dashboard')
 
     try:
-        my_events = Event.objects.filter(organizer=request.user.organizer_profile).order_by('-id')
+        organizer_profile = request.user.organizer_profile
+        my_events = Event.objects.filter(organizer=organizer_profile).order_by('-id')
+
+        # Vendor Marketplace Data
+        vendors = VendorProfile.objects.all().order_by('organization_name', 'user__username')
+
+        # Requests Data
+        outgoing_requests = Request.objects.filter(event__organizer=organizer_profile, sent_by='ORGANIZER').order_by('-created_at')
+        incoming_requests = Request.objects.filter(event__organizer=organizer_profile, sent_by='VENDOR').order_by('-created_at')
+
     except OrganizerProfile.DoesNotExist:
         my_events = []
+        vendors = []
+        outgoing_requests = []
+        incoming_requests = []
 
-    return render(request, 'core/organizer-dashboard.html', {'events': my_events})
+    context = {
+        'events': my_events,
+        'vendors': vendors,
+        'outgoing_requests': outgoing_requests,
+        'incoming_requests': incoming_requests,
+    }
+
+    return render(request, 'core/organizer-dashboard.html', context)
+
+
+@login_required
+def organizer_accept_request(request, req_id):
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+    req = get_object_or_404(Request, id=req_id, event__organizer=request.user.organizer_profile)
+    req.status = 'APPROVED'
+    req.save()
+    messages.success(request, f"Request from {req.vendor.user.username} approved!")
+    return redirect('organizer_dashboard')
+
+
+@login_required
+def organizer_reject_request(request, req_id):
+    if request.user.role != 'ORGANIZER':
+        return redirect('home')
+    req = get_object_or_404(Request, id=req_id, event__organizer=request.user.organizer_profile)
+    req.status = 'REJECTED'
+    req.save()
+    messages.warning(request, f"Request from {req.vendor.user.username} rejected.")
+    return redirect('organizer_dashboard')
 
 
 @login_required
@@ -365,3 +486,123 @@ def event_details(request, event_id):
     """Renders the details page for a specific event."""
     event = get_object_or_404(Event, id=event_id)
     return render(request, 'core/event_details.html', {'event': event})
+
+@login_required
+def accept_request(request, req_id):
+    if request.user.role != 'VENDOR':
+        return redirect('home')
+    req = get_object_or_404(Request, id=req_id, vendor=request.user.vendor_profile)
+    req.status = 'APPROVED'
+    req.save()
+    messages.success(request, "Invitation accepted!")
+    return redirect('vendor_dashboard')
+
+@login_required
+def reject_request(request, req_id):
+    if request.user.role != 'VENDOR':
+        return redirect('home')
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        req = get_object_or_404(Request, id=req_id, vendor=request.user.vendor_profile)
+        req.status = 'REJECTED'
+        req.message += f"\n[Rejected]: {reason}"
+        req.save()
+        messages.success(request, "Invitation rejected!")
+    return redirect('vendor_dashboard')
+
+@login_required
+def withdraw_request(request, req_id):
+    if request.user.role != 'VENDOR':
+        return redirect('home')
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '')
+        req = get_object_or_404(Request, id=req_id, vendor=request.user.vendor_profile)
+        req.status = 'REJECTED'
+        req.message += f"\n[Withdrawn]: {reason}"
+        req.save()
+        messages.success(request, "Withdrawn from event!")
+    return redirect('vendor_dashboard')
+
+@login_required
+def apply_for_event(request):
+    if request.user.role != 'VENDOR':
+        return redirect('home')
+    if request.method == 'POST':
+        event_id = request.POST.get('event_id')
+        service_type = request.POST.get('service_type', '')
+        message = request.POST.get('message', '')
+        event = get_object_or_404(Event, id=event_id)
+        Request.objects.create(
+            event=event,
+            vendor=request.user.vendor_profile,
+            message=f"[{service_type}] {message}",
+            sent_by='VENDOR'
+        )
+        messages.success(request, "Application sent!")
+    return redirect('vendor_dashboard')
+
+    User = get_user_model()
+
+def password_recovery(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            action = data.get('action')
+
+            # --- STEP 1: Find User & Send OTP ---
+            if action == 'send_otp':
+                identifier = data.get('identifier')
+                # Try finding by email or username
+                user = User.objects.filter(email=identifier).first() or User.objects.filter(username=identifier).first()
+
+                if user:
+                    # Generate a 6-digit OTP
+                    otp = str(random.randint(100000, 999999))
+                    request.session['recovery_otp'] = otp
+                    request.session['recovery_user_id'] = user.id
+
+                    # 🔴 IN DEVELOPMENT: Print OTP to terminal so you can test it
+                    print(f"\n" + "="*40)
+                    print(f" PASSWORD RECOVERY OTP FOR: {user.username}")
+                    print(f" CODE: {otp}")
+                    print("="*40 + "\n")
+
+                    return JsonResponse({'status': 'success'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'No account found with that email/username.'})
+
+            # --- STEP 2: Verify OTP ---
+            elif action == 'verify_otp':
+                otp_input = data.get('otp')
+                session_otp = request.session.get('recovery_otp')
+
+                if session_otp and otp_input == session_otp:
+                    return JsonResponse({'status': 'success'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid or expired verification code.'})
+
+            # --- STEP 3: Reset Password ---
+            elif action == 'reset_password':
+                new_password = data.get('password')
+                user_id = request.session.get('recovery_user_id')
+
+                if user_id:
+                    user = User.objects.get(id=user_id)
+                    user.set_password(new_password)
+                    user.save()
+
+                    # Security: Clear the session data
+                    if 'recovery_otp' in request.session:
+                        del request.session['recovery_otp']
+                    if 'recovery_user_id' in request.session:
+                        del request.session['recovery_user_id']
+
+                    return JsonResponse({'status': 'success'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Session expired. Please start over.'})
+
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred.'})
+
+    # For GET requests, just render the page
+    return render(request, 'core/password-recovery.html')
