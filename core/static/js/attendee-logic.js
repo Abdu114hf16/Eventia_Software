@@ -1076,25 +1076,6 @@
         updateStats();
     }
 
-    // ==========================================================================
-    // --- BROADCAST NOTIFICATIONS ---
-    // ==========================================================================
-
-    const BROADCASTS_KEY = 'eventia_broadcasts';
-    const READ_NOTIFS_KEY = 'eventia_read_notifs';
-
-    function getBroadcasts() {
-        return JSON.parse(localStorage.getItem(BROADCASTS_KEY)) || [];
-    }
-
-    function getReadNotifIds() {
-        return JSON.parse(localStorage.getItem(READ_NOTIFS_KEY)) || [];
-    }
-
-    function saveReadNotifIds(ids) {
-        localStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(ids));
-    }
-
     function getAttendeeRelevantBroadcasts() {
         const regs = getRegistrations();
         const registeredEventIds = regs.map(r => r.eventId);

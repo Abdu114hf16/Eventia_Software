@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -585,9 +585,8 @@ def apply_for_event(request):
         messages.success(request, "Application sent!")
     return redirect('vendor_dashboard')
 
-    User = get_user_model()
-
 def password_recovery(request):
+    User = get_user_model()
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
