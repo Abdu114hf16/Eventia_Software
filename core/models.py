@@ -60,7 +60,7 @@ class Ticket(models.Model):
 
 # --- NEW BROADCAST MODEL ---
 class Broadcast(models.Model):
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='broadcasts')
+    event = models.ForeignKey('Event', on_delete=models.CASCADE, related_name='broadcasts')
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
