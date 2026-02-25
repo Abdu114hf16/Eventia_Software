@@ -205,6 +205,22 @@ def api_attendee_feedback_json(request, reg_id):
         return JsonResponse({'success': True})
 
 @login_required
+def attendee_register(request, event_id):
+    if request.user.role != 'ATTENDEE':
+        return redirect('home')
+
+    event = get_object_or_404(Event, id=event_id)
+
+    if not Ticket.objects.filter(attendee=request.user, event=event).exists():
+        Ticket.objects.create(attendee=request.user, event=event, status='ACTIVE')
+        messages.success(request, f"Successfully registered for {event.title}!")
+    else:
+        messages.warning(request, "You are already registered for this event.")
+
+    return redirect('attendee_dashboard')
+
+
+@login_required
 def attendee_cancel(request, ticket_id):
     if request.user.role != 'ATTENDEE':
         return redirect('home')
