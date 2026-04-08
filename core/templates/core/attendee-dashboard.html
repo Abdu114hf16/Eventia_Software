@@ -279,80 +279,58 @@
                         </div>
 
                         <div style="padding: 2rem;">
-                            <form id="profile-form">
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                    <div>
-                                        <label
-                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First
-                                            Name</label>
-                                        <input type="text" id="profile-firstname" value="Ahmed" required
-                                            style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                            onfocus="this.style.borderColor='#004e92'"
-                                            onblur="this.style.borderColor='#e0e0e0'">
-                                    </div>
-                                    <div>
-                                        <label
-                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last
-                                            Name</label>
-                                        <input type="text" id="profile-lastname" value="Al-Rashid" required
-                                            style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                            onfocus="this.style.borderColor='#004e92'"
-                                            onblur="this.style.borderColor='#e0e0e0'">
-                                    </div>
-                                </div>
-                                <div style="margin-bottom: 1rem;">
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email
-                                        Address</label>
-                                    <input type="email" id="profile-email" value="ahmed@example.com" required
-                                        style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                        onfocus="this.style.borderColor='#004e92'"
-                                        onblur="this.style.borderColor='#e0e0e0'">
-                                </div>
-                                <div style="margin-bottom: 1rem;">
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
-                                        Number</label>
-                                    <input type="tel" id="profile-phone" value="+966 55 123 4567" required
-                                        style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                        onfocus="this.style.borderColor='#004e92'"
-                                        onblur="this.style.borderColor='#e0e0e0'">
-                                </div>
-                                <div style="margin-bottom: 1rem;">
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Job
-                                        Title <span style="color: #888; font-weight: 400;">(optional)</span></label>
-                                    <input type="text" id="profile-jobtitle" placeholder="e.g. Software Engineer"
-                                        style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                        onfocus="this.style.borderColor='#004e92'"
-                                        onblur="this.style.borderColor='#e0e0e0'">
-                                </div>
-                                <div
-                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                                    <div>
-                                        <label
-                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Password</label>
-                                        <input type="password" id="profile-password" value="********"
-                                            style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                            onfocus="this.style.borderColor='#004e92'"
-                                            onblur="this.style.borderColor='#e0e0e0'">
-                                    </div>
-                                    <div>
-                                        <label
-                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm
-                                            Password</label>
-                                        <input type="password" id="profile-password-confirm" value="********"
-                                            style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                            onfocus="this.style.borderColor='#004e92'"
-                                            onblur="this.style.borderColor='#e0e0e0'">
-                                    </div>
-                                </div>
-                                <button type="submit" class="btn btn-primary"
-                                    style="width: 100%; padding: 12px; font-size: 1rem;">
-                                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
-                                </button>
-                            </form>
+                            <form id="profile-form" method="POST" action="{% url 'update_profile' %}">
+    {% csrf_token %}
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First Name</label>
+            <input type="text" name="first_name" id="profile-firstname" value="{{ user.first_name }}" required
+                style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
+                onfocus="this.style.borderColor='#004e92'"
+                onblur="this.style.borderColor='#e0e0e0'">
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last Name</label>
+            <input type="text" name="last_name" id="profile-lastname" value="{{ user.last_name }}" required
+                style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
+                onfocus="this.style.borderColor='#004e92'"
+                onblur="this.style.borderColor='#e0e0e0'">
+        </div>
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email Address</label>
+        <input type="email" name="email" id="profile-email" value="{{ user.email }}" required
+            style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
+            onfocus="this.style.borderColor='#004e92'"
+            onblur="this.style.borderColor='#e0e0e0'">
+    </div>
+    <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone Number</label>
+        <input type="tel" name="phone_number" id="profile-phone" value="{{ user.phone_number|default:'' }}"
+            style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
+            onfocus="this.style.borderColor='#004e92'"
+            onblur="this.style.borderColor='#e0e0e0'">
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">New Password</label>
+            <input type="password" name="password" id="profile-password" placeholder="Leave blank to keep current"
+                style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
+                onfocus="this.style.borderColor='#004e92'"
+                onblur="this.style.borderColor='#e0e0e0'">
+        </div>
+        <div>
+            <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm Password</label>
+            <input type="password" name="password_confirm" id="profile-password-confirm" placeholder="Leave blank to keep current"
+                style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
+                onfocus="this.style.borderColor='#004e92'"
+                onblur="this.style.borderColor='#e0e0e0'">
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
+        <i class="fa-solid fa-floppy-disk"></i> Save Changes
+    </button>
+</form>
                         </div>
                     </div>
                 </div>
@@ -391,6 +369,30 @@
 
     <script>
         window.CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+
+    <script>
+        window.CSRF_TOKEN = "{{ csrf_token }}";
+
+        // This injects the broadcasts directly from Django into the Attendee Logic
+        window.DJANGO_BROADCASTS = {{ broadcasts_json|safe }};
+
+        // Override the getBroadcasts function in your attendee-logic.js to read from Django
+        // NOTE: Make sure this script block is placed AFTER attendee-logic.js is loaded
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hijack the local storage function to use real DB data
+            window.getAttendeeRelevantBroadcasts = function() {
+                // Return all broadcasts passed from Django context since we filtered them in views.py
+                return window.DJANGO_BROADCASTS;
+            }
+
+            // Re-run the notification render logic explicitly
+            if(typeof renderNotifBadge === 'function') {
+                renderNotifBadge();
+                renderNotifList();
+            }
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>

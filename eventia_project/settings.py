@@ -3,7 +3,9 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-v__z3uj-b!!yjbg_)l1ollq^2&gx*k@s1-9w*w13=*$pe#vsdz'
+# SECURITY WARNING: Use environment variables in production to keep secrets safe!
+# On PythonAnywhere, you can set these in your WSGI file or a .env file.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-v__z3uj-b!!yjbg_)l1ollq^2&gx*k@s1-9w*w13=*$pe#vsdz')
 
 DEBUG = True
 
@@ -91,21 +93,12 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 STATIC_URL = 'static/'
-
 AUTH_USER_MODEL = 'core.CustomUser'
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 LOGIN_URL = 'login'
 
 SIMPLE_JWT = {
@@ -121,5 +114,14 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 LOGIN_REDIRECT_URL = 'dashboard'
-
 LOGOUT_REDIRECT_URL = 'login'
+
+## Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.resend.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'resend' 
+# This tells Django: "Look for a variable named RESEND_API_KEY in the system."
+EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY')
+DEFAULT_FROM_EMAIL = 'Eventia <noreply@eventia.software>'

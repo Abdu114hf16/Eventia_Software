@@ -97,6 +97,9 @@ class Event(models.Model):
     location = models.CharField(max_length=255)
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
+    withdrawal_policy = models.CharField(max_length=50, blank=True, null=True)
+    attendee_withdrawal_policy = models.CharField(max_length=50, blank=True, null=True)
+
     def __str__(self):
         return self.title
 
@@ -109,6 +112,14 @@ class Request(models.Model):
         ('REJECTED', 'Rejected'),
     )
 
+    PREP_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Preparing', 'Preparing'),
+        ('In Transit', 'In Transit'),
+        ('Setting Up', 'Setting Up'),
+        ('Ready', 'Ready'),
+    )
+
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='requests')
     vendor = models.ForeignKey(VendorProfile, on_delete=models.CASCADE, related_name='requests')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
@@ -116,5 +127,30 @@ class Request(models.Model):
     sent_by = models.CharField(max_length=20, choices=[('ORGANIZER', 'Organizer'), ('VENDOR', 'Vendor')], default='ORGANIZER')
     created_at = models.DateTimeField(auto_now_add=True)
 
+    preparation_status = models.CharField(max_length=50, default='Pending')
+    update_requested = models.BooleanField(default=False)
+
     def __str__(self):
         return f"Request for {self.event.title} to {self.vendor}"
+
+        # --- NEW COMMUNICATION & STATUS MODELS ---
+
+class Message(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='messages')
+    vendor = models.ForeignKey(VendorProfile, on_delete=models.CASCADE, related_name='messages')
+    sender = models.CharField(max_length=20, choices=[('organizer', 'Organizer'), ('vendor', 'Vendor')])
+    text = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.sender} for {self.event.title}"
+
+class VendorStatusUpdate(models.Model):
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='status_updates')
+    status = models.CharField(max_length=50)
+    note = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=20, choices=[('vendor', 'Vendor'), ('system', 'System')])
+
+    def __str__(self):
+        return f"{self.status} - {self.request.vendor}"

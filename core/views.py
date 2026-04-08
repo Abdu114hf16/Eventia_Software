@@ -1,15 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, get_user_model
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib import messages
 from datetime import date
 from .forms import SignUpForm
-from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile
+from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile, Broadcast, Message, VendorStatusUpdate
 import json
 import random
+import time
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
+from django.core.mail import send_mail
 
 
 # --- GENERAL NAVIGATION & AUTH ---
@@ -23,7 +28,7 @@ def dashboard_view(request):
             return redirect('vendor_dashboard')
         elif request.user.role == 'SCEGA_ADMIN':
             return redirect('scega_dashboard')
-        elif request.user.role == 'ATTENDEE':  # <--- THIS WAS MISSING
+        elif request.user.role == 'ATTENDEE':
             return redirect('attendee_dashboard')
 
     # Default for guests: Show Homepage
@@ -34,7 +39,6 @@ def landing_page(request):
     """Renders the landing page (index.html) without redirection."""
     events = Event.objects.filter(status='APPROVED').order_by('date')
     return render(request, 'core/index.html', {'events': events})
-
 
 def logout_view(request):
     logout(request)
@@ -82,7 +86,6 @@ def login_attendee(request):
             login(request, user)
 
             # --- EXPLICIT REDIRECT LOGIC ---
-            # We redirect directly here to avoid routing issues
             if user.role == 'ATTENDEE':
                 return redirect('attendee_dashboard')
             elif user.role == 'ORGANIZER':
@@ -98,18 +101,20 @@ def login_attendee(request):
     return render(request, 'core/login.html', {'form': form})
 
 
-# 1. The Page View (Just renders the file)
 @login_required
 def attendee_dashboard(request):
-    if request.user.role != 'ATTENDEE':
-        return redirect('home')
-    return render(request, 'core/attendee-dashboard.html')
+    if request.user.role != 'ATTENDEE': return redirect('home')
 
+    user_tickets = Ticket.objects.filter(attendee=request.user)
+    registered_event_ids = list(user_tickets.values_list('event_id', flat=True))
+    broadcasts = Broadcast.objects.filter(event__id__in=registered_event_ids).order_by('-timestamp')
 
-import json
-from django.http import JsonResponse
-from datetime import date
-from .models import Broadcast, Ticket, Event
+    broadcasts_data = [{
+        'id': b.id, 'eventId': b.event.id, 'message': b.message, 'timestamp': b.timestamp.isoformat()
+    } for b in broadcasts]
+
+    return render(request, 'core/attendee-dashboard.html', {'broadcasts_json': json.dumps(broadcasts_data, cls=DjangoJSONEncoder)})
+
 
 @login_required
 def api_attendee_data(request):
@@ -177,6 +182,7 @@ def api_attendee_data(request):
         }
     })
 
+
 @login_required
 def api_attendee_register_json(request, event_id):
     if request.method == 'POST':
@@ -195,6 +201,7 @@ def api_attendee_register_json(request, event_id):
         return JsonResponse({'error': 'Already registered'}, status=400)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
 @login_required
 def api_attendee_feedback_json(request, reg_id):
     if request.method == 'POST':
@@ -205,19 +212,10 @@ def api_attendee_feedback_json(request, reg_id):
         ticket.save()
         return JsonResponse({'success': True})
 
+
 # Legacy fallback so urls.py doesn't crash
 @login_required
 def attendee_register(request, event_id):
-    return redirect('attendee_dashboard')
-
-    event = get_object_or_404(Event, id=event_id)
-
-    if not Ticket.objects.filter(attendee=request.user, event=event).exists():
-        Ticket.objects.create(attendee=request.user, event=event, status='ACTIVE')
-        messages.success(request, f"Successfully registered for {event.title}!")
-    else:
-        messages.warning(request, "You are already registered for this event.")
-
     return redirect('attendee_dashboard')
 
 
@@ -280,36 +278,62 @@ def vendor_dashboard(request):
     if request.user.role != 'VENDOR':
         return redirect('home')
 
+    # 1. Initialize variables with default empty values
+    incoming_requests = Request.objects.none()
+    outgoing_requests = Request.objects.none()
+    approved_requests = Request.objects.none()
+    pending_invitations_count = 0
+    active_events_count = 0
+    completed_events_count = 0
+    my_events = []
+    all_upcoming_events = []
+    applied_event_ids = []
+    requests_data = []
+    messages_data = []
+
     try:
         vendor_profile = request.user.vendor_profile
-        incoming_requests = Request.objects.filter(vendor=vendor_profile, sent_by='ORGANIZER').order_by('-created_at')
-        outgoing_requests = Request.objects.filter(vendor=vendor_profile, sent_by='VENDOR').order_by('-created_at')
-
-        # Pending incoming invitations
-        pending_invitations_count = incoming_requests.filter(status='PENDING').count()
         today = date.today()
 
+        # Fetch QuerySets
+        incoming_requests = Request.objects.filter(vendor=vendor_profile, sent_by='ORGANIZER').order_by('-created_at')
+        outgoing_requests = Request.objects.filter(vendor=vendor_profile, sent_by='VENDOR').order_by('-created_at')
         approved_requests = Request.objects.filter(vendor=vendor_profile, status='APPROVED')
+
+        # Stats
+        pending_invitations_count = incoming_requests.filter(status='PENDING').count()
         active_events_count = approved_requests.filter(event__date__gte=today).count()
         completed_events_count = approved_requests.filter(event__date__lt=today).count()
 
+        # Lists for template
         my_events = approved_requests.order_by('event__date')
-
-         # Removed date__gte=today so older test events can still show up during development
         all_upcoming_events = Event.objects.filter(status='APPROVED').order_by('date')
+        applied_event_ids = list(incoming_requests.values_list('event_id', flat=True)) + \
+                            list(outgoing_requests.values_list('event_id', flat=True))
 
-        applied_event_ids = list(incoming_requests.values_list('event_id', flat=True)) + list(outgoing_requests.values_list('event_id', flat=True))
+        # JSON Data for JS Modals
+        requests_data = [{
+            'id': r.id,
+            'eventId': r.event.id,
+            'vendorId': r.vendor.id,
+            'status': r.status,
+            'preparationStatus': getattr(r, 'preparation_status', 'Pending'),
+            'updateRequested': getattr(r, 'update_requested', False)
+        } for r in approved_requests]
+
+        messages_data = [{
+            'id': m.id,
+            'eventId': m.event.id,
+            'vendorId': m.vendor.id,
+            'sender': m.sender,
+            'text': m.text,
+            'timestamp': m.timestamp.isoformat()
+        } for m in Message.objects.filter(vendor=vendor_profile)]
 
     except Exception as e:
-        incoming_requests = []
-        outgoing_requests = []
-        pending_invitations_count = 0
-        active_events_count = 0
-        completed_events_count = 0
-        my_events = []
-        all_upcoming_events = []
-        applied_event_ids = []
+        print(f"Dashboard Error: {e}")
 
+    # 2. Build Context using the variables defined above
     context = {
         'incoming_requests': incoming_requests,
         'outgoing_requests': outgoing_requests,
@@ -319,7 +343,10 @@ def vendor_dashboard(request):
         'my_events': my_events,
         'all_upcoming_events': all_upcoming_events,
         'applied_event_ids': applied_event_ids,
+        'requests_json': json.dumps(requests_data, cls=DjangoJSONEncoder),
+        'messages_json': json.dumps(messages_data, cls=DjangoJSONEncoder),
     }
+
     return render(request, 'core/vendor-dashboard.html', context)
 
 def login_scega(request):
@@ -428,6 +455,11 @@ def organizer_dashboard(request):
                 event.description = request.POST.get('description')
                 event.capacity = request.POST.get('capacity')
                 event.ticket_price = request.POST.get('ticket_price', 0)
+                
+                # FIXED: Saving policies to DB
+                event.withdrawal_policy = request.POST.get('withdrawal_policy', '')
+                event.attendee_withdrawal_policy = request.POST.get('attendee_withdrawal_policy', '')
+
                 event.status = 'PENDING'
                 event.save()
                 messages.success(request, "Event updated successfully!")
@@ -443,6 +475,11 @@ def organizer_dashboard(request):
                     description=request.POST.get('description'),
                     capacity=request.POST.get('capacity'),
                     ticket_price=request.POST.get('ticket_price', 0),
+                    
+                    # FIXED: Saving policies to DB
+                    withdrawal_policy=request.POST.get('withdrawal_policy', ''),
+                    attendee_withdrawal_policy=request.POST.get('attendee_withdrawal_policy', ''),
+
                     status='PENDING'
                 )
                 messages.success(request, "Event created! Waiting for approval.")
@@ -454,11 +491,7 @@ def organizer_dashboard(request):
     try:
         organizer_profile = request.user.organizer_profile
         my_events = Event.objects.filter(organizer=organizer_profile).order_by('-id')
-
-        # Vendor Marketplace Data
         vendors = VendorProfile.objects.all().order_by('organization_name', 'user__username')
-
-        # Requests Data
         outgoing_requests = Request.objects.filter(event__organizer=organizer_profile, sent_by='ORGANIZER').order_by('-created_at')
         incoming_requests = Request.objects.filter(event__organizer=organizer_profile, sent_by='VENDOR').order_by('-created_at')
 
@@ -468,11 +501,25 @@ def organizer_dashboard(request):
         outgoing_requests = []
         incoming_requests = []
 
+    requests_data = [{
+        'id': r.id, 'eventId': r.event.id, 'vendorId': r.vendor.id, 'status': r.status,
+        'preparationStatus': r.preparation_status, 'updateRequested': r.update_requested
+    } for r in incoming_requests | outgoing_requests if r.status == 'APPROVED']
+
+    messages_data = [{
+        'id': m.id, 'eventId': m.event.id, 'vendorId': m.vendor.id, 'sender': m.sender,
+        'text': m.text, 'timestamp': m.timestamp.isoformat()
+    } for m in Message.objects.filter(event__in=my_events)]
+
+    broadcasts_data = [{
+        'id': b.id, 'eventId': b.event.id, 'message': b.message, 'timestamp': b.timestamp.isoformat()
+    } for b in Broadcast.objects.filter(event__in=my_events)]
+
     context = {
-        'events': my_events,
-        'vendors': vendors,
-        'outgoing_requests': outgoing_requests,
-        'incoming_requests': incoming_requests,
+        'events': my_events, 'vendors': vendors, 'outgoing_requests': outgoing_requests, 'incoming_requests': incoming_requests,
+        'requests_json': json.dumps(requests_data, cls=DjangoJSONEncoder),
+        'messages_json': json.dumps(messages_data, cls=DjangoJSONEncoder),
+        'broadcasts_json': json.dumps(broadcasts_data, cls=DjangoJSONEncoder),
     }
 
     return render(request, 'core/organizer-dashboard.html', context)
@@ -509,12 +556,13 @@ def delete_event(request, event_id):
     messages.success(request, "Event deleted successfully.")
     return redirect('organizer_dashboard')
 
-from django.http import HttpResponse
 
 def debug_user_role(request):
     if not request.user.is_authenticated:
+        from django.http import HttpResponse
         return HttpResponse("<h1>You are NOT logged in.</h1><a href='/login/'>Log In</a>")
 
+    from django.http import HttpResponse
     return HttpResponse(f"""
         <h1>User Debugger</h1>
         <ul>
@@ -526,10 +574,12 @@ def debug_user_role(request):
         <p>If "Is ATTENDEE" is False, the redirect will fail.</p>
     """)
 
+
 def event_details(request, event_id):
     """Renders the details page for a specific event."""
     event = get_object_or_404(Event, id=event_id)
     return render(request, 'core/event_details.html', {'event': event})
+
 
 @login_required
 def accept_request(request, req_id):
@@ -540,6 +590,7 @@ def accept_request(request, req_id):
     req.save()
     messages.success(request, "Invitation accepted!")
     return redirect('vendor_dashboard')
+
 
 @login_required
 def reject_request(request, req_id):
@@ -554,6 +605,7 @@ def reject_request(request, req_id):
         messages.success(request, "Invitation rejected!")
     return redirect('vendor_dashboard')
 
+
 @login_required
 def withdraw_request(request, req_id):
     if request.user.role != 'VENDOR':
@@ -561,11 +613,32 @@ def withdraw_request(request, req_id):
     if request.method == 'POST':
         reason = request.POST.get('reason', '')
         req = get_object_or_404(Request, id=req_id, vendor=request.user.vendor_profile)
+        event = req.event
+
+        # Enforce Withdrawal Policy on the Backend
+        days_until = (event.date - date.today()).days
+        policy = event.withdrawal_policy
+
+        allowed = True
+        if policy == 'non-refundable':
+            allowed = False
+        elif policy == 'strict' and days_until < 30:
+            allowed = False
+        elif policy == 'moderate' and days_until < 14:
+            allowed = False
+        elif policy == 'flexible' and days_until < 7:
+            allowed = False
+
+        if not allowed:
+            messages.error(request, "Withdrawal blocked by event policy.")
+            return redirect('vendor_dashboard')
+
         req.status = 'REJECTED'
         req.message += f"\n[Withdrawn]: {reason}"
         req.save()
         messages.success(request, "Withdrawn from event!")
     return redirect('vendor_dashboard')
+
 
 @login_required
 def apply_for_event(request):
@@ -585,6 +658,7 @@ def apply_for_event(request):
         messages.success(request, "Application sent!")
     return redirect('vendor_dashboard')
 
+
 def password_recovery(request):
     User = get_user_model()
     if request.method == 'POST':
@@ -592,37 +666,59 @@ def password_recovery(request):
             data = json.loads(request.body)
             action = data.get('action')
 
-            # --- STEP 1: Find User & Send OTP ---
+           # --- STEP 1: Find User & Send OTP ---
             if action == 'send_otp':
                 identifier = data.get('identifier')
-                # Try finding by email or username
                 user = User.objects.filter(email=identifier).first() or User.objects.filter(username=identifier).first()
 
                 if user:
-                    # Generate a 6-digit OTP
+                    if not user.email:
+                         return JsonResponse({'status': 'error', 'message': 'No email address associated with this account.'})
+
                     otp = str(random.randint(100000, 999999))
                     request.session['recovery_otp'] = otp
                     request.session['recovery_user_id'] = user.id
+                    request.session['recovery_otp_time'] = time.time()
+                    request.session['recovery_attempts'] = 0
 
-                    # 🔴 IN DEVELOPMENT: Print OTP to terminal so you can test it
-                    print(f"\n" + "="*40)
-                    print(f" PASSWORD RECOVERY OTP FOR: {user.username}")
-                    print(f" CODE: {otp}")
-                    print("="*40 + "\n")
-
-                    return JsonResponse({'status': 'success'})
+                    try:
+                        send_mail(
+                            subject="Your Eventia Password Recovery Code",
+                            message=f"Your verification code is: {otp}\n\nThis code will expire in 10 minutes.",
+                            from_email=None,
+                            recipient_list=[user.email],
+                            fail_silently=False,
+                        )
+                        return JsonResponse({'status': 'success'})
+                    except Exception as e:
+                        print(f"Resend Error: {e}")
+                        return JsonResponse({'status': 'error', 'message': 'Email service failed.'})
                 else:
-                    return JsonResponse({'status': 'error', 'message': 'No account found with that email/username.'})
+                    return JsonResponse({'status': 'error', 'message': 'No account found.'})
 
             # --- STEP 2: Verify OTP ---
             elif action == 'verify_otp':
                 otp_input = data.get('otp')
                 session_otp = request.session.get('recovery_otp')
+                session_time = request.session.get('recovery_otp_time')
+                attempts = request.session.get('recovery_attempts', 0)
 
-                if session_otp and otp_input == session_otp:
+                if not session_otp or not session_time:
+                     return JsonResponse({'status': 'error', 'message': 'Session expired. Please request a new code.'})
+
+                if attempts >= 3:
+                     del request.session['recovery_otp']
+                     return JsonResponse({'status': 'error', 'message': 'Too many failed attempts. Request a new code.'})
+
+                if time.time() - session_time > 600:
+                     del request.session['recovery_otp']
+                     return JsonResponse({'status': 'error', 'message': 'Verification code expired. Request a new code.'})
+
+                if otp_input == session_otp:
                     return JsonResponse({'status': 'success'})
                 else:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid or expired verification code.'})
+                    request.session['recovery_attempts'] = attempts + 1
+                    return JsonResponse({'status': 'error', 'message': f'Invalid verification code. {3 - attempts - 1} attempts left.'})
 
             # --- STEP 3: Reset Password ---
             elif action == 'reset_password':
@@ -631,21 +727,107 @@ def password_recovery(request):
 
                 if user_id:
                     user = User.objects.get(id=user_id)
+                    try:
+                        validate_password(new_password, user)
+                    except ValidationError as e:
+                        return JsonResponse({'status': 'error', 'message': e.messages[0]})
+
                     user.set_password(new_password)
                     user.save()
 
-                    # Security: Clear the session data
-                    if 'recovery_otp' in request.session:
-                        del request.session['recovery_otp']
-                    if 'recovery_user_id' in request.session:
-                        del request.session['recovery_user_id']
+                    for key in ['recovery_otp', 'recovery_user_id', 'recovery_otp_time', 'recovery_attempts']:
+                        if key in request.session:
+                            del request.session[key]
 
                     return JsonResponse({'status': 'success'})
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Session expired. Please start over.'})
 
         except Exception as e:
+            print(f"Password recovery error: {e}")
             return JsonResponse({'status': 'error', 'message': 'An unexpected error occurred.'})
 
-    # For GET requests, just render the page
     return render(request, 'core/password-recovery.html')
+
+@login_required
+def update_profile(request):
+    if request.method == 'POST':
+        user = request.user
+
+        if 'username' in request.POST:
+            user.username = request.POST.get('username')
+        if 'email' in request.POST:
+            user.email = request.POST.get('email')
+        if 'phone_number' in request.POST:
+            user.phone_number = request.POST.get('phone_number')
+        if 'first_name' in request.POST:
+            user.first_name = request.POST.get('first_name')
+        if 'last_name' in request.POST:
+            user.last_name = request.POST.get('last_name')
+
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('password_confirm')
+        if password and password == confirm_password:
+            user.set_password(password)
+            update_session_auth_hash(request, user)
+
+        user.save()
+
+        if user.role == 'ORGANIZER':
+            profile = user.organizer_profile
+            if 'organization_name' in request.POST:
+                profile.organization_name = request.POST.get('organization_name')
+            profile.save()
+
+        elif user.role == 'VENDOR':
+            profile = user.vendor_profile
+            if 'organization_name' in request.POST:
+                profile.organization_name = request.POST.get('organization_name')
+            if 'service_type' in request.POST:
+                profile.service_type = request.POST.get('service_type')
+            if 'description' in request.POST:
+                profile.description = request.POST.get('description')
+            profile.save()
+
+        messages.success(request, "Profile updated successfully!")
+        referer = request.META.get('HTTP_REFERER')
+        if referer:
+            return redirect(referer)
+        return redirect('dashboard')
+
+
+@login_required
+def api_send_message(request):
+    data = json.loads(request.body)
+    event = Event.objects.get(id=data['event_id'])
+    vendor = VendorProfile.objects.get(id=data['vendor_id'])
+    msg = Message.objects.create(
+        event=event, vendor=vendor, sender=data['sender'], text=data['text']
+    )
+    return JsonResponse({'status': 'ok', 'id': msg.id, 'timestamp': msg.timestamp.isoformat()})
+
+@login_required
+def api_update_vendor_status(request):
+    data = json.loads(request.body)
+    req = Request.objects.get(event_id=data['event_id'], vendor_id=data['vendor_id'])
+    req.preparation_status = data['status']
+    req.update_requested = False
+    req.save()
+    VendorStatusUpdate.objects.create(
+        request=req, status=data['status'], note=data['note'], source='vendor'
+    )
+    return JsonResponse({'status': 'ok'})
+
+@login_required
+def api_request_vendor_update(request):
+    data = json.loads(request.body)
+    req = Request.objects.get(event_id=data['event_id'], vendor_id=data['vendor_id'])
+    req.update_requested = True
+    req.save()
+    return JsonResponse({'status': 'ok'})
+
+@login_required
+def api_send_broadcast(request):
+    data = json.loads(request.body)
+    bc = Broadcast.objects.create(event_id=data['event_id'], message=data['message'])
+    return JsonResponse({'status': 'ok', 'timestamp': bc.timestamp.isoformat()})

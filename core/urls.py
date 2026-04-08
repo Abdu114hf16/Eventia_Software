@@ -2,8 +2,6 @@ from django.urls import path
 from django.shortcuts import redirect
 from . import views
 
-
-
 urlpatterns = [
     # --- Debugging ---
     path('debug-me/', views.debug_user_role, name='debug_user_role'),
@@ -21,6 +19,7 @@ urlpatterns = [
     path('signup/', views.signup_attendee, name='signup_attendee'),
     path('signup/business/', views.signup_business, name='signup_business'),
     path('logout/', views.logout_view, name='logout'),
+    path('profile/update/', views.update_profile, name='update_profile'),
 
     # --- SCEGA Admin Routes ---
     path('scega/', lambda request: redirect('scega_login')),
@@ -54,4 +53,10 @@ urlpatterns = [
     # Actions (Register/Cancel)
     path('dashboard/attendee/register/<int:event_id>/', views.attendee_register, name='attendee_register'),
     path('dashboard/attendee/cancel/<int:ticket_id>/', views.attendee_cancel, name='attendee_cancel'),
+
+    # Messages and Broadcast
+    path('api/send_message/', views.api_send_message, name='api_send_message'),
+    path('api/update_vendor_status/', views.api_update_vendor_status, name='api_update_vendor_status'),
+    path('api/request_vendor_update/', views.api_request_vendor_update, name='api_request_vendor_update'),
+    path('api/send_broadcast/', views.api_send_broadcast, name='api_send_broadcast'),
 ]
