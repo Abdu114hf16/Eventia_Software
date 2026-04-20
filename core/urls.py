@@ -56,6 +56,9 @@ urlpatterns = [
     path('dashboard/attendee/register/<int:event_id>/', views.attendee_register, name='attendee_register'),
     path('dashboard/attendee/cancel/<int:ticket_id>/', views.attendee_cancel, name='attendee_cancel'),
 
+    # Organizer Analytics API
+    path('api/organizer/analytics/', views.api_organizer_analytics, name='api_organizer_analytics'),
+
     # Messages and Broadcast
     path('api/send_message/', views.api_send_message, name='api_send_message'),
     path('api/update_vendor_status/', views.api_update_vendor_status, name='api_update_vendor_status'),

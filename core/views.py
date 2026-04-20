@@ -7,6 +7,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.contrib import messages
 from datetime import date
+from django.db.models import Count, Sum, Avg, Q, F
 from .forms import SignUpForm
 from .models import Event, OrganizerProfile, VendorProfile, Request, CustomUser, Ticket, AttendeeProfile, Broadcast, Message, VendorStatusUpdate
 import json
@@ -533,11 +534,91 @@ def organizer_dashboard(request):
         'id': b.id, 'eventId': b.event.id, 'message': b.message, 'timestamp': b.timestamp.isoformat()
     } for b in Broadcast.objects.filter(event__in=my_events)]
 
+    # --- Serialize events for organizer-logic.js (localStorage) ---
+    today = date.today()
+    events_js = []
+    for evt in my_events:
+        active_count = Ticket.objects.filter(event=evt, status='ACTIVE').count()
+        status_label = 'Past' if evt.date < today else (
+            'Rejected' if evt.status == 'REJECTED' else (
+            'Pending' if evt.status == 'PENDING' else 'Upcoming'))
+        events_js.append({
+            'id': str(evt.id),
+            'title': evt.title,
+            'category': evt.category or 'Other',
+            'date': evt.date.strftime('%Y-%m-%d'),
+            'time': evt.time.strftime('%H:%M') if evt.time else '',
+            'location': evt.location or '',
+            'description': evt.description or '',
+            'price': str(evt.ticket_price),
+            'tickets': [{'name': 'Standard', 'price': str(evt.ticket_price)}],
+            'status': status_label,
+            'withdrawalPolicy': evt.withdrawal_policy or 'flexible',
+            'attendeeWithdrawalPolicy': evt.attendee_withdrawal_policy or 'flexible',
+            'attendees': active_count,
+            'rejectionReason': evt.rejection_reason or '',
+            'banner': evt.banner.url if bool(evt.banner) else None,
+            'capacity': evt.capacity,
+        })
+
+    vendors_js = []
+    for v in vendors:
+        vendors_js.append({
+            'id': str(v.id),
+            'name': v.organization_name or v.user.get_full_name() or v.user.username,
+            'category': v.service_type or 'Other',
+            'location': '',
+            'rating': 0,
+            'priceRange': '$$',
+            'image': 'fa-briefcase',
+            'description': v.description or '',
+        })
+
+    # Outgoing requests for localStorage
+    all_org_requests = Request.objects.filter(
+        event__organizer=organizer_profile
+    ).select_related('event', 'vendor').order_by('-created_at')
+    outgoing_requests_js = []
+    for r in all_org_requests.filter(sent_by='ORGANIZER'):
+        outgoing_requests_js.append({
+            'id': str(r.id), 'vendorId': str(r.vendor.id), 'eventId': str(r.event.id),
+            'status': r.status.capitalize(), 'dateSent': r.created_at.strftime('%Y-%m-%d'),
+            'message': r.message,
+        })
+
+    incoming_requests_js = []
+    for r in all_org_requests.filter(sent_by='VENDOR'):
+        incoming_requests_js.append({
+            'id': str(r.id), 'vendorName': r.vendor.organization_name or r.vendor.user.username,
+            'vendorEmail': r.vendor.user.email, 'serviceType': r.vendor.service_type,
+            'eventId': str(r.event.id), 'status': r.status.capitalize(),
+            'dateReceived': r.created_at.strftime('%Y-%m-%d'), 'message': r.message,
+        })
+
+    # Event-vendor assignments
+    event_vendors_js = []
+    for r in all_org_requests.filter(status='APPROVED'):
+        history = [{
+            'status': su.status, 'note': su.note,
+            'timestamp': su.timestamp.isoformat(), 'source': su.source
+        } for su in VendorStatusUpdate.objects.filter(request=r).order_by('timestamp')]
+        event_vendors_js.append({
+            'eventId': str(r.event.id), 'vendorId': str(r.vendor.id),
+            'status': 'Confirmed', 'assignedDate': r.created_at.strftime('%Y-%m-%d'),
+            'preparationStatus': r.preparation_status or 'Pending',
+            'updateRequested': r.update_requested, 'statusHistory': history,
+        })
+
     context = {
         'events': my_events, 'vendors': vendors, 'outgoing_requests': outgoing_requests, 'incoming_requests': incoming_requests,
         'requests_json': json.dumps(requests_data, cls=DjangoJSONEncoder),
         'messages_json': json.dumps(messages_data, cls=DjangoJSONEncoder),
         'broadcasts_json': json.dumps(broadcasts_data, cls=DjangoJSONEncoder),
+        'events_js': json.dumps(events_js, cls=DjangoJSONEncoder),
+        'vendors_js': json.dumps(vendors_js, cls=DjangoJSONEncoder),
+        'outgoing_requests_js': json.dumps(outgoing_requests_js, cls=DjangoJSONEncoder),
+        'incoming_requests_js': json.dumps(incoming_requests_js, cls=DjangoJSONEncoder),
+        'event_vendors_js': json.dumps(event_vendors_js, cls=DjangoJSONEncoder),
     }
 
     return render(request, 'core/organizer-dashboard.html', context)
@@ -862,3 +943,214 @@ def api_send_broadcast(request):
     data = json.loads(request.body)
     bc = Broadcast.objects.create(event_id=data['event_id'], message=data['message'])
     return JsonResponse({'status': 'ok', 'timestamp': bc.timestamp.isoformat()})
+
+
+# --- ORGANIZER ANALYTICS API ---
+
+@login_required
+def api_organizer_analytics(request):
+    """Returns all analytics data for the logged-in organizer, matching
+    the shape that organizer-analytics.js expects from loadData()."""
+    if request.user.role != 'ORGANIZER':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        organizer_profile = request.user.organizer_profile
+    except OrganizerProfile.DoesNotExist:
+        return JsonResponse({'error': 'No organizer profile'}, status=404)
+
+    today = date.today()
+    my_events = Event.objects.filter(organizer=organizer_profile)
+
+    # --- EVENTS ---
+    events_data = []
+    for evt in my_events:
+        active_tickets = Ticket.objects.filter(event=evt, status='ACTIVE').count()
+        status_label = 'Past' if evt.date < today else (
+            'Rejected' if evt.status == 'REJECTED' else (
+            'Pending' if evt.status == 'PENDING' else 'Upcoming'))
+
+        events_data.append({
+            'id': str(evt.id),
+            'title': evt.title,
+            'category': evt.category or 'Other',
+            'date': evt.date.strftime('%Y-%m-%d'),
+            'time': evt.time.strftime('%H:%M') if evt.time else '',
+            'location': evt.location or '',
+            'description': evt.description or '',
+            'price': str(evt.ticket_price),
+            'tickets': [{'name': 'Standard', 'price': str(evt.ticket_price)}],
+            'status': status_label,
+            'withdrawalPolicy': evt.withdrawal_policy or 'flexible',
+            'attendeeWithdrawalPolicy': evt.attendee_withdrawal_policy or 'flexible',
+            'attendees': active_tickets,
+            'rejectionReason': evt.rejection_reason or '',
+        })
+
+    # --- VENDORS ---
+    vendors_data = []
+    all_vendors = VendorProfile.objects.select_related('user').all()
+    for v in all_vendors:
+        vendors_data.append({
+            'id': str(v.id),
+            'name': v.organization_name or v.user.get_full_name() or v.user.username,
+            'category': v.service_type or 'Other',
+            'location': '',
+            'rating': 0,
+            'priceRange': '$$',
+            'image': 'fa-briefcase',
+            'description': v.description or '',
+        })
+
+    # --- EVENT-VENDOR ASSIGNMENTS (approved requests) ---
+    event_vendors_data = []
+    approved_requests = Request.objects.filter(
+        event__organizer=organizer_profile, status='APPROVED'
+    ).select_related('event', 'vendor')
+    for req in approved_requests:
+        status_updates = VendorStatusUpdate.objects.filter(
+            request=req
+        ).order_by('timestamp')
+
+        history = []
+        for su in status_updates:
+            history.append({
+                'status': su.status,
+                'note': su.note,
+                'timestamp': su.timestamp.isoformat(),
+                'source': su.source,
+            })
+
+        event_vendors_data.append({
+            'eventId': str(req.event.id),
+            'vendorId': str(req.vendor.id),
+            'status': 'Confirmed',
+            'assignedDate': req.created_at.strftime('%Y-%m-%d'),
+            'preparationStatus': req.preparation_status or 'Pending',
+            'updateRequested': req.update_requested,
+            'statusHistory': history,
+        })
+
+    # Also include pending requests as "Pending" assignments
+    pending_requests = Request.objects.filter(
+        event__organizer=organizer_profile, status='PENDING'
+    ).select_related('event', 'vendor')
+    for req in pending_requests:
+        event_vendors_data.append({
+            'eventId': str(req.event.id),
+            'vendorId': str(req.vendor.id),
+            'status': 'Pending',
+            'assignedDate': req.created_at.strftime('%Y-%m-%d'),
+        })
+
+    # Declined/rejected requests
+    rejected_requests = Request.objects.filter(
+        event__organizer=organizer_profile, status='REJECTED'
+    ).select_related('event', 'vendor')
+    for req in rejected_requests:
+        event_vendors_data.append({
+            'eventId': str(req.event.id),
+            'vendorId': str(req.vendor.id),
+            'status': 'Declined',
+            'assignedDate': req.created_at.strftime('%Y-%m-%d'),
+        })
+
+    # --- REQUESTS (outgoing + incoming) ---
+    all_requests = Request.objects.filter(
+        event__organizer=organizer_profile
+    ).select_related('event', 'vendor').order_by('-created_at')
+    requests_data = []
+    for req in all_requests:
+        rejection_reason = ''
+        if req.status == 'REJECTED' and '[Rejected]:' in req.message:
+            parts = req.message.split('[Rejected]:')
+            if len(parts) > 1:
+                rejection_reason = parts[-1].strip()
+        if req.status == 'REJECTED' and '[Withdrawn]:' in req.message:
+            parts = req.message.split('[Withdrawn]:')
+            if len(parts) > 1:
+                rejection_reason = 'Withdrawn by Vendor: ' + parts[-1].strip()
+
+        requests_data.append({
+            'id': str(req.id),
+            'vendorId': str(req.vendor.id),
+            'eventId': str(req.event.id),
+            'status': req.status.capitalize(),
+            'dateSent': req.created_at.strftime('%Y-%m-%d'),
+            'message': req.message,
+            'rejectionReason': rejection_reason,
+        })
+
+    # --- REGISTRATIONS (all tickets across organizer's events) ---
+    registrations_data = []
+    all_tickets = Ticket.objects.filter(
+        event__organizer=organizer_profile
+    ).select_related('attendee', 'event')
+
+    for t in all_tickets:
+        # Get attendee birthday from profile
+        birthday = ''
+        try:
+            profile = t.attendee.attendee_profile
+            if profile.date_of_birth:
+                birthday = profile.date_of_birth.strftime('%Y-%m-%d')
+        except AttendeeProfile.DoesNotExist:
+            pass
+
+        attendee_name = t.attendee.get_full_name() or t.attendee.username
+
+        reg_entry = {
+            'id': str(t.id),
+            'eventId': str(t.event.id),
+            'name': attendee_name,
+            'birthday': birthday,
+            'ticketType': t.ticket_type or 'Standard',
+            'ticketPrice': str(t.amount_paid),
+            'registeredDate': t.purchase_date.strftime('%Y-%m-%d'),
+            'status': 'Active' if t.status == 'ACTIVE' else 'Withdrawn',
+        }
+
+        if t.rating is not None:
+            reg_entry['satisfactionScore'] = t.rating
+
+        reg_entry['withdrawnDate'] = ''
+
+        registrations_data.append(reg_entry)
+
+    # --- MESSAGES ---
+    messages_list = Message.objects.filter(
+        event__organizer=organizer_profile
+    ).select_related('event', 'vendor').order_by('timestamp')
+    messages_data = []
+    for m in messages_list:
+        messages_data.append({
+            'id': str(m.id),
+            'eventId': str(m.event.id),
+            'vendorId': str(m.vendor.id),
+            'sender': m.sender,
+            'text': m.text,
+            'timestamp': m.timestamp.isoformat(),
+        })
+
+    # --- BROADCASTS ---
+    broadcasts_list = Broadcast.objects.filter(
+        event__organizer=organizer_profile
+    ).select_related('event').order_by('-timestamp')
+    broadcasts_data = []
+    for b in broadcasts_list:
+        broadcasts_data.append({
+            'id': str(b.id),
+            'eventId': str(b.event.id),
+            'message': b.message,
+            'timestamp': b.timestamp.isoformat(),
+        })
+
+    return JsonResponse({
+        'events': events_data,
+        'vendors': vendors_data,
+        'eventVendors': event_vendors_data,
+        'requests': requests_data,
+        'registrations': registrations_data,
+        'messages': messages_data,
+        'broadcasts': broadcasts_data,
+    })
