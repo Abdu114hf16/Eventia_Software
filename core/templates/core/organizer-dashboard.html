@@ -94,6 +94,14 @@
         .em-history-note { font-size: 0.8rem; color: #555; line-height: 1.5; margin: 0.35rem 0; padding: 0.5rem 0.75rem; background: #f5f7fa; border-radius: 8px; border-left: 3px solid #1565c0; }
         .em-history-timestamp { font-size: 0.7rem; color: #aaa; display: flex; align-items: center; gap: 0.3rem; margin-top: 0.35rem; }
         .em-history-item.upcoming .em-history-card { opacity: 0.5; border-style: dashed; }
+        
+        .banner-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            object-fit: cover;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 
@@ -153,7 +161,13 @@
                     <span class="profile-role"
                         style="font-size: 0.8rem; color: var(--text-muted); display: block;">Organizer</span>
                 </div>
-                <div class="profile-avatar"><i class="fa-solid fa-building"></i></div>
+                <div class="profile-avatar">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" alt="Profile">
+                    {% else %}
+                        <i class="fa-solid fa-building"></i>
+                    {% endif %}
+                </div>
             </div>
         </header>
 
@@ -890,18 +904,38 @@
             <div style="max-width: 700px; margin: 0 auto;">
                 <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e8e8e8;">
 
-                    <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
-                        <div id="org-profile-avatar"
-                            style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; position: relative; overflow: hidden;">
-                            <span id="org-profile-avatar-text">{{ user.username|make_list|first|upper }}</span>
-                        </div>
-                        <h3 id="org-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ user.organizer_profile.organization_name|default:user.username }}</h3>
-                        <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Event Organizer</p>
-                    </div>
+                    <form id="org-profile-form" method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
+                            
+                            <div id="org-profile-avatar"
+                                style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; position: relative; overflow: hidden; cursor: pointer;"
+                                onclick="document.getElementById('org-pfp-upload').click()" title="Click to change photo">
+                                
+                                {% if user.profile_picture %}
+                                    <img id="org-profile-avatar-img" src="{{ user.profile_picture.url }}"
+                                         style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;"
+                                         alt="Profile">
+                                    <span id="org-profile-avatar-text" style="display: none;">{{ user.username|make_list|first|upper }}</span>
+                                {% else %}
+                                    <img id="org-profile-avatar-img"
+                                         style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: none;"
+                                         alt="Profile">
+                                    <span id="org-profile-avatar-text">{{ user.username|make_list|first|upper }}</span>
+                                {% endif %}
 
-                    <div style="padding: 2rem;">
-                        <form method="POST" action="{% url 'update_profile' %}">
-                            {% csrf_token %}
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 4px; text-align: center;">
+                                    <i class="fa-solid fa-camera"></i>
+                                </div>
+                            </div>
+                            
+                            <input type="file" name="profile_picture" id="org-pfp-upload" accept="image/*" style="display: none;" onchange="previewOrgAvatar(event)">
+
+                            <h3 id="org-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ user.organizer_profile.organization_name|default:user.username }}</h3>
+                            <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Event Organizer</p>
+                        </div>
+
+                        <div style="padding: 2rem;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                 <div style="grid-column: 1 / -1;">
                                     <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Username</label>
@@ -933,8 +967,8 @@
                             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
                                 <i class="fa-solid fa-floppy-disk"></i> Save Changes
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </section>
@@ -1056,6 +1090,7 @@
                     capacity: parseInt("{{ e.capacity|default:0 }}"),
                     withdrawalPolicy: "{{ e.withdrawal_policy|default:''|escapejs }}",
                     attendeeWithdrawalPolicy: "{{ e.attendee_withdrawal_policy|default:''|escapejs }}",
+                    bannerUrl: "{% if e.banner %}{{ e.banner.url|escapejs }}{% else %}''{% endif %}",
                     attendees: {{ e.tickets.count|default:0 }}
                 }{% if not forloop.last %},{% endif %}
                 {% endfor %}
@@ -1096,6 +1131,23 @@
             broadcastsData: {{ broadcasts_json|default:"[]"|safe }},
             csrfToken: "{{ csrf_token }}"
         };
+
+        function previewOrgAvatar(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgElement = document.getElementById('org-profile-avatar-img');
+                    const textElement = document.getElementById('org-profile-avatar-text');
+                    imgElement.src = e.target.result;
+                    imgElement.style.display = 'block';
+                    if (textElement) {
+                        textElement.style.display = 'none';
+                    }
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 
     <script>
@@ -1334,7 +1386,8 @@
             }
         }
 
-        function editEvent(id, title, category, date, time, location, capacity, price, desc, withdrawalPolicy, attendeeWithdrawalPolicy) {
+        // Updated Edit Event Javascript function to handle Image Banner preview
+        function editEvent(id, title, category, date, time, location, capacity, price, desc, withdrawalPolicy, attendeeWithdrawalPolicy, bannerUrl) {
             switchView('create-event');
             document.getElementById('form-header-title').textContent = "Edit Event";
             document.getElementById('submit-btn').innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Event';
@@ -1358,6 +1411,23 @@
                 document.getElementById('form_attendee_withdrawal_policy').value = attendeeWithdrawalPolicy;
             } else {
                 document.getElementById('form_attendee_withdrawal_policy').value = "";
+            }
+
+            // --- HANDLE BANNER PREVIEW ---
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
+            const uploadArea = document.getElementById('banner-upload-area');
+            
+            const existing = uploadArea.querySelector('.banner-preview');
+            if (existing) existing.remove();
+
+            if (bannerUrl && bannerUrl !== "''" && bannerUrl !== "") {
+                if (uploadPlaceholder) uploadPlaceholder.style.display = 'none';
+                const img = document.createElement('img');
+                img.src = bannerUrl;
+                img.className = 'banner-preview';
+                uploadArea.appendChild(img);
+            } else {
+                if (uploadPlaceholder) uploadPlaceholder.style.display = 'block';
             }
         }
 
@@ -1457,8 +1527,8 @@
             renderEventManageConversations(eventId);
             renderEventManageBroadcasts(eventId);
 
-            // Pass the policies securely inside editEvent
-            document.getElementById('em-edit-btn').onclick = () => editEvent(evt.id, evt.title, evt.category, evt.date, evt.time, evt.location, evt.capacity, evt.price, evt.description, evt.withdrawalPolicy, evt.attendeeWithdrawalPolicy);
+            // Pass the policies and banner securely inside editEvent
+            document.getElementById('em-edit-btn').onclick = () => editEvent(evt.id, evt.title, evt.category, evt.date, evt.time, evt.location, evt.capacity, evt.price, evt.description, evt.withdrawalPolicy, evt.attendeeWithdrawalPolicy, evt.bannerUrl);
             document.getElementById('em-delete-form').action = `/dashboard/organizer/delete/${evt.id}/`;
 
             document.querySelectorAll('.em-tab').forEach(t => t.classList.remove('active'));

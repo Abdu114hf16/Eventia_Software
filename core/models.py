@@ -11,6 +11,9 @@ class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='ATTENDEE')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
 
+    profile_picture = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+
     def __str__(self):
         return self.username
 
@@ -36,6 +39,7 @@ class AttendeeProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='attendee_profile')
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=[('M', 'Male'), ('F', 'Female')], blank=True, null=True)
+    job_title = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
@@ -89,10 +93,11 @@ class Event(models.Model):
     capacity = models.PositiveIntegerField()
     age_restriction = models.PositiveIntegerField(default=0, help_text="Minimum age required (0 for no restriction)")
 
+    banner = models.ImageField(upload_to='event_banners/', null=True, blank=True)
+
     date = models.DateField()
     time = models.TimeField()
 
-    # REMOVED DUPLICATE APPROVAL FIELD HERE
     approval = models.CharField(max_length=20, choices=APPROVAL_CHOICES, default='PENDING')
     location = models.CharField(max_length=255)
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -133,7 +138,7 @@ class Request(models.Model):
     def __str__(self):
         return f"Request for {self.event.title} to {self.vendor}"
 
-        # --- NEW COMMUNICATION & STATUS MODELS ---
+# --- NEW COMMUNICATION & STATUS MODELS ---
 
 class Message(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='messages')

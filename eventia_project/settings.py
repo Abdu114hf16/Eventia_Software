@@ -121,7 +121,13 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.resend.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'resend' 
+EMAIL_HOST_USER = 'resend'
 # This tells Django: "Look for a variable named RESEND_API_KEY in the system."
 EMAIL_HOST_PASSWORD = os.environ.get('RESEND_API_KEY')
 DEFAULT_FROM_EMAIL = 'Eventia <noreply@eventia.software>'
+
+# The URL used to access media files in the browser
+MEDIA_URL = '/media/'
+
+# The absolute filesystem path to the directory that will hold user-uploaded files
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

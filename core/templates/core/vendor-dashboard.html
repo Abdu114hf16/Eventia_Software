@@ -299,7 +299,13 @@
                     <span class="profile-role"
                         style="font-size: 0.8rem; color: var(--text-muted); display: block;">Vendor</span>
                 </div>
-                <div class="profile-avatar"><i class="fa-solid fa-store"></i></div>
+                <div class="profile-avatar">
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" alt="Profile">
+                    {% else %}
+                        <i class="fa-solid fa-store"></i>
+                    {% endif %}
+                </div>
             </div>
         </header>
 
@@ -902,18 +908,36 @@
         <section id="view-profile" class="content-section" style="display: none;">
             <div style="max-width: 700px; margin: 0 auto;">
                 <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e8e8e8;">
+                    <form id="vendor-profile-form" method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
+                            
+                            <div id="vendor-profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; position: relative; overflow: hidden; cursor: pointer;" onclick="document.getElementById('vendor-pfp-upload').click()" title="Click to change photo">
+                                
+                                {% if request.user.profile_picture %}
+                                    <img id="vendor-profile-avatar-img" src="{{ request.user.profile_picture.url }}"
+                                         style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;"
+                                         alt="Profile">
+                                    <span id="vendor-profile-avatar-text" style="display: none;"><i class="fa-solid fa-store"></i></span>
+                                {% else %}
+                                    <img id="vendor-profile-avatar-img"
+                                         style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: none;"
+                                         alt="Profile">
+                                    <span id="vendor-profile-avatar-text"><i class="fa-solid fa-store"></i></span>
+                                {% endif %}
 
-                    <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
-                        <div id="vendor-profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; position: relative; overflow: hidden;">
-                            <span id="vendor-profile-avatar-text"><i class="fa-solid fa-store"></i></span>
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 4px; text-align: center;">
+                                    <i class="fa-solid fa-camera"></i>
+                                </div>
+                            </div>
+                            
+                            <input type="file" name="profile_picture" id="vendor-pfp-upload" accept="image/*" style="display: none;" onchange="previewVendorAvatar(event)">
+
+                            <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.vendor_profile.organization_name }}</h3>
+                            <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia Vendor</p>
                         </div>
-                        <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.vendor_profile.organization_name }}</h3>
-                        <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia Vendor</p>
-                    </div>
 
-                    <div style="padding: 2rem;">
-                        <form id="vendor-profile-form" method="POST" action="{% url 'update_profile' %}">
-                            {% csrf_token %}
+                        <div style="padding: 2rem;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                 <div>
                                     <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Business Name</label>
@@ -970,8 +994,8 @@
                             <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
                                 <i class="fa-solid fa-floppy-disk"></i> Save Changes
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </section>
@@ -1111,6 +1135,28 @@
             'Setting Up': '#ff8f00',
             'Ready': '#2e7d32'
         };
+
+        // Profile Avatar Preview Logic
+        function previewVendorAvatar(event) {
+            const input = event.target;
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const imgElement = document.getElementById('vendor-profile-avatar-img');
+                    const textElement = document.getElementById('vendor-profile-avatar-text');
+                    
+                    imgElement.src = e.target.result;
+                    imgElement.style.display = 'block';
+                    
+                    if (textElement) {
+                        textElement.style.display = 'none';
+                    }
+                }
+                
+                reader.readAsDataURL(input.files[0]); 
+            }
+        }
 
         // Withdrawal Policy Helper Logic
         function getWithdrawalPolicyInfo(policy, eventDate) {

@@ -1,5 +1,7 @@
 from django.urls import path
 from django.shortcuts import redirect
+from django.conf import settings
+from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
@@ -60,3 +62,7 @@ urlpatterns = [
     path('api/request_vendor_update/', views.api_request_vendor_update, name='api_request_vendor_update'),
     path('api/send_broadcast/', views.api_send_broadcast, name='api_send_broadcast'),
 ]
+
+# this to serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

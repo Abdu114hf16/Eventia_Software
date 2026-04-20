@@ -98,10 +98,14 @@
             const eventDate = new Date(evt.date);
             const dateFormatted = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
+            // Banner Logic implementation
+            const bgStyle = evt.banner ? `background: url('${evt.banner}') center/cover no-repeat;` : `background: ${gradient};`;
+            const iconHtml = evt.banner ? '' : `<i class="fa-solid ${icon}"></i>`;
+
             return `
                 <div class="lp-event-card reveal-on-scroll revealed" data-category="${evt.category}">
-                    <div class="lp-card-image" style="background: ${gradient};">
-                        <i class="fa-solid ${icon}"></i>
+                    <div class="lp-card-image" style="${bgStyle}">
+                        ${iconHtml}
                         <div class="lp-card-badge">${evt.category || 'Event'}</div>
                         <div class="lp-card-price">${priceDisplay}</div>
                     </div>
@@ -238,7 +242,6 @@
             <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);" onclick="if(event.target === this) document.getElementById('register-modal').remove()">
                 <div style="background: white; border-radius: 20px; width: 92%; max-width: 500px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.35); animation: modalSlideIn 0.3s ease;">
 
-                    <!-- STEP INDICATOR -->
                     <div id="reg-step-indicator" style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 1.75rem 2rem 1.25rem;">
                         <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
                             <div class="reg-step-dot active" id="sdot-1" style="width:10px;height:10px;border-radius:50%;background:white;transition:all 0.3s;"></div>
@@ -254,7 +257,6 @@
                         </div>
                     </div>
 
-                    <!-- STEP 1: TICKET SELECTION -->
                     <div id="reg-step-1" style="padding: 1.75rem 2rem;">
                         <div style="margin-bottom: 1.25rem;">
                             <label style="display:block;font-weight:600;color:#333;margin-bottom:0.5rem;font-size:0.9rem;"><i class="fa-solid fa-tag" style="margin-right:6px;color:#004e92;"></i>Select Ticket Type</label>
@@ -274,14 +276,12 @@
                         </div>
                     </div>
 
-                    <!-- STEP 2: PAYMENT -->
                     <div id="reg-step-2" style="padding:1.75rem 2rem;display:none;">
                         <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.5rem;">
                             <i class="fa-solid fa-shield-halved" style="color:#f59e0b;font-size:1rem;"></i>
                             <span style="font-size:0.8rem;color:#78350f;font-weight:500;">Demo payment — no real charge will be made</span>
                         </div>
 
-                        <!-- Payment Method Tabs -->
                         <div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;">
                             <button onclick="regSelectPayMethod(this,'card')" class="pay-method-btn active" style="flex:1;padding:10px 8px;border:2px solid #004e92;border-radius:10px;background:#e8f0fe;color:#004e92;font-weight:600;cursor:pointer;font-size:0.82rem;display:flex;flex-direction:column;align-items:center;gap:4px;">
                                 <i class="fa-solid fa-credit-card" style="font-size:1.1rem;"></i> Credit Card
@@ -294,7 +294,6 @@
                             </button>
                         </div>
 
-                        <!-- Card Form -->
                         <div id="pay-card-form">
                             <div style="margin-bottom:1rem;">
                                 <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.35rem;">CARDHOLDER NAME</label>
@@ -319,7 +318,6 @@
                             </div>
                         </div>
 
-                        <!-- Order Summary -->
                         <div id="reg-order-summary" style="background:#f8f9fa;border-radius:10px;padding:0.9rem 1rem;margin-bottom:1.25rem;">
                             <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span id="pay-summary-ticket">Ticket</span><span id="pay-summary-price">0 SAR</span></div>
                             <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span>Service fee</span><span>0 SAR</span></div>
@@ -333,14 +331,12 @@
                         </div>
                     </div>
 
-                    <!-- STEP 3: PROCESSING -->
                     <div id="reg-step-3" style="padding:3rem 2rem;text-align:center;display:none;">
                         <div style="width:80px;height:80px;border:6px solid #e8f0fe;border-top-color:#004e92;border-radius:50%;animation:regSpin 0.9s linear infinite;margin:0 auto 1.5rem;"></div>
                         <h3 style="margin:0 0 0.5rem;color:#222;font-size:1.15rem;">Processing Payment...</h3>
                         <p style="margin:0;color:#888;font-size:0.9rem;">Please wait while we confirm your booking</p>
                     </div>
 
-                    <!-- STEP 4: SUCCESS -->
                     <div id="reg-step-4" style="padding:1.75rem 2rem;display:none;">
                         <div style="text-align:center;margin-bottom:1.5rem;">
                             <div style="width:72px;height:72px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
@@ -350,7 +346,6 @@
                             <p style="margin:0;color:#555;font-size:0.85rem;">Your ticket has been confirmed</p>
                         </div>
 
-                        <!-- Ticket Card -->
                         <div id="reg-receipt-card" style="background:linear-gradient(135deg,#004e92,#4dabf7);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;color:white;">
                             <div style="font-size:0.75rem;opacity:0.8;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Event</div>
                             <div id="rc-event-title" style="font-size:1rem;font-weight:700;margin-bottom:1rem;">${evt.title}</div>
@@ -582,6 +577,11 @@
         const fullName = (profile.firstName + ' ' + profile.lastName).trim() || 'Attendee';
         const jobTitle = (profile.jobTitle || '').trim();
 
+        // Banner Logic implementation
+        const bgStyle = evt.banner
+            ? `background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('${evt.banner}') center/cover no-repeat;`
+            : `background: ${gradient};`;
+
         const modal = document.createElement('div');
         modal.id = 'badge-modal';
         modal.className = 'badge-modal-overlay';
@@ -592,7 +592,7 @@
                     <h3><i class="fa-solid fa-id-card"></i> Event Badge</h3>
                     <button type="button" class="badge-modal-close" onclick="document.getElementById('badge-modal').remove()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="badge-content badge-content-print" style="background: ${gradient};">
+                <div class="badge-content badge-content-print" style="${bgStyle}">
                     <div class="badge-event-name">${evt.title}</div>
                     <div class="badge-event-meta">
                         <span><i class="fa-regular fa-calendar"></i> ${dateStr}</span>
@@ -678,9 +678,14 @@
             const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
             const barcodeId = 'ticket-barcode-' + reg.id.replace(/[^a-zA-Z0-9-_]/g, '_');
 
+            // Banner Logic implementation
+            const bgStyle = evt.banner
+                ? `background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('${evt.banner}') center/cover no-repeat;`
+                : `background: ${gradient};`;
+
             return `
                 <div class="ticket-card">
-                    <div class="ticket-card-header ticket-card-header-gradient" style="background: ${gradient};">
+                    <div class="ticket-card-header ticket-card-header-gradient" style="${bgStyle}">
                         <div class="ticket-card-header-inner">
                             <div class="ticket-card-category-pill">${evt.category}</div>
                             <h3 class="ticket-card-title">${evt.title}</h3>
@@ -1142,11 +1147,9 @@
                 <div style="position:relative;background:white;border-radius:14px;margin-bottom:1rem;box-shadow:0 2px 12px rgba(0,0,0,${isRead ? '0.05' : '0.09'});overflow:hidden;border:1.5px solid ${isRead ? '#e5e7eb' : '#bfdbfe'};transition:box-shadow 0.2s;"
                     onmouseenter="this.style.boxShadow='0 6px 24px rgba(0,0,0,0.12)'" onmouseleave="this.style.boxShadow='0 2px 12px rgba(0,0,0,${isRead ? '0.05' : '0.09'})'">
 
-                    <!-- Unread bar -->
                     ${!isRead ? `<div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#004e92,#4dabf7);border-radius:14px 0 0 14px;"></div>` : ''}
 
                     <div style="padding:1.25rem 1.5rem ${!isRead ? '1.25rem 1.75rem' : '1.25rem 1.5rem'};">
-                        <!-- Card header -->
                         <div style="display:flex;align-items:center;gap:0.875rem;margin-bottom:1rem;">
                             <div style="width:42px;height:42px;border-radius:50%;background:${isRead ? '#f1f5f9' : 'linear-gradient(135deg,#004e92,#4dabf7)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                 <i class="fa-solid fa-bullhorn" style="font-size:1rem;color:${isRead ? '#94a3b8' : 'white'};"></i>
@@ -1163,10 +1166,8 @@
                             </div>
                         </div>
 
-                        <!-- Message body -->
                         <p style="margin:0 0 1rem;font-size:0.95rem;color:#1f2937;line-height:1.75;word-break:break-word;">${b.message}</p>
 
-                        <!-- Footer action -->
                         ${!isRead ? `
                         <div style="display:flex;justify-content:flex-end;">
                             <button onclick="markNotifRead('${b.id}')" style="background:transparent;border:1.5px solid #004e92;color:#004e92;border-radius:8px;padding:5px 14px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;"
@@ -1207,4 +1208,3 @@
     await initData(true);
 
 })();
-

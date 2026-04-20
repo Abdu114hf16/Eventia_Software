@@ -105,6 +105,9 @@ def login_attendee(request):
 def attendee_dashboard(request):
     if request.user.role != 'ATTENDEE': return redirect('home')
 
+    # NEW: Fetch all events so we can render them with Django templating
+    events = Event.objects.filter(status='APPROVED').order_by('date')
+
     user_tickets = Ticket.objects.filter(attendee=request.user)
     registered_event_ids = list(user_tickets.values_list('event_id', flat=True))
     broadcasts = Broadcast.objects.filter(event__id__in=registered_event_ids).order_by('-timestamp')
@@ -113,7 +116,11 @@ def attendee_dashboard(request):
         'id': b.id, 'eventId': b.event.id, 'message': b.message, 'timestamp': b.timestamp.isoformat()
     } for b in broadcasts]
 
-    return render(request, 'core/attendee-dashboard.html', {'broadcasts_json': json.dumps(broadcasts_data, cls=DjangoJSONEncoder)})
+    return render(request, 'core/attendee-dashboard.html', {
+        'events': events,
+        'registered_event_ids': registered_event_ids,
+        'broadcasts_json': json.dumps(broadcasts_data, cls=DjangoJSONEncoder)
+    })
 
 
 @login_required
@@ -146,7 +153,8 @@ def api_attendee_data(request):
             'location': event.location or 'TBD',
             'price': float(event.ticket_price) if getattr(event, 'ticket_price', None) else 0.0,
             'description': event.description or '',
-            'status': 'upcoming' if (event.date and event.date >= today) else 'past'
+            'status': 'upcoming' if (event.date and event.date >= today) else 'past',
+            'banner': event.banner.url if bool(event.banner) else None
         })
 
     regs_data = []
@@ -171,6 +179,11 @@ def api_attendee_data(request):
         'timestamp': b.timestamp.isoformat()
     } for b in broadcasts]
 
+    try:
+        job_title = request.user.attendee_profile.job_title or ''
+    except Exception:
+        job_title = ''
+
     return JsonResponse({
         'events': events_data,
         'registrations': regs_data,
@@ -179,6 +192,9 @@ def api_attendee_data(request):
             'firstName': request.user.first_name or request.user.username,
             'lastName': request.user.last_name or '',
             'email': request.user.email,
+            'phone': request.user.phone_number or '',
+            'jobTitle': job_title,
+            'avatar': request.user.profile_picture.url if request.user.profile_picture else None,
         }
     })
 
@@ -444,6 +460,8 @@ def organizer_dashboard(request):
 
             # Handle Event Creation/Update
             event_id = request.POST.get('event_id')
+            banner_file = request.FILES.get('banner')  # <-- GET THE UPLOADED FILE
+
             if event_id:
                 # Update Logic
                 event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
@@ -455,10 +473,12 @@ def organizer_dashboard(request):
                 event.description = request.POST.get('description')
                 event.capacity = request.POST.get('capacity')
                 event.ticket_price = request.POST.get('ticket_price', 0)
-                
-                # FIXED: Saving policies to DB
                 event.withdrawal_policy = request.POST.get('withdrawal_policy', '')
                 event.attendee_withdrawal_policy = request.POST.get('attendee_withdrawal_policy', '')
+
+                # <-- UPDATE BANNER ONLY IF A NEW ONE IS UPLOADED
+                if banner_file:
+                    event.banner = banner_file
 
                 event.status = 'PENDING'
                 event.save()
@@ -475,11 +495,9 @@ def organizer_dashboard(request):
                     description=request.POST.get('description'),
                     capacity=request.POST.get('capacity'),
                     ticket_price=request.POST.get('ticket_price', 0),
-                    
-                    # FIXED: Saving policies to DB
                     withdrawal_policy=request.POST.get('withdrawal_policy', ''),
                     attendee_withdrawal_policy=request.POST.get('attendee_withdrawal_policy', ''),
-
+                    banner=banner_file,  # <-- SAVE BANNER ON CREATION
                     status='PENDING'
                 )
                 messages.success(request, "Event created! Waiting for approval.")
@@ -765,6 +783,9 @@ def update_profile(request):
         if 'last_name' in request.POST:
             user.last_name = request.POST.get('last_name')
 
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+
         password = request.POST.get('password')
         confirm_password = request.POST.get('password_confirm')
         if password and password == confirm_password:
@@ -787,6 +808,16 @@ def update_profile(request):
                 profile.service_type = request.POST.get('service_type')
             if 'description' in request.POST:
                 profile.description = request.POST.get('description')
+            profile.save()
+
+        elif user.role == 'ATTENDEE':
+            try:
+                profile = user.attendee_profile
+            except AttendeeProfile.DoesNotExist:
+                profile = AttendeeProfile.objects.create(user=user)
+
+            if 'job_title' in request.POST:
+                profile.job_title = request.POST.get('job_title')
             profile.save()
 
         messages.success(request, "Profile updated successfully!")

@@ -1681,7 +1681,6 @@
 
 <body class="landing-body">
 
-    <!-- Navigation -->
     <nav class="navbar landing-nav" id="landing-navbar">
         <div class="container nav-container">
             <a href="#" class="logo" id="nav-logo">
@@ -1699,9 +1698,7 @@
         </div>
     </nav>
 
-    <!-- HERO SECTION -->
     <section class="hero-landing" id="hero">
-        <!-- Animated Background -->
         <div class="hero-bg">
             <div class="hero-gradient"></div>
             <div class="hero-particles">
@@ -1721,7 +1718,6 @@
             </div>
         </div>
 
-        <!-- Hero Content -->
         <div class="hero-content">
 
             <h1 class="hero-title">
@@ -1744,7 +1740,6 @@
 
         </div>
 
-        <!-- Decorative Floating Shapes -->
         <div class="hero-shapes">
             <div class="hero-shape hs-1"></div>
             <div class="hero-shape hs-2"></div>
@@ -1754,7 +1749,6 @@
         </div>
     </section>
 
-    <!-- SEARCH & FILTER SECTION -->
     <section class="search-section" id="events-section">
         <div class="container">
             <div class="search-bar-wrapper">
@@ -1801,7 +1795,6 @@
         </div>
     </section>
 
-    <!-- EVENTS GRID -->
     <section class="landing-events">
         <div class="container">
             <div class="section-heading">
@@ -1814,21 +1807,28 @@
                 {% for event in events %}
                 <div class="lp-event-card" data-category="{{ event.category }}">
                     <div class="lp-card-image" style="
-                            {% if event.category == 'Tech' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
-                            {% elif event.category == 'Art' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
-                            {% elif event.category == 'Business' %}background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
-                            {% elif event.category == 'Music' %}background: linear-gradient(135deg, #eb3349, #f45c43);
-                            {% elif event.category == 'Education' %}background: linear-gradient(135deg, #11998e, #38ef7d);
-                            {% elif event.category == 'Sports' %}background: linear-gradient(135deg, #fc4a1a, #f7b733);
-                            {% else %}background: linear-gradient(135deg, #667eea, #764ba2);{% endif %}
+                            {% if event.banner %}
+                                background: url('{{ event.banner.url }}') center/cover no-repeat;
+                            {% else %}
+                                {% if event.category == 'Tech' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+                                {% elif event.category == 'Art' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
+                                {% elif event.category == 'Business' %}background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+                                {% elif event.category == 'Music' %}background: linear-gradient(135deg, #eb3349, #f45c43);
+                                {% elif event.category == 'Education' %}background: linear-gradient(135deg, #11998e, #38ef7d);
+                                {% elif event.category == 'Sports' %}background: linear-gradient(135deg, #fc4a1a, #f7b733);
+                                {% else %}background: linear-gradient(135deg, #667eea, #764ba2);{% endif %}
+                            {% endif %}
                         ">
-                        {% if event.category == 'Tech' %}<i class="fa-solid fa-laptop-code"></i>
-                        {% elif event.category == 'Art' %}<i class="fa-solid fa-palette"></i>
-                        {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
-                        {% elif event.category == 'Music' %}<i class="fa-solid fa-music"></i>
-                        {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
-                        {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
-                        {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
+                        
+                        {% if not event.banner %}
+                            {% if event.category == 'Tech' %}<i class="fa-solid fa-laptop-code"></i>
+                            {% elif event.category == 'Art' %}<i class="fa-solid fa-palette"></i>
+                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
+                            {% elif event.category == 'Music' %}<i class="fa-solid fa-music"></i>
+                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                            {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
+                            {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
+                        {% endif %}
 
                         <div class="lp-card-badge">{{ event.category }}</div>
                         <div class="lp-card-price">
@@ -1867,7 +1867,6 @@
         </div>
     </section>
 
-    <!-- HOW IT WORKS -->
     <section class="how-it-works" id="how-it-works">
         <div class="container">
             <div class="section-heading">
@@ -1911,7 +1910,6 @@
 
 
 
-    <!-- CTA SECTION -->
     <section class="cta-section">
         <div class="container">
             <div class="cta-card">
@@ -1938,7 +1936,6 @@
         </div>
     </section>
 
-    <!-- FOOTER -->
     <footer class="site-footer">
         <div class="container">
             <div class="footer-grid">
