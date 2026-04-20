@@ -96,7 +96,7 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="assets/logo_fixed.png" alt="Eventia" class="sidebar-logo">
+            <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">EVENTIA</span>
             <button class="sidebar-close-btn" id="sidebar-close" aria-label="Close sidebar">
                 <i class="fa-solid fa-xmark"></i>
@@ -148,11 +148,11 @@
 
             <div class="header-profile">
                 <div class="profile-info">
-                    <span class="profile-name">Abdulrahman</span>
+                    <span class="profile-name">{{ request.user.first_name }}</span>
                     <span class="profile-role"
                         style="font-size: 0.8rem; color: var(--text-muted); display: block;">Organizer</span>
                 </div>
-                <div class="profile-avatar">A</div>
+                <div class="profile-avatar">{{ request.user.first_name|make_list|first }}</div>
             </div>
         </header>
 
@@ -1567,7 +1567,7 @@
                                     <label
                                         style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First
                                         Name</label>
-                                    <input type="text" id="org-profile-firstname" value="Abdulrahman" required
+                                    <input type="text" id="org-profile-firstname" value="{{ request.user.first_name }}" required
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
@@ -1576,7 +1576,7 @@
                                     <label
                                         style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last
                                         Name</label>
-                                    <input type="text" id="org-profile-lastname" value="Al-Ghamdi" required
+                                    <input type="text" id="org-profile-lastname" value="{{ request.user.last_name }}" required
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
@@ -1586,7 +1586,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Organization
                                     Name</label>
-                                <input type="text" id="org-profile-orgname" value="Eventia Events Co." required
+                                <input type="text" id="org-profile-orgname" value="{{ request.user.organizer_profile.organization_name }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -1595,7 +1595,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email
                                     Address</label>
-                                <input type="email" id="org-profile-email" value="abdulrahman@eventia.sa" required
+                                <input type="email" id="org-profile-email" value="{{ request.user.email }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -1604,7 +1604,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
                                     Number</label>
-                                <input type="tel" id="org-profile-phone" value="+966 55 987 6543" required
+                                <input type="tel" id="org-profile-phone" value="{{ request.user.phone_number }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
