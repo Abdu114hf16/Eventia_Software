@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,10 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="base.css?v=1">
-    <link rel="stylesheet" href="dashboard.css?v=1">
-    <link rel="stylesheet" href="vendor.css?v=1">
-    <link rel="stylesheet" href="organizer.css?v=1">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor.css' %}">
+    <link rel="stylesheet" href="{% static 'css/organizer.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Mobile overrides for inline-styled elements */
@@ -84,7 +85,7 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <img src="assets/eventia_logo_new.png" alt="Eventia" class="sidebar-logo">
+            <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">EVENTIA VENDOR</span>
             <button class="sidebar-close-btn" id="sidebar-close" aria-label="Close sidebar">
                 <i class="fa-solid fa-xmark"></i>
@@ -132,7 +133,7 @@
 
             <div class="header-profile">
                 <div class="profile-info">
-                    <span class="profile-name" id="vendor-name-display">Luxe Catering Co.</span>
+                    <span class="profile-name" id="vendor-name-display">{{ request.user.vendor_profile.organization_name|default:request.user.username }}</span>
                     <span class="profile-role"
                         style="font-size: 0.8rem; color: var(--text-muted); display: block;">Vendor</span>
                 </div>
@@ -743,9 +744,7 @@
                             </div>
                         </div>
                         <input type="file" id="vendor-pfp-upload" accept="image/*" style="display: none;">
-                        <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">Luxe
-                            Catering Co.
-                        </h3>
+                        <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.vendor_profile.organization_name|default:request.user.username }}</h3>
                         <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia
                             Vendor</p>
                     </div>
@@ -757,7 +756,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Business
                                     Name</label>
-                                <input type="text" id="vendor-profile-bizname" value="Luxe Catering Co." required
+                                <input type="text" id="vendor-profile-bizname" value="{{ request.user.vendor_profile.organization_name }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -766,7 +765,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Contact
                                     Person</label>
-                                <input type="text" id="vendor-profile-contact" value="Mohammed Al-Harbi" required
+                                <input type="text" id="vendor-profile-contact" value="{{ request.user.get_full_name }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -775,7 +774,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email
                                     Address</label>
-                                <input type="email" id="vendor-profile-email" value="info@luxecatering.sa" required
+                                <input type="email" id="vendor-profile-email" value="{{ request.user.email }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -784,7 +783,7 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
                                     Number</label>
-                                <input type="tel" id="vendor-profile-phone" value="+966 50 123 4567" required
+                                <input type="tel" id="vendor-profile-phone" value="{{ request.user.phone_number }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -794,10 +793,11 @@
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Service
                                     Category</label>
                                 <select id="vendor-profile-category"
+                                    data-current="{{ request.user.vendor_profile.service_type }}"
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none; background: white;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
-                                    <option value="Catering" selected>Catering</option>
+                                    <option value="Catering">Catering</option>
                                     <option value="Venue">Venue</option>
                                     <option value="Photography">Photography</option>
                                     <option value="Decoration">Decoration</option>
@@ -816,7 +816,7 @@
                                 <textarea id="vendor-profile-description" rows="3"
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none; font-family: inherit; resize: vertical;"
                                     onfocus="this.style.borderColor='#004e92'"
-                                    onblur="this.style.borderColor='#e0e0e0'">Premium catering services for corporate events, weddings, and special occasions across Saudi Arabia.</textarea>
+                                    onblur="this.style.borderColor='#e0e0e0'">{{ request.user.vendor_profile.description }}</textarea>
                             </div>
                             <div
                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
@@ -1159,10 +1159,18 @@
         </div>
     </div>
 
-    <script src="dummy_data.js"></script>
-    <script src="vendor-logic.js"></script>
+    <script src="{% static 'js/vendor-logic.js' %}"></script>
     <script>
+        window.STATIC_URL = "{% static '' %}";
+        window.CSRF_TOKEN = "{{ csrf_token }}";
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Set the correct category in the profile dropdown
+            const catSelect = document.getElementById('vendor-profile-category');
+            if (catSelect && catSelect.dataset.current) {
+                catSelect.value = catSelect.dataset.current;
+            }
+
             // Initialize Vendor Dashboard
             if (typeof initVendorDashboard === 'function') {
                 initVendorDashboard();
@@ -1170,7 +1178,7 @@
         });
 
         function logoutVendor() {
-            window.location.href = 'login.html';
+            window.location.href = "{% url 'logout' %}";
         }
     </script>
 </body>
