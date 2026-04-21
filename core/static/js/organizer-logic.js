@@ -414,20 +414,32 @@ document.addEventListener('DOMContentLoaded', () => {
             if (btn) btn.textContent = 'Update Event';
         }
 
-        // --- CRUD Operations ---
-        const EVENTS_DB_KEY = 'eventia_events_db';
-        const VENDORS_DB_KEY = 'eventia_vendors_db';
+        // --- API DATA ACCESS ---
+        let API_DATA = {
+            events: [], vendors: [], outgoingRequests: [], incomingRequests: [],
+            eventVendors: [], messages: [], broadcasts: []
+        };
 
+        async function initData() {
+            try {
+                const response = await fetch('/api/organizer/data/', { credentials: 'same-origin' });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                API_DATA = await response.json();
 
-        function getEvents() {
-            const stored = localStorage.getItem(EVENTS_DB_KEY);
-            return stored ? JSON.parse(stored) : [];
+                // Refresh the UI with real data
+                if (typeof renderEvents === 'function') renderEvents();
+                if (typeof updateStats === 'function') updateStats();
+            } catch (error) {
+                console.error("API Error:", error);
+                showToast("Error loading data from server.");
+            }
         }
 
-        function getVendors() {
-            const stored = localStorage.getItem(VENDORS_DB_KEY);
-            return stored ? JSON.parse(stored) : [];
-        }
+        // Start pulling data immediately
+        initData();
+
+        function getEvents() { return API_DATA.events || []; }
+        function getVendors() { return API_DATA.vendors || []; }
 
         // Logic to setup Ticket UI handlers
         function setupTicketHandlers() {
@@ -472,136 +484,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-        function saveEvent(eventData) {
-            const events = getEvents();
-            if (currentEditingId) {
-                // Update existing
-                const index = events.findIndex(e => e.id === currentEditingId);
-                if (index !== -1) {
-                    events[index] = { ...events[index], ...eventData, id: currentEditingId }; // Keep ID
+        async function deleteEvent(eventId) {
+            try {
+                const response = await fetch('/dashboard/organizer/delete/' + eventId + '/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+                    credentials: 'same-origin'
+                });
+                if (response.ok || response.redirected) {
+                    await initData();
+                    renderEvents();
+                    updateStats();
+                } else {
+                    showToast('Error deleting event.');
                 }
-            } else {
-                // Create new
-                events.push(eventData);
+            } catch (err) {
+                console.error('Delete error:', err);
+                showToast('Error deleting event.');
             }
-            localStorage.setItem(EVENTS_DB_KEY, JSON.stringify(events));
-        }
-
-        function deleteEvent(eventId) {
-            const events = getEvents();
-            const updated = events.filter(e => e.id !== eventId);
-            localStorage.setItem(EVENTS_DB_KEY, JSON.stringify(updated));
-            renderEvents();
-            updateStats();
         }
 
         function updateEventStatuses() {
-            const events = getEvents();
-            const now = new Date();
-            const todayStr = now.toISOString().split('T')[0];
-            let changed = false;
-
-            const updatedEvents = events.map(evt => {
-                // IMPORTANT: Preserve Pending and Rejected statuses
-                // These are set by SCEGA and should NOT be overwritten by date logic
-                if (evt.status === 'Pending' || evt.status === 'Rejected') {
-                    return evt; // Keep as-is, don't change status
-                }
-
-                // Only update date-based status for approved events
-                let newStatus = evt.status;
-
-                if (evt.date === todayStr) {
-                    newStatus = 'Ongoing';
-                } else if (evt.date > todayStr) {
-                    newStatus = 'Upcoming';
-                } else {
-                    newStatus = 'Past';
-                }
-
-                if (newStatus !== evt.status) {
-                    changed = true;
-                    return { ...evt, status: newStatus };
-                }
-                return evt;
-            });
-
-            if (changed) {
-                localStorage.setItem(EVENTS_DB_KEY, JSON.stringify(updatedEvents));
-            }
+            // Statuses are computed server-side, no-op
         }
 
-        // Form Handling
+        // Form Handling — submit to Django via POST
         const createEventForm = document.getElementById('create-event-form');
         if (createEventForm) {
-            createEventForm.addEventListener('submit', (e) => {
+            createEventForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-
-                // Collect Tickets
+                // Collect ticket price from the first ticket row
                 const ticketRows = document.querySelectorAll('.ticket-row');
-                const tickets = [];
+                const prices = [];
                 ticketRows.forEach(row => {
-                    const name = row.querySelector('.ticket-name').value;
                     const price = row.querySelector('.ticket-price').value;
-                    const capacity = row.querySelector('.ticket-capacity').value; // Get Capacity
-                    if (name && price !== '') {
-                        tickets.push({ name, price, capacity }); // Store Capacity
-                    }
+                    if (price !== '') prices.push(parseFloat(price));
                 });
+                const ticketPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
-                // Calculate display price (min price)
-                const prices = tickets.map(t => parseFloat(t.price));
-                const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+                const formData = new FormData();
+                if (currentEditingId) formData.append('event_id', currentEditingId);
+                formData.append('title', document.getElementById('event-title').value);
+                formData.append('category', document.getElementById('event-category').value);
+                formData.append('date', document.getElementById('event-date').value);
+                formData.append('time', document.getElementById('event-time').value);
+                formData.append('location', document.getElementById('event-location').value);
+                formData.append('description', document.getElementById('event-description').value);
+                formData.append('capacity', document.getElementById('event-capacity') ? document.getElementById('event-capacity').value : '');
+                formData.append('ticket_price', ticketPrice);
+                formData.append('withdrawal_policy', document.getElementById('event-withdrawal-policy').value);
+                formData.append('attendee_withdrawal_policy', document.getElementById('event-attendee-withdrawal-policy').value);
 
-                const newEvent = {
-                    id: Date.now().toString(), // Will be ignored if editing
-                    title: document.getElementById('event-title').value,
-                    category: document.getElementById('event-category').value,
-                    date: document.getElementById('event-date').value,
-                    time: document.getElementById('event-time').value,
-                    location: document.getElementById('event-location').value,
-                    description: document.getElementById('event-description').value,
-                    withdrawalPolicy: document.getElementById('event-withdrawal-policy').value,
-                    attendeeWithdrawalPolicy: document.getElementById('event-attendee-withdrawal-policy').value,
-                    price: minPrice, // For sorting/display logic compatibility
-                    tickets: tickets, // New Structure
-                    status: 'Pending', // Default status for new events
-                    attendees: 0 // Should preserve if editing
-                };
-
-                // Preserve status/attendees if editing
-                if (currentEditingId) {
-                    const existing = getEvents().find(e => e.id === currentEditingId);
-                    if (existing) {
-                        // If editing a rejected event, maybe set back to Pending? For now keep status unless re-submitted logic.
-                        // Let's reset to Pending if it was Rejected to allow re-approval
-                        if (existing.status === 'Rejected') {
-                            newEvent.status = 'Pending';
-                            // Clear rejection reason
-                            newEvent.rejectionReason = null;
-                        } else {
-                            newEvent.status = existing.status;
-                        }
-                        newEvent.attendees = existing.attendees;
-                    }
+                // Banner file
+                const bannerInput = document.getElementById('event-banner');
+                if (bannerInput && bannerInput.files.length > 0) {
+                    formData.append('banner', bannerInput.files[0]);
                 }
 
-                saveEvent(newEvent);
+                try {
+                    const response = await fetch('/dashboard/organizer/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+                        credentials: 'same-origin',
+                        body: formData
+                    });
 
-                // Determine Message BEFORE resetting state
-                const msg = currentEditingId
-                    ? 'Event Updated Successfully!'
-                    : 'Event Submitted for Approval! SCEGA will review your event shortly.';
-
-                // Show Toast
-                showToast(msg);
-
-                // Reset state
-                resetCreateForm();
-
-                // Return to overview
-                switchView('overview');
+                    if (response.ok || response.redirected) {
+                        const msg = currentEditingId
+                            ? 'Event Updated Successfully!'
+                            : 'Event Submitted for Approval! SCEGA will review your event shortly.';
+                        showToast(msg);
+                        resetCreateForm();
+                        await initData();
+                        switchView('overview');
+                    } else {
+                        showToast('Error saving event.');
+                    }
+                } catch (err) {
+                    console.error('Save error:', err);
+                    showToast('Error saving event.');
+                }
             });
         }
 
@@ -982,22 +945,11 @@ document.addEventListener('DOMContentLoaded', () => {
         window.deleteEvent = deleteEvent;
 
         // --- REQUESTS LOGIC ---
-        const REQUESTS_DB_KEY = 'eventia_requests_db';
-
         function invitationStatusLabel(status) {
             return status === 'Approved' ? 'Confirmed' : status;
         }
 
-        function getRequests() {
-            const stored = localStorage.getItem(REQUESTS_DB_KEY);
-            return stored ? JSON.parse(stored) : [];
-        }
-
-        function saveRequest(request) {
-            const requests = getRequests();
-            requests.push(request);
-            localStorage.setItem(REQUESTS_DB_KEY, JSON.stringify(requests));
-        }
+        function getRequests() { return API_DATA.outgoingRequests || []; }
 
         function populateRequestEventFilters() {
             const events = getEvents();
@@ -1125,41 +1077,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (requestForm) {
-            requestForm.addEventListener('submit', (e) => {
+            requestForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
                 const vendorId = document.getElementById('request-vendor-id').value;
                 const eventId = document.getElementById('request-event-select').value;
                 const message = document.getElementById('request-message').value;
-                const now = new Date();
 
-                const newRequest = {
-                    id: 'r' + Date.now(),
-                    vendorId: vendorId,
-                    eventId: eventId,
-                    message: message,
-                    status: 'Pending',
-                    dateSent: now.toISOString().split('T')[0]
-                };
+                const formData = new URLSearchParams();
+                formData.append('create_request', 'true');
+                formData.append('vendor_id', vendorId);
+                formData.append('event_id', eventId);
+                formData.append('message', message);
 
-                saveRequest(newRequest);
-                showToast("Request sent successfully!");
-                if (requestModal) requestModal.classList.add('hidden');
-                requestForm.reset();
-                renderRequests();
+                try {
+                    const response = await fetch('/dashboard/organizer/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': window.CSRF_TOKEN
+                        },
+                        credentials: 'same-origin',
+                        body: formData.toString()
+                    });
+
+                    if (response.ok || response.redirected) {
+                        showToast('Request sent to vendor successfully!');
+                        if (requestModal) requestModal.classList.add('hidden');
+                        requestForm.reset();
+                        await initData();
+                        renderRequests();
+                    } else {
+                        throw new Error('Failed');
+                    }
+                } catch (err) {
+                    showToast('Error sending request.');
+                }
             });
         }
 
         // Incoming Requests Functions
-        const INCOMING_REQUESTS_KEY = 'eventia_incoming_requests';
-
-        function getIncomingRequests() {
-            return JSON.parse(localStorage.getItem(INCOMING_REQUESTS_KEY)) || [];
-        }
-
-        function saveIncomingRequests(requests) {
-            localStorage.setItem(INCOMING_REQUESTS_KEY, JSON.stringify(requests));
-        }
+        function getIncomingRequests() { return API_DATA.incomingRequests || []; }
 
         function renderIncomingRequests() {
             const requests = getIncomingRequests();
@@ -1413,38 +1371,51 @@ document.addEventListener('DOMContentLoaded', () => {
             if (modal) modal.style.display = 'none';
         };
 
-        window.confirmRejection = function () {
+        window.confirmRejection = async function () {
             if (!currentRejectionId) return;
-            const reason = document.getElementById('rejection-reason').value;
-
-            const requests = getIncomingRequests();
-            const idx = requests.findIndex(r => r.id === currentRejectionId);
-
-            if (idx !== -1) {
-                requests[idx].status = 'Rejected';
-                requests[idx].rejectionReason = reason;
-                saveIncomingRequests(requests);
-                renderIncomingRequests();
-                showToast('Request rejected.');
-                closeRejectionModal();
+            try {
+                const response = await fetch('/dashboard/organizer/reject_request/' + currentRejectionId + '/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+                    credentials: 'same-origin'
+                });
+                if (response.ok || response.redirected) {
+                    await initData();
+                    renderIncomingRequests();
+                    showToast('Request rejected.');
+                    closeRejectionModal();
+                } else {
+                    showToast('Error rejecting request.');
+                }
+            } catch (err) {
+                showToast('Error rejecting request.');
             }
         };
 
         // Handle incoming request approval
-        window.handleIncomingRequest = function (requestId, action) {
+        window.handleIncomingRequest = async function (requestId, action) {
             if (action === 'reject') {
                 openRejectionModal(requestId);
                 return;
             }
 
-            const requests = getIncomingRequests();
-            const requestIndex = requests.findIndex(r => r.id === requestId);
-
-            if (requestIndex !== -1 && action === 'approve') {
-                requests[requestIndex].status = 'Approved';
-                saveIncomingRequests(requests);
-                renderIncomingRequests();
-                showToast('Request approved!');
+            if (action === 'approve') {
+                try {
+                    const response = await fetch('/dashboard/organizer/accept_request/' + requestId + '/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+                        credentials: 'same-origin'
+                    });
+                    if (response.ok || response.redirected) {
+                        await initData();
+                        renderIncomingRequests();
+                        showToast('Request approved!');
+                    } else {
+                        showToast('Error approving request.');
+                    }
+                } catch (err) {
+                    showToast('Error approving request.');
+                }
             }
         };
 
@@ -1617,21 +1588,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // ===================================================================
         // EVENT MANAGEMENT MODULE
         // ===================================================================
-        const EVENT_VENDORS_KEY = 'eventia_event_vendors';
-        const MESSAGES_KEY = 'eventia_messages';
-        const BROADCASTS_KEY = 'eventia_broadcasts';
-
         let currentManagedEventId = null;
 
-        function getEventVendors() {
-            return JSON.parse(localStorage.getItem(EVENT_VENDORS_KEY) || '[]');
-        }
-        function getMessages() {
-            return JSON.parse(localStorage.getItem(MESSAGES_KEY) || '[]');
-        }
-        function getBroadcasts() {
-            return JSON.parse(localStorage.getItem(BROADCASTS_KEY) || '[]');
-        }
+        function getEventVendors() { return API_DATA.eventVendors || []; }
+        function getMessages() { return API_DATA.messages || []; }
+        function getBroadcasts() { return API_DATA.broadcasts || []; }
 
         // --- Open Event Management ---
         window.openEventManage = function (eventId) {
@@ -1766,18 +1727,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 descEditEl.style.display = 'none';
             };
 
-            saveDescBtn.onclick = function () {
+            saveDescBtn.onclick = async function () {
                 const newDesc = descTextarea.value.trim();
                 if (!newDesc) { showToast('Description cannot be empty.'); return; }
-                const allEvents = getEvents();
-                const idx = allEvents.findIndex(e => e.id === eventId);
-                if (idx !== -1) {
-                    allEvents[idx].description = newDesc;
-                    localStorage.setItem(EVENTS_DB_KEY, JSON.stringify(allEvents));
-                    descTextEl.textContent = newDesc;
-                    descDisplayEl.style.display = 'flex';
-                    descEditEl.style.display = 'none';
-                    showToast('Description updated successfully!');
+                const evt = getEvents().find(e => e.id === eventId);
+                if (!evt) return;
+
+                const formData = new FormData();
+                formData.append('event_id', eventId);
+                formData.append('title', evt.title);
+                formData.append('category', evt.category);
+                formData.append('date', evt.date);
+                formData.append('time', evt.time);
+                formData.append('location', evt.location);
+                formData.append('description', newDesc);
+                formData.append('capacity', evt.capacity || '');
+                formData.append('ticket_price', evt.price || 0);
+                formData.append('withdrawal_policy', evt.withdrawalPolicy || '');
+                formData.append('attendee_withdrawal_policy', evt.attendeeWithdrawalPolicy || '');
+
+                try {
+                    const response = await fetch('/dashboard/organizer/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+                        credentials: 'same-origin',
+                        body: formData
+                    });
+                    if (response.ok || response.redirected) {
+                        descTextEl.textContent = newDesc;
+                        descDisplayEl.style.display = 'flex';
+                        descEditEl.style.display = 'none';
+                        showToast('Description updated successfully!');
+                        await initData();
+                    } else {
+                        showToast('Error updating description.');
+                    }
+                } catch (err) {
+                    showToast('Error updating description.');
                 }
             };
 
@@ -1873,23 +1859,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Ensure all vendors have preparation data
-            let needSave = false;
-            const allEvVendors = getEventVendors();
-            evVendors.forEach(ev => {
-                if (!ev.preparationStatus || !ev.statusHistory) {
-                    const idx = allEvVendors.findIndex(v => v.eventId === ev.eventId && v.vendorId === ev.vendorId);
-                    if (idx !== -1) {
-                        ensurePreparationData(allEvVendors[idx]);
-                        ev.preparationStatus = allEvVendors[idx].preparationStatus;
-                        ev.statusHistory = allEvVendors[idx].statusHistory;
-                        needSave = true;
-                    }
-                }
-            });
-            if (needSave) {
-                localStorage.setItem(EVENT_VENDORS_KEY, JSON.stringify(allEvVendors));
-            }
+            // Ensure all vendors have preparation data defaults
+            evVendors.forEach(ev => { ensurePreparationData(ev); });
 
             listEl.innerHTML = evVendors.map(ev => {
                 const vendor = allVendors.find(v => v.id === ev.vendorId) || { name: 'Unknown', category: 'N/A', image: 'fa-store' };
@@ -1994,29 +1965,50 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- Remove Vendor ---
-        window.removeEventVendor = function (eventId, vendorId) {
+        window.removeEventVendor = async function (eventId, vendorId) {
             if (!confirm('Remove this vendor from the event?')) return;
-            let evVendors = getEventVendors();
-            evVendors = evVendors.filter(v => !(v.eventId === eventId && v.vendorId === vendorId));
-            localStorage.setItem(EVENT_VENDORS_KEY, JSON.stringify(evVendors));
+            // Find the request for this event-vendor pair and reject it
+            const allRequests = [...getRequests(), ...getIncomingRequests()];
+            const req = allRequests.find(r => String(r.eventId) === String(eventId) && String(r.vendorId) === String(vendorId));
+            if (req) {
+                try {
+                    await fetch('/dashboard/organizer/reject_request/' + req.id + '/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+                        credentials: 'same-origin'
+                    });
+                } catch (err) { /* fallthrough */ }
+            }
+            await initData();
             renderEventManageVendors(eventId);
-            // Update stats
-            const remaining = evVendors.filter(v => v.eventId === eventId);
+            const remaining = getEventVendors().filter(v => v.eventId === eventId);
             document.getElementById('em-stat-vendors').textContent = remaining.length;
             document.getElementById('em-stat-pending-vendors').textContent = remaining.filter(v => v.status === 'Pending').length;
             showToast('Vendor removed from event.');
         };
 
         // --- Request Vendor Update ---
-        window.requestVendorUpdate = function (eventId, vendorId) {
-            const evVendors = getEventVendors();
-            const idx = evVendors.findIndex(v => v.eventId === eventId && v.vendorId === vendorId);
-            if (idx === -1) return;
-
-            evVendors[idx].updateRequested = true;
-            localStorage.setItem(EVENT_VENDORS_KEY, JSON.stringify(evVendors));
-            renderEventManageVendors(eventId);
-            showToast('Update request sent to vendor!');
+        window.requestVendorUpdate = async function (eventId, vendorId) {
+            try {
+                const response = await fetch('/api/request_vendor_update/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': window.CSRF_TOKEN
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ event_id: eventId, vendor_id: vendorId })
+                });
+                if (response.ok) {
+                    await initData();
+                    renderEventManageVendors(eventId);
+                    showToast('Update request sent to vendor!');
+                } else {
+                    showToast('Error requesting update.');
+                }
+            } catch (err) {
+                showToast('Error requesting update.');
+            }
         };
 
         // --- Open Vendor Status Detail Modal ---
@@ -2184,22 +2176,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const chatSendBtn = document.getElementById('em-chat-send-btn');
         const chatInput = document.getElementById('em-chat-input');
         if (chatSendBtn && chatInput) {
-            function sendChatMessage() {
+            async function sendChatMessage() {
                 const text = chatInput.value.trim();
                 if (!text || !currentChatEventId || !currentChatVendorId) return;
 
-                const msgs = getMessages();
-                msgs.push({
-                    id: 'msg_' + Date.now(),
-                    eventId: currentChatEventId,
-                    vendorId: currentChatVendorId,
-                    sender: 'organizer',
-                    text: text,
-                    timestamp: new Date().toISOString()
-                });
-                localStorage.setItem(MESSAGES_KEY, JSON.stringify(msgs));
-                chatInput.value = '';
-                renderChatMessages(currentChatEventId, currentChatVendorId);
+                try {
+                    const response = await fetch('/api/send_message/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': window.CSRF_TOKEN
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({
+                            event_id: currentChatEventId,
+                            vendor_id: currentChatVendorId,
+                            sender: 'organizer',
+                            text: text
+                        })
+                    });
+
+                    if (response.ok) {
+                        chatInput.value = '';
+                        await initData();
+                        renderChatMessages(currentChatEventId, currentChatVendorId);
+                    } else {
+                        showToast('Error sending message.');
+                    }
+                } catch (err) {
+                    showToast('Error sending message.');
+                }
             }
 
             chatSendBtn.addEventListener('click', sendChatMessage);
@@ -2243,21 +2249,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const broadcastSendBtn = document.getElementById('em-send-broadcast-btn');
         const broadcastTextarea = document.getElementById('em-broadcast-text');
         if (broadcastSendBtn && broadcastTextarea) {
-            broadcastSendBtn.addEventListener('click', () => {
+            broadcastSendBtn.addEventListener('click', async () => {
                 const msg = broadcastTextarea.value.trim();
                 if (!msg || !currentManagedEventId) return;
 
-                const broadcasts = getBroadcasts();
-                broadcasts.push({
-                    id: 'bc_' + Date.now(),
-                    eventId: currentManagedEventId,
-                    message: msg,
-                    timestamp: new Date().toISOString()
-                });
-                localStorage.setItem(BROADCASTS_KEY, JSON.stringify(broadcasts));
-                broadcastTextarea.value = '';
-                renderEventManageBroadcasts(currentManagedEventId);
-                showToast('Broadcast sent to all attendees!');
+                try {
+                    const response = await fetch('/api/send_broadcast/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': window.CSRF_TOKEN
+                        },
+                        credentials: 'same-origin',
+                        body: JSON.stringify({ event_id: currentManagedEventId, message: msg })
+                    });
+
+                    if (response.ok) {
+                        broadcastTextarea.value = '';
+                        await initData();
+                        renderEventManageBroadcasts(currentManagedEventId);
+                        showToast('Broadcast sent to all attendees!');
+                    } else {
+                        showToast('Error sending broadcast.');
+                    }
+                } catch (err) {
+                    showToast('Error sending broadcast.');
+                }
             });
         }
 

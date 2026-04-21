@@ -1704,14 +1704,8 @@
         // Static files base URL for JS to resolve asset paths
         window.STATIC_URL = "{% static '' %}";
 
-        // Seed localStorage with real DB data (replaces dummy_data.js)
-        localStorage.setItem('eventia_events_db', '{{ events_js|escapejs }}');
-        localStorage.setItem('eventia_vendors_db', '{{ vendors_js|escapejs }}');
-        localStorage.setItem('eventia_requests_db', '{{ outgoing_requests_js|escapejs }}');
-        localStorage.setItem('eventia_incoming_requests', '{{ incoming_requests_js|escapejs }}');
-        localStorage.setItem('eventia_event_vendors', '{{ event_vendors_js|escapejs }}');
-        localStorage.setItem('eventia_messages', '{{ messages_json|escapejs }}');
-        localStorage.setItem('eventia_broadcasts', '{{ broadcasts_json|escapejs }}');
+        // CSRF token for JS fetch calls
+        window.CSRF_TOKEN = "{{ csrf_token }}";
 
         // Analytics API URL for organizer-analytics.js
         window.EVENTIA_ANALYTICS_URL = "{% url 'api_organizer_analytics' %}";

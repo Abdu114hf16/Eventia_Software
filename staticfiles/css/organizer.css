@@ -300,15 +300,15 @@
 }
 
 .em-detail-card.em-card-purple {
-    border-left: 3.5px solid #7b1fa2;
+    border-left: 3.5px solid #1565c0;
 }
 
 .em-detail-card.em-card-green {
-    border-left: 3.5px solid #2e7d32;
+    border-left: 3.5px solid #1565c0;
 }
 
 .em-detail-card.em-card-amber {
-    border-left: 3.5px solid #ff8f00;
+    border-left: 3.5px solid #1565c0;
 }
 
 .em-detail-card.em-full-width {
@@ -1062,31 +1062,624 @@
     font-size: 0.9rem;
 }
 
-/* --- Responsive --- */
+/* ===================================================================
+   VENDOR PREPARATION TIMELINE
+   =================================================================== */
+
+/* --- Vendor card enhancement: wrap status + timeline --- */
+.em-vendor-card {
+    flex-wrap: wrap;
+}
+
+.em-vendor-card .em-vendor-timeline-wrap {
+    width: 100%;
+    margin-top: 0.6rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #f0f2f5;
+}
+
+/* --- Horizontal Timeline Stepper --- */
+.em-vendor-timeline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    padding: 0 0.25rem;
+}
+
+.em-timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-width: 0;
+}
+
+.em-timeline-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 700;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Upcoming step */
+.em-timeline-step.upcoming .em-timeline-circle {
+    background: #f0f2f5;
+    color: #bbb;
+    border: 2px solid #e0e3e8;
+}
+
+/* Active step — animated pulse ring */
+.em-timeline-step.active .em-timeline-circle {
+    background: linear-gradient(135deg, #1565c0, #42a5f5);
+    color: white;
+    border: 2px solid transparent;
+    box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.18);
+    animation: timelinePulse 2s ease-in-out infinite;
+}
+
+/* Completed step */
+.em-timeline-step.completed .em-timeline-circle {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
+    border: 2px solid transparent;
+}
+
+@keyframes timelinePulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.18);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(21, 101, 192, 0.08);
+    }
+}
+
+.em-timeline-label {
+    font-size: 0.62rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 64px;
+    word-wrap: break-word;
+}
+
+.em-timeline-step.upcoming .em-timeline-label {
+    color: #bbb;
+}
+
+.em-timeline-step.active .em-timeline-label {
+    color: #1565c0;
+    font-weight: 700;
+}
+
+.em-timeline-step.completed .em-timeline-label {
+    color: #2e7d32;
+}
+
+/* Connector line between steps */
+.em-timeline-connector {
+    position: absolute;
+    top: 14px;
+    height: 2px;
+    background: #e0e3e8;
+    z-index: 0;
+}
+
+.em-timeline-connector.completed {
+    background: linear-gradient(90deg, #4caf50, #4caf50);
+}
+
+.em-timeline-connector.active {
+    background: linear-gradient(90deg, #4caf50, #1565c0);
+}
+
+/* --- Request Update Button (inside vendor card actions) --- */
+.em-request-update-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1.5px solid #1565c0;
+    color: #1565c0;
+    background: rgba(21, 101, 192, 0.06);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+}
+
+.em-request-update-btn:hover {
+    background: #1565c0;
+    color: white;
+    box-shadow: 0 3px 10px rgba(21, 101, 192, 0.25);
+    transform: translateY(-1px);
+}
+
+.em-request-update-btn.requested {
+    background: rgba(255, 152, 0, 0.08);
+    border-color: #ff9800;
+    color: #e65100;
+    cursor: default;
+}
+
+/* --- View Timeline Button (opens detail modal) --- */
+.em-view-timeline-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #1565c0;
+    background: transparent;
+    border: 1px solid #d0daf0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.em-view-timeline-btn:hover {
+    background: #f0f4ff;
+    border-color: #1565c0;
+}
+
+/* --- Status Detail Modal --- */
+.em-status-modal-box {
+    max-width: 540px;
+    width: 95%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+}
+
+.em-status-modal-header {
+    background: linear-gradient(135deg, #004e92, #1565c0);
+    padding: 1.15rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.em-status-modal-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.em-status-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    cursor: pointer;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.em-status-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.em-status-modal-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    background: #f9fafb;
+}
+
+/* --- Vertical History Timeline (inside modal) --- */
+.em-history-timeline {
+    position: relative;
+    padding-left: 28px;
+}
+
+.em-history-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e3e8;
+    border-radius: 2px;
+}
+
+.em-history-item {
+    position: relative;
+    padding: 0 0 1.75rem 1.25rem;
+}
+
+.em-history-item:last-child {
+    padding-bottom: 0;
+}
+
+.em-history-dot {
+    position: absolute;
+    left: -22px;
+    top: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    color: white;
+    z-index: 1;
+}
+
+.em-history-dot.completed {
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+}
+
+.em-history-dot.active {
+    background: linear-gradient(135deg, #1565c0, #42a5f5);
+    box-shadow: 0 0 0 4px rgba(21, 101, 192, 0.15);
+}
+
+.em-history-dot.upcoming {
+    background: #e0e3e8;
+    color: #bbb;
+}
+
+.em-history-card {
+    background: white;
+    border: 1px solid #e8eaef;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.em-history-card:hover {
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+.em-history-status {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.em-history-note {
+    font-size: 0.8rem;
+    color: #555;
+    line-height: 1.5;
+    margin: 0.35rem 0;
+    padding: 0.5rem 0.75rem;
+    background: #f5f7fa;
+    border-radius: 8px;
+    border-left: 3px solid #1565c0;
+}
+
+.em-history-timestamp {
+    font-size: 0.7rem;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.em-history-item.upcoming .em-history-card {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+/* --- Update Requested Badge (on vendor card) --- */
+.em-update-requested-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 3px 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #e65100;
+    background: rgba(255, 152, 0, 0.1);
+    border: 1px solid rgba(255, 152, 0, 0.3);
+    border-radius: 12px;
+    animation: updateBadgePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes updateBadgePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.65;
+    }
+}
+
+/* ===================================================================
+   VENDOR-SIDE: STATUS UPDATE BANNER & MODAL
+   =================================================================== */
+
+/* Notification banner on vendor event manage */
+.vem-update-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.25rem;
+    background: linear-gradient(135deg, rgba(21, 101, 192, 0.06), rgba(21, 101, 192, 0.12));
+    border: 1.5px solid rgba(21, 101, 192, 0.25);
+    border-radius: 14px;
+    margin-bottom: 1rem;
+    animation: bannerSlideIn 0.4s ease;
+}
+
+@keyframes bannerSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.vem-update-banner-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1565c0, #42a5f5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+.vem-update-banner-text {
+    flex: 1;
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.4;
+}
+
+.vem-update-banner-text strong {
+    color: #1565c0;
+}
+
+.vem-update-banner-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+}
+
+.vem-update-banner-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(21, 101, 192, 0.3);
+}
+
+/* Update Status Button (vendor event manage) */
+.vem-update-status-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #1565c0, #0d47a1);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+
+.vem-update-status-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(21, 101, 192, 0.3);
+}
+
+.vem-update-status-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Status Update Modal (vendor side) */
+.vem-status-modal-box {
+    max-width: 480px;
+    width: 95%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+}
+
+.vem-status-current {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    background: #f5f7fa;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.vem-status-current-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.vem-status-current-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.vem-status-next-label {
+    font-size: 0.78rem;
+    color: #888;
+    margin-left: auto;
+}
+
+.vem-status-note-area {
+    width: 100%;
+    border: 2px solid #e0e3e8;
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    font-size: 0.88rem;
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 80px;
+    margin-bottom: 1rem;
+}
+
+.vem-status-note-area:focus {
+    border-color: #1565c0;
+}
+
+/* ================================================================
+   ORGANIZER RESPONSIVE
+   ================================================================ */
 @media (max-width: 768px) {
+    /* Create event form */
+    .create-event-form {
+        max-width: 100%;
+    }
+
+    .form-section {
+        padding: 1rem;
+    }
+
+    /* Event Management header */
+    .em-header {
+        padding: 1rem;
+        border-radius: 12px;
+        flex-wrap: wrap;
+    }
+
+    .em-header-info h2 {
+        font-size: 1.05rem;
+    }
+
+    .em-header-badges {
+        gap: 0.35rem;
+    }
+
+    /* Stats row: 2 columns */
     .em-stats-row {
         grid-template-columns: repeat(2, 1fr);
+        gap: 0.6rem;
     }
 
-    .em-overview-grid {
-        grid-template-columns: 1fr;
+    .em-stat-card {
+        padding: 0.85rem;
+        gap: 0.6rem;
     }
 
+    .em-stat-value {
+        font-size: 1.15rem;
+    }
+
+    .em-stat-label {
+        font-size: 0.72rem;
+    }
+
+    /* Tabs: scrollable row, hide icons */
     .em-tabs {
         gap: 0;
+        border-radius: 10px;
+        -webkit-overflow-scrolling: touch;
     }
 
     .em-tab {
-        padding: 0.6rem 0.5rem;
+        padding: 0.55rem 0.5rem;
         font-size: 0.78rem;
+        min-width: 0;
     }
 
     .em-tab i {
         display: none;
     }
 
+    /* Overview grid: single column */
+    .em-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .em-detail-card-body {
+        padding: 0.85rem;
+    }
+
+    /* Status bar: wrap */
+    .em-status-bar {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+    }
+
+    /* Policy panels: stack */
+    .em-policy-panels {
+        flex-direction: column;
+    }
+
+    .em-policy-divider {
+        width: auto;
+        height: 1px;
+    }
+
+    /* Vendor cards */
     .em-vendor-card {
         flex-wrap: wrap;
+        padding: 0.9rem;
+        gap: 0.75rem;
+    }
+
+    .em-vendor-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+        border-radius: 10px;
     }
 
     .em-vendor-actions {
@@ -1094,34 +1687,1020 @@
         justify-content: flex-end;
     }
 
-    .em-header {
-        padding: 1.1rem 1.25rem;
+    /* Communication subtabs: scroll */
+    .em-comm-subtabs {
+        flex-wrap: wrap;
+        gap: 0.35rem;
     }
 
-    .em-header-info h2 {
-        font-size: 1.1rem;
+    .em-comm-subtab {
+        padding: 0.5rem 0.85rem;
+        font-size: 0.8rem;
     }
 
+    /* Conversation items */
+    .em-conversation-item {
+        padding: 0.85rem 1rem;
+        gap: 0.75rem;
+    }
+
+    /* Chat modal: full screen */
     .em-chat-modal-box {
         width: 100%;
         max-width: 100%;
-        height: 100vh;
-        max-height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
         border-radius: 0;
+    }
+
+    /* Broadcast */
+    .em-broadcast-compose {
+        padding: 1rem;
+    }
+
+    /* Actions grid */
+    .em-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Status modal */
+    .em-status-modal-box,
+    .vem-status-modal-box {
+        width: 100%;
+        max-width: 100%;
+        max-height: 95dvh;
+        border-radius: 16px 16px 0 0;
+    }
+
+    /* Update banner: stack if needed */
+    .vem-update-banner {
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .vem-update-banner-text {
+        font-size: 0.82rem;
+    }
+
+    /* Vendor timeline: smaller circles */
+    .em-timeline-circle {
+        width: 24px;
+        height: 24px;
+        font-size: 0.55rem;
+    }
+
+    .em-timeline-label {
+        font-size: 0.55rem;
+        max-width: 54px;
+    }
+
+    .em-timeline-connector {
+        top: 12px;
     }
 }
 
 @media (max-width: 480px) {
+    .em-header {
+        padding: 0.85rem;
+        border-radius: 10px;
+    }
+
+    .em-header-info h2 {
+        font-size: 0.95rem;
+    }
+
+    .em-badge {
+        font-size: 0.65rem;
+        padding: 2px 7px;
+    }
+
     .em-stats-row {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.6rem;
+        gap: 0.45rem;
     }
 
     .em-stat-card {
-        padding: 0.85rem;
+        padding: 0.7rem;
+    }
+
+    .em-stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 0.9rem;
+        border-radius: 10px;
+    }
+
+    .em-stat-value {
+        font-size: 1rem;
+    }
+
+    .em-tab {
+        padding: 0.5rem 0.4rem;
+        font-size: 0.72rem;
+    }
+
+    .em-detail-card-header {
+        padding: 0.7rem 0.85rem;
+        font-size: 0.82rem;
     }
 
     .em-comm-subtabs {
         flex-direction: column;
+    }
+
+    .em-comm-subtab {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* ================================================================
+   ANALYTICS DASHBOARD
+   ================================================================ */
+
+#view-analytics {
+    border-radius: 16px;
+}
+
+.analytics-dashboard {
+    max-width: 1100px;
+}
+
+#ana-panel-overview {
+    --ana-overview-primary: #004e92;
+    --ana-overview-secondary: #1565c0;
+    --ana-overview-light: #4dabf7;
+    --ana-overview-surface: #f5f9ff;
+}
+
+/* ===================== KPI CARD GRID ===================== */
+.ana-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+.ana-kpi-card {
+    border-radius: 12px;
+    padding: 1.15rem 1rem 1.15rem 1.15rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #e0e8f0;
+    border-left: 4px solid #004e92;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.ana-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 78, 146, 0.1);
+}
+.ana-kpi-card > i {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    display: block;
+    color: #004e92;
+}
+.ana-kpi-value {
+    font-size: 1.55rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+}
+.ana-kpi-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #636e72;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.3rem;
+}
+
+/* Withdrawal KPI accent */
+.ana-kpi-warn {
+    border-left-color: #ef4444;
+}
+.ana-kpi-warn > i {
+    color: #ef4444;
+}
+
+/* Event-report KPI (reuses same light style) */
+.evt-kpi {
+    border-radius: 12px;
+    padding: 0.9rem 0.75rem 0.9rem 0.9rem;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid #e0e8f0;
+    border-left: 4px solid #004e92;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.evt-kpi > i {
+    font-size: 1.1rem;
+    margin-bottom: 0.35rem;
+    display: block;
+    color: #004e92;
+}
+.evt-kpi-value {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    line-height: 1.2;
+}
+.evt-kpi-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #636e72;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 0.2rem;
+}
+.evt-kpi.ana-kpi-warn {
+    border-left-color: #ef4444;
+}
+.evt-kpi.ana-kpi-warn > i {
+    color: #ef4444;
+}
+
+/* ===================== HIGHLIGHT CARDS ===================== */
+.ana-highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1.25rem;
+}
+
+.ana-highlight-card {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    background: #ffffff;
+    border: 1px solid #e0e8f0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.ana-highlight-icon {
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 10px;
+    background: rgba(0, 78, 146, 0.08);
+    color: #004e92;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.ana-highlight-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #636e72;
+}
+.ana-highlight-value {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 0.15rem;
+    line-height: 1.35;
+}
+
+#ana-panel-overview .ana-highlight-icon {
+    background: linear-gradient(135deg, rgba(0, 78, 146, 0.12), rgba(77, 171, 247, 0.2));
+    box-shadow: inset 0 0 0 1px rgba(77, 171, 247, 0.14);
+}
+
+/* ===================== TAB-BASED CHART PANEL ===================== */
+.ana-chart-panel {
+    background: #ffffff;
+    border: 1px solid #e0e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+#ana-panel-overview .ana-chart-panel {
+    border-color: rgba(21, 101, 192, 0.14);
+    box-shadow: 0 14px 34px rgba(0, 78, 146, 0.08);
+    background: linear-gradient(180deg, rgba(245, 249, 255, 0.92), #ffffff 34%);
+}
+
+.ana-tab-bar {
+    display: flex;
+    gap: 0;
+    background: #f5f8fb;
+    border-bottom: 1px solid #e0e8f0;
+    overflow-x: auto;
+}
+
+#ana-panel-overview .ana-tab-bar {
+    background: linear-gradient(135deg, rgba(0, 78, 146, 0.08), rgba(77, 171, 247, 0.06));
+    border-bottom-color: rgba(21, 101, 192, 0.12);
+}
+
+.ana-tab {
+    padding: 0.85rem 1.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #636e72;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    font-family: 'Inter', sans-serif;
+}
+.ana-tab:hover {
+    color: #004e92;
+    background: rgba(0, 78, 146, 0.04);
+}
+.ana-tab.active {
+    color: #004e92;
+    border-bottom-color: #004e92;
+    background: #ffffff;
+}
+
+#ana-panel-overview .ana-tab {
+    color: #587084;
+}
+
+#ana-panel-overview .ana-tab:hover {
+    color: var(--ana-overview-primary);
+    background: rgba(255, 255, 255, 0.56);
+}
+
+#ana-panel-overview .ana-tab.active {
+    color: #0f3558;
+    background: rgba(255, 255, 255, 0.88);
+    border-bottom-color: var(--ana-overview-secondary);
+}
+
+.ana-chart-area {
+    position: relative;
+    width: 100%;
+    height: 360px;
+    max-height: 400px;
+    padding: 1.25rem;
+    background: #ffffff;
+}
+
+#ana-panel-overview .ana-chart-area {
+    background:
+        radial-gradient(circle at top right, rgba(77, 171, 247, 0.16), transparent 28%),
+        linear-gradient(180deg, rgba(245, 249, 255, 0.92), #ffffff 36%);
+}
+.ana-chart-area canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ===================== PER-EVENT REPORT ===================== */
+.evt-report {
+    max-width: 1000px;
+}
+.evt-report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+}
+.evt-report-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.evt-report-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.evt-report-chart-panel {
+    border: 1px solid #e0e8f0;
+    background: #ffffff;
+}
+.evt-report-chart-panel .ana-chart-area {
+    height: 300px;
+    max-height: 340px;
+}
+
+/* ===================== MAIN-LEVEL TABS (Overview / Event Report) ===================== */
+.ana-main-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.ana-main-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.7rem 1.5rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #636e72;
+    background: #ffffff;
+    border: 1px solid #d0dbe6;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.ana-main-tab:hover {
+    color: #004e92;
+    border-color: #4dabf7;
+    background: #f0f7ff;
+}
+.ana-main-tab.active {
+    color: #ffffff;
+    background: #004e92;
+    border-color: #004e92;
+}
+.ana-main-tab i {
+    font-size: 0.85rem;
+}
+
+.ana-main-panel {
+    display: none;
+}
+.ana-main-panel.active {
+    display: block;
+    animation: anaFadeIn 0.25s ease;
+}
+
+/* ===================== EXPORT PDF BUTTONS ===================== */
+.ana-export-pdf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+.ana-export-pdf-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+}
+.ana-export-pdf-btn i {
+    font-size: 0.9rem;
+}
+.ana-export-pdf-btn.ana-export-pdf-outline {
+    background: #ffffff;
+    color: #004e92;
+    border: 1px solid #d0dbe6;
+}
+.ana-export-pdf-btn.ana-export-pdf-outline:hover {
+    background: #f0f7ff;
+    border-color: #4dabf7;
+}
+.ana-export-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1.25rem;
+}
+
+/* ===================== EVENT TITLE BANNER ===================== */
+.ana-evt-title-banner {
+    background: linear-gradient(135deg, #004e92, #4dabf7);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+.ana-evt-title-info h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+}
+.ana-evt-title-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.82rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+.ana-evt-title-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.ana-evt-title-meta i {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* ===================== EVENT REPORT ON ANALYTICS PAGE ===================== */
+.ana-event-report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+.ana-event-report-header h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.ana-event-report-header h3 i {
+    color: #004e92;
+}
+
+.ana-event-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.ana-event-selector label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #636e72;
+    white-space: nowrap;
+}
+.ana-event-selector select {
+    padding: 0.5rem 0.85rem;
+    border: 1px solid #d0dbe6;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: #2d3436;
+    background: #ffffff;
+    min-width: 220px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+.ana-event-selector select:focus {
+    outline: none;
+    border-color: #004e92;
+    box-shadow: 0 0 0 3px rgba(0, 78, 146, 0.1);
+}
+
+.ana-event-report-body {
+    animation: anaFadeIn 0.3s ease;
+}
+
+/* Used only during PDF export — html2canvas snapshots after layout is boosted for readability */
+.analytics-dashboard.pdf-export-capture-pdf #ana-panel-overview,
+.analytics-dashboard.pdf-export-capture-pdf .ana-event-report-body {
+    min-width: 980px !important;
+    max-width: none !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .evt-report-chart-panel .ana-chart-area {
+    height: 400px !important;
+    min-height: 400px !important;
+    max-height: 460px !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .ana-chart-panel:not(.evt-report-chart-panel) .ana-chart-area {
+    height: 400px !important;
+    min-height: 400px !important;
+    max-height: 460px !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .evt-kpi-value,
+.analytics-dashboard.pdf-export-capture-pdf .ana-kpi-value {
+    font-size: 1.45rem !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .evt-kpi-label,
+.analytics-dashboard.pdf-export-capture-pdf .ana-kpi-label {
+    font-size: 0.85rem !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .ana-evt-title-banner h2 {
+    font-size: 1.35rem !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .ana-evt-title-meta {
+    font-size: 0.9rem !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .ana-tab {
+    font-size: 0.88rem !important;
+    padding: 0.65rem 1.1rem !important;
+}
+/* Freeze all animations/transitions during PDF capture.
+   html2canvas clones the DOM and restarts CSS animations from frame 0,
+   which would otherwise snapshot the report body mid-fade (opacity < 1)
+   and make charts/KPIs/banner look washed out or "hidden". */
+.analytics-dashboard.pdf-export-capture-pdf,
+.analytics-dashboard.pdf-export-capture-pdf *,
+.analytics-dashboard.pdf-export-capture-pdf *::before,
+.analytics-dashboard.pdf-export-capture-pdf *::after {
+    animation: none !important;
+    transition: none !important;
+}
+.analytics-dashboard.pdf-export-capture-pdf .ana-main-panel.active,
+.analytics-dashboard.pdf-export-capture-pdf .ana-event-report-body,
+.analytics-dashboard.pdf-export-capture-pdf #ana-panel-overview {
+    opacity: 1 !important;
+    transform: none !important;
+}
+/* ===================== PDF STAGING CONTAINER ===================== */
+.pdf-staging-container {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 980px;
+    background: #f5f8fc;
+    padding: 2rem 2.5rem;
+    font-family: 'Inter', sans-serif;
+    color: #2d3436;
+    /* Must stack above the page background so html2canvas captures pixels (negative z-index often rasterizes blank). */
+    z-index: 2147483000;
+}
+.pdf-staging-container * {
+    animation: none !important;
+    transition: none !important;
+}
+.pdf-report-title-banner {
+    background: linear-gradient(135deg, #004e92, #4dabf7);
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.75rem;
+    color: #ffffff;
+}
+.pdf-report-title-banner h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem 0;
+}
+.pdf-report-title-banner p {
+    font-size: 0.85rem;
+    margin: 0;
+    opacity: 0.85;
+}
+.pdf-section-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0f3558;
+    margin: 1.75rem 0 0.75rem 0;
+    padding-bottom: 0.45rem;
+    border-bottom: 2px solid #e0e8f0;
+    letter-spacing: 0.01em;
+}
+.pdf-chart-wrapper {
+    background: #ffffff;
+    border: 1px solid #e0e8f0;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+}
+.pdf-chart-wrapper img {
+    border-radius: 8px;
+}
+.pdf-staging-container .ana-kpi-grid {
+    margin-bottom: 0.5rem;
+}
+.pdf-staging-container .ana-highlight-grid {
+    margin-bottom: 0.5rem;
+}
+.pdf-staging-container .evt-report-kpi-grid {
+    margin-bottom: 0.5rem;
+}
+.pdf-staging-container .ana-evt-title-banner {
+    margin-bottom: 1.5rem;
+}
+.pdf-staging-container .ana-evt-title-banner .ana-export-pdf-btn {
+    display: none;
+}
+
+@keyframes anaFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.ana-event-report-placeholder {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #b0bec5;
+}
+.ana-event-report-placeholder i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    opacity: 0.5;
+}
+.ana-event-report-placeholder p {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* ===================== LOYAL ATTENDEES ===================== */
+.att-loyalty-section {
+    margin-top: 1.5rem;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e0e8f0;
+    overflow: hidden;
+}
+.att-loyalty-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #e8eef4;
+    background: linear-gradient(135deg, rgba(253, 203, 110, 0.1), rgba(225, 112, 85, 0.05));
+}
+.att-loyalty-header h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #2d3436;
+}
+.att-loyalty-header h3 i {
+    color: #f59e0b;
+    margin-right: 0.4rem;
+}
+.att-loyalty-header p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #636e72;
+}
+.att-loyalty-list {
+    padding: 1rem 1.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.att-loyalty-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e8eef4;
+    transition: all 0.2s ease;
+}
+.att-loyalty-card:hover {
+    border-color: #d0dbe6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.att-loyalty-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    background: #e8eef4;
+    color: #636e72;
+}
+.att-loyalty-rank.rank-1 {
+    background: linear-gradient(135deg, #f9ca24, #f0932b);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(249, 202, 36, 0.4);
+}
+.att-loyalty-rank.rank-2 {
+    background: linear-gradient(135deg, #b2bec3, #95a5a6);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(149, 165, 166, 0.3);
+}
+.att-loyalty-rank.rank-3 {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+.att-loyalty-info {
+    flex: 1;
+    min-width: 0;
+}
+.att-loyalty-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #2d3436;
+    margin-bottom: 0.15rem;
+}
+.att-loyalty-meta {
+    font-size: 0.8rem;
+    color: #636e72;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+.att-loyalty-meta span i {
+    margin-right: 0.25rem;
+}
+.att-loyalty-badge {
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.att-loyalty-badge.badge-gold {
+    background: linear-gradient(135deg, #f9ca24, #f0932b);
+    color: #fff;
+}
+.att-loyalty-badge.badge-silver {
+    background: linear-gradient(135deg, #b2bec3, #95a5a6);
+    color: #fff;
+}
+.att-loyalty-badge.badge-bronze {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+}
+.att-loyalty-badge.badge-regular {
+    background: #e8eef4;
+    color: #636e72;
+}
+.att-loyalty-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #b0bec5;
+    font-size: 0.9rem;
+}
+.att-loyalty-empty i {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+
+/* ===================== VENDOR ANALYTICS TABLE ===================== */
+.vnd-table-section {
+    margin-top: 1.5rem;
+    background: #fff;
+    border: 1px solid #e0e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+}
+.vnd-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e8eef4;
+    background: #f8fafc;
+}
+.vnd-table-header h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2d3436;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.vnd-table-header h4 i {
+    color: #004e92;
+}
+.vnd-performance-table {
+    max-height: 420px;
+    overflow-y: auto;
+}
+.vnd-perf-row {
+    display: grid;
+    grid-template-columns: 2.5fr 1.2fr 0.8fr 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    align-items: center;
+    border-bottom: 1px solid #f0f4f8;
+    transition: background 0.15s;
+}
+.vnd-perf-row:last-child {
+    border-bottom: none;
+}
+.vnd-perf-row:hover {
+    background: #f0f6ff;
+}
+.vnd-perf-row-head {
+    background: #f0f4f8;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #636e72;
+    border-bottom: 1px solid #e0e8f0;
+}
+.vnd-perf-row-head:hover {
+    background: #f0f4f8;
+}
+.vnd-perf-name {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 500;
+    color: #2d3436;
+    font-size: 0.88rem;
+}
+.vnd-perf-name .vnd-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #004e92, #4dabf7);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+.vnd-perf-category {
+    font-size: 0.8rem;
+    color: #636e72;
+    padding: 3px 10px;
+    background: #f0f4f8;
+    border-radius: 12px;
+    display: inline-block;
+    white-space: nowrap;
+}
+.vnd-perf-rating {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #f59e0b;
+}
+.vnd-perf-bookings {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #004e92;
+}
+.vnd-perf-events {
+    font-size: 0.8rem;
+    color: #636e72;
+}
+.vnd-perf-status-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.vnd-perf-status-pill.confirmed {
+    background: rgba(0, 184, 148, 0.12);
+    color: #00b894;
+}
+.vnd-perf-status-pill.pending {
+    background: rgba(255, 152, 0, 0.12);
+    color: #ff9800;
+}
+.vnd-perf-status-pill.declined {
+    background: rgba(214, 48, 49, 0.12);
+    color: #d63031;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 768px) {
+    .ana-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ana-highlight-grid {
+        grid-template-columns: 1fr;
+    }
+    .ana-tab {
+        padding: 0.75rem 1rem;
+        font-size: 0.78rem;
+    }
+    .ana-chart-area {
+        height: 280px;
+        max-height: 320px;
+        padding: 1rem;
+    }
+    .evt-report-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .ana-event-report-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .ana-event-selector select {
+        min-width: 100%;
+    }
+    .att-loyalty-card {
+        flex-wrap: wrap;
+    }
+    .att-loyalty-meta {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .vnd-perf-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+    .vnd-perf-row-head {
+        display: none;
+    }
+    .vnd-table-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }

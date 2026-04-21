@@ -3,38 +3,117 @@
  * Handles all FR3.0 features: Browse, Register, Tickets, Profile, History, Feedback
  */
 
-(async function () {
+const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
+
+(function () {
     const EVENTS_DB = 'eventia_events_db';
     const REGISTRATIONS_DB = 'eventia_registrations_db';
     const PROFILE_DB = 'eventia_attendee_profile';
 
-    // --- API DATA ACCESS ---
-    let API_DATA = { events: [], registrations: [], profile: {}, broadcasts: [] };
-    const READ_NOTIFS_KEY = 'eventia_read_notifs';
-
-    async function initData(fullRender = true) {
-        try {
-            const response = await fetch('/api/attendee/data/');
-            if (!response.ok) throw new Error('Failed to load data');
-            API_DATA = await response.json();
-
-            if (fullRender) {
-                renderAll();
-                if(typeof initNotifications === 'function') initNotifications();
-                if(typeof loadProfile === 'function') loadProfile();
-            }
-        } catch (error) {
-            console.error("API Error:", error);
-            showToast("Error loading data from server.");
-        }
+    // --- DATA ACCESS ---
+    function getEvents() {
+        return JSON.parse(localStorage.getItem(EVENTS_DB)) || [];
     }
 
-    function getEvents() { return API_DATA.events || []; }
-    function getRegistrations() { return API_DATA.registrations || []; }
-    function getProfile() { return API_DATA.profile || {}; }
-    function getBroadcasts() { return API_DATA.broadcasts || []; }
-    function getReadNotifIds() { return JSON.parse(localStorage.getItem(READ_NOTIFS_KEY)) || []; }
-    function saveReadNotifIds(ids) { localStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(ids)); }
+    function getRegistrations() {
+        return JSON.parse(localStorage.getItem(REGISTRATIONS_DB)) || [];
+    }
+
+    function saveRegistrations(regs) {
+        localStorage.setItem(REGISTRATIONS_DB, JSON.stringify(regs));
+    }
+
+    function getProfile() {
+        return JSON.parse(localStorage.getItem(PROFILE_DB)) || {
+            firstName: 'Ahmed',
+            lastName: 'Al-Rashid',
+            email: 'ahmed@example.com',
+            phone: '+966 55 123 4567',
+            jobTitle: '',
+            avatar: null
+        };
+    }
+
+    function saveProfile(profile) {
+        localStorage.setItem(PROFILE_DB, JSON.stringify(profile));
+    }
+
+    // --- SEED ATTENDEE DATA ---
+    function seedAttendeeData() {
+        // TEMPORARY: Clear registrations to force the update for testing
+        localStorage.removeItem(REGISTRATIONS_DB);
+
+        if (!localStorage.getItem(REGISTRATIONS_DB)) {
+            const events = getEvents();
+            const dummyRegs = [];
+
+            // Register for some past and upcoming events
+            events.forEach(evt => {
+                // Commented out 3 existing dummy examples to allow checking the buying flow
+                /* 
+                if (evt.id === '101') {
+                    dummyRegs.push({
+                        id: 'reg_' + evt.id,
+                        eventId: evt.id,
+                        ticketType: 'VIP',
+                        ticketPrice: '599',
+                        registeredDate: '2025-12-20',
+                        ticketCode: 'EVT-101-VIP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                        attended: true,
+                        rating: 4,
+                        feedback: 'Great event! Loved the AI showcase.',
+                        feedbackDate: '2026-01-02'
+                    });
+                }
+                */
+                if (evt.id === '105') {
+                    dummyRegs.push({
+                        id: 'reg_' + evt.id,
+                        eventId: evt.id,
+                        ticketType: 'Standard',
+                        ticketPrice: '100',
+                        registeredDate: '2025-11-15',
+                        ticketCode: 'EVT-105-STD-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                        attended: true,
+                        rating: 5,
+                        feedback: 'Excellent conference! Very informative sessions.',
+                        feedbackDate: '2025-12-05'
+                    });
+                }
+                /*
+                if (evt.id === '103') {
+                    dummyRegs.push({
+                        id: 'reg_' + evt.id,
+                        eventId: evt.id,
+                        ticketType: 'Executive',
+                        ticketPrice: '750',
+                        registeredDate: '2026-01-28',
+                        ticketCode: 'EVT-103-EXE-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                        attended: false,
+                        rating: null,
+                        feedback: null,
+                        feedbackDate: null
+                    });
+                }
+                */
+                if (evt.id === '106') {
+                    dummyRegs.push({
+                        id: 'reg_' + evt.id,
+                        eventId: evt.id,
+                        ticketType: 'Participant',
+                        ticketPrice: '50',
+                        registeredDate: '2026-02-01',
+                        ticketCode: 'EVT-106-PRT-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
+                        attended: false,
+                        rating: null,
+                        feedback: null,
+                        feedbackDate: null
+                    });
+                }
+            });
+            saveRegistrations(dummyRegs);
+        }
+    }
 
     // --- GRADIENT MAP ---
     const categoryGradients = {
@@ -92,8 +171,8 @@
         grid.innerHTML = filtered.map(evt => {
             const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
             const icon = categoryIcons[evt.category] || 'fa-calendar';
-            const isRegistered = registrations.some(r => r.eventId === evt.id);
-            const priceDisplay = evt.price && parseInt(evt.price) > 0 ? `From ${evt.price} SR` : 'Free';
+            const isRegistered = registrations.some(r => r.eventId === evt.id && r.status !== 'Withdrawn');
+            const priceDisplay = evt.price && parseInt(evt.price) > 0 ? `From ${evt.price} ${SAR_ICON}` : 'Free';
 
             const eventDate = new Date(evt.date);
             const dateFormatted = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -135,18 +214,18 @@
         if (existing) existing.remove();
 
         const registrations = getRegistrations();
-        const isRegistered = registrations.some(r => r.eventId === evt.id);
+        const isRegistered = registrations.some(r => r.eventId === evt.id && r.status !== 'Withdrawn');
 
         let ticketInfo = '<div style="color: #2e7d32; font-weight: 600;"><i class="fa-solid fa-ticket" style="margin-right: 6px;"></i>Free Event</div>';
         if (evt.price && parseInt(evt.price) > 0) {
             if (evt.tickets && evt.tickets.length > 0) {
                 ticketInfo = evt.tickets.map(t =>
                     `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
-                        <span>${t.name}</span><strong>${t.price} SAR</strong>
+                        <span>${t.name}</span><strong>${t.price} ${SAR_ICON}</strong>
                     </div>`
                 ).join('');
             } else {
-                ticketInfo = `<div style="color: #1976d2; font-weight: 600;"><i class="fa-solid fa-ticket" style="margin-right: 6px;"></i>${evt.price} SAR</div>`;
+                ticketInfo = `<div style="color: #1976d2; font-weight: 600;"><i class="fa-solid fa-ticket" style="margin-right: 6px;"></i>${evt.price} ${SAR_ICON}</div>`;
             }
         }
 
@@ -225,7 +304,7 @@
         let ticketOptions = '<option value="Standard|0">Standard - Free</option>';
         if (evt.tickets && evt.tickets.length > 0) {
             ticketOptions = evt.tickets.map(t =>
-                `<option value="${t.name}|${t.price}">${t.name} - ${parseInt(t.price) > 0 ? t.price + ' SAR' : 'Free'}</option>`
+                `<option value="${t.name}|${t.price}">${t.name} - ${parseInt(t.price) > 0 ? t.price + ' ' + SAR_ICON : 'Free'}</option>`
             ).join('');
         }
 
@@ -265,7 +344,7 @@
                         <div id="reg-price-summary" style="background:#f0f7ff;border:1px solid #bbdefb;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">
                             <div style="display:flex;justify-content:space-between;align-items:center;">
                                 <span style="color:#555;font-size:0.9rem;">Ticket Price</span>
-                                <span id="reg-price-display" style="font-size:1.1rem;font-weight:700;color:#004e92;">${basePrice > 0 ? basePrice + ' SAR' : 'Free'}</span>
+                                <span id="reg-price-display" style="font-size:1.1rem;font-weight:700;color:#004e92;">${basePrice > 0 ? basePrice + ' ' + SAR_ICON : 'Free'}</span>
                             </div>
                         </div>
                         <div style="display:flex;gap:0.75rem;">
@@ -405,10 +484,10 @@
         if (!sel) return;
         const [name, price] = sel.value.split('|');
         const p = parseInt(price) || 0;
-        if (priceEl) priceEl.textContent = p > 0 ? p + ' SAR' : 'Free';
+        if (priceEl) priceEl.innerHTML = p > 0 ? p + ' ' + SAR_ICON : 'Free';
         if (summaryTicket) summaryTicket.textContent = name + ' ticket';
-        if (summaryPrice) summaryPrice.textContent = p > 0 ? p + ' SAR' : 'Free';
-        if (summaryTotal) summaryTotal.textContent = p > 0 ? p + ' SAR' : 'Free';
+        if (summaryPrice) summaryPrice.innerHTML = p > 0 ? p + ' ' + SAR_ICON : 'Free';
+        if (summaryTotal) summaryTotal.innerHTML = p > 0 ? p + ' ' + SAR_ICON : 'Free';
     };
 
     window.regFormatCard = function (input) {
@@ -456,55 +535,55 @@
         document.getElementById('reg-header-title').textContent = 'Select Your Ticket';
     };
 
-    window.regProcessPayment = async function (eventId) {
-        // 1. Show processing spinner
+    window.regProcessPayment = function (eventId) {
+        // Show processing spinner
         document.getElementById('reg-step-2').style.display = 'none';
         document.getElementById('reg-step-3').style.display = 'block';
+        document.getElementById('sdot-2').style.background = 'rgba(255,255,255,0.5)';
+        document.getElementById('sdot-3').style.background = 'white';
         document.getElementById('reg-header-icon').className = 'fa-solid fa-shield-halved';
         document.getElementById('reg-header-title').textContent = 'Securing Payment...';
 
-        // 2. Get ticket details
-        const sel = document.getElementById('reg-ticket-select');
-        const [ticketName, ticketPrice] = (sel ? sel.value : 'Standard|0').split('|');
+        setTimeout(() => {
+            // Get ticket details
+            const sel = document.getElementById('reg-ticket-select');
+            const [ticketName, ticketPrice] = (sel ? sel.value : 'Standard|0').split('|');
+            const ticketCode = 'EVT-' + eventId + '-' + ticketName.substring(0, 3).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-        try {
-            // 3. SILENT DJANGO API CALL TO REGISTER
-            const response = await fetch(`/api/attendee/register-json/${eventId}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': window.CSRF_TOKEN, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ticketType: ticketName, ticketPrice: ticketPrice })
-            });
+            // Save registration
+            const newReg = {
+                id: 'reg_' + eventId,
+                eventId: eventId,
+                ticketType: ticketName,
+                ticketPrice: ticketPrice,
+                registeredDate: new Date().toISOString().split('T')[0],
+                ticketCode: ticketCode,
+                attended: false,
+                rating: null,
+                feedback: null,
+                feedbackDate: null
+            };
+            const regs = getRegistrations();
+            regs.push(newReg);
+            saveRegistrations(regs);
 
-            if (!response.ok) throw new Error("Registration Failed");
+            // Populate receipt
+            const rcCode = document.getElementById('rc-code');
+            const rcType = document.getElementById('rc-ticket-type');
+            const rcAmount = document.getElementById('rc-amount');
+            const p = parseInt(ticketPrice) || 0;
+            if (rcCode) rcCode.textContent = ticketCode;
+            if (rcType) rcType.textContent = ticketName;
+            if (rcAmount) rcAmount.innerHTML = p > 0 ? p + ' ' + SAR_ICON : 'Free';
 
-            // 4. Pull fresh data quietly to get the real ticket code from Django
-            await initData(false);
-            const freshReg = getRegistrations().find(r => r.eventId == eventId);
-            const code = freshReg ? freshReg.ticketCode : "EVT-SUCCESS";
+            // Show success
+            document.getElementById('reg-step-3').style.display = 'none';
+            document.getElementById('reg-step-4').style.display = 'block';
+            document.getElementById('reg-header-icon').className = 'fa-solid fa-circle-check';
+            document.getElementById('reg-header-title').textContent = 'Booking Confirmed!';
 
-            // 5. Populate receipt & Show success
-            setTimeout(() => {
-                const rcCode = document.getElementById('rc-code');
-                const rcType = document.getElementById('rc-ticket-type');
-                const rcAmount = document.getElementById('rc-amount');
-                const p = parseInt(ticketPrice) || 0;
-
-                if (rcCode) rcCode.textContent = code;
-                if (rcType) rcType.textContent = ticketName;
-                if (rcAmount) rcAmount.textContent = p > 0 ? p + ' SAR' : 'Free';
-
-                document.getElementById('reg-step-3').style.display = 'none';
-                document.getElementById('reg-step-4').style.display = 'block';
-                document.getElementById('reg-header-icon').className = 'fa-solid fa-circle-check';
-                document.getElementById('reg-header-title').textContent = 'Booking Confirmed!';
-
-                renderAll();
-            }, 1200); // Wait 1.2s to simulate payment processing
-
-        } catch (err) {
-            showToast("Server error during registration.");
-            document.getElementById('register-modal').remove();
-        }
+            renderAll();
+        }, 2200);
     };
 
     window.switchAttendeeViewPublic = function (view) {
@@ -655,6 +734,7 @@
         const events = getEvents();
         const registrations = getRegistrations();
         const upcomingRegs = registrations.filter(r => {
+            if (r.status === 'Withdrawn') return false;
             const evt = events.find(e => e.id === r.eventId);
             return evt && new Date(evt.date) >= new Date();
         });
@@ -668,6 +748,14 @@
             return;
         }
 
+        // Attendee withdrawal policy metadata
+        const attendeePolicyMeta = {
+            'flexible': { label: 'Flexible', color: '#2e7d32', bg: '#e8f5e9', border: '#c8e6c9', desc: 'Full refund available up to 1 day before the event.' },
+            'moderate': { label: 'Moderate', color: '#e65100', bg: '#fff3e0', border: '#ffe0b2', desc: 'Full refund available up to 7 days before the event.' },
+            'strict': { label: 'Strict', color: '#c62828', bg: '#fbe9e7', border: '#ffccbc', desc: 'Full refund available up to 30 days before the event.' },
+            'non-refundable': { label: 'Non-refundable', color: '#b71c1c', bg: '#ffebee', border: '#ffcdd2', desc: 'No refunds allowed once tickets are purchased.' }
+        };
+
         container.innerHTML = upcomingRegs.map(reg => {
             const evt = events.find(e => e.id === reg.eventId);
             if (!evt) return '';
@@ -677,6 +765,8 @@
             const day = eventDate.getDate();
             const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
             const barcodeId = 'ticket-barcode-' + reg.id.replace(/[^a-zA-Z0-9-_]/g, '_');
+
+
 
             return `
                 <div class="ticket-card">
@@ -702,6 +792,9 @@
                         <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 0.5rem;">Registered: ${reg.registeredDate}</div>
                         <button type="button" class="btn btn-primary btn-sm ticket-show-badge-btn" onclick="openBadgeModal('${reg.id}')" style="width: 100%; margin-top: 1rem;">
                             <i class="fa-solid fa-id-card"></i> Show my badge
+                        </button>
+                        <button type="button" onclick="openWithdrawModal('${reg.id}', '${evt.id}')" style="width:100%;margin-top:0.5rem;padding:9px;background:white;color:#c62828;border:1.5px solid #ffcdd2;border-radius:8px;font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ffebee'" onmouseout="this.style.background='white'">
+                            <i class="fa-solid fa-right-from-bracket" style="margin-right:5px;"></i>Withdraw Registration
                         </button>
                     </div>
                 </div>
@@ -730,6 +823,7 @@
         const events = getEvents();
         const registrations = getRegistrations();
         const pastRegs = registrations.filter(r => {
+            if (r.status === 'Withdrawn') return false;
             const evt = events.find(e => e.id === r.eventId);
             return evt && new Date(evt.date) < new Date();
         });
@@ -855,7 +949,7 @@
         });
     };
 
-    window.submitFeedback = async function (regId) {
+    window.submitFeedback = function (regId) {
         const rating = parseInt(document.getElementById('feedback-rating').value);
         const text = document.getElementById('feedback-text').value.trim();
 
@@ -863,21 +957,93 @@
             showToast('Please select a rating.');
             return;
         }
-
-        try {
-            // SILENT API POST
-            await fetch(`/api/attendee/feedback/${regId}/`, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': window.CSRF_TOKEN, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ rating: rating, feedback: text })
-            });
-
-            document.getElementById('feedback-modal')?.remove();
-            showToast('Thank you for your feedback!');
-            initData(true); // Refresh UI to show stars
-        } catch (err) {
-            showToast("Failed to save feedback to server.");
+        if (!text) {
+            showToast('Please write your feedback.');
+            return;
         }
+
+        const regs = getRegistrations();
+        const idx = regs.findIndex(r => r.id === regId);
+        if (idx > -1) {
+            regs[idx].rating = rating;
+            regs[idx].feedback = text;
+            regs[idx].feedbackDate = new Date().toISOString().split('T')[0];
+            saveRegistrations(regs);
+        }
+
+        document.getElementById('feedback-modal')?.remove();
+        showToast('Thank you for your feedback!');
+        renderHistory();
+    };
+
+    // --- WITHDRAW REGISTRATION ---
+    window.openWithdrawModal = function (regId, eventId) {
+        const events = getEvents();
+        const evt = events.find(e => e.id === eventId);
+        if (!evt) return;
+
+        const existing = document.getElementById('withdraw-modal');
+        if (existing) existing.remove();
+
+        const attendeePolicyMeta = {
+            'flexible': { label: 'Flexible', color: '#2e7d32', desc: 'Full refund available up to 1 day before the event.' },
+            'moderate': { label: 'Moderate', color: '#e65100', desc: 'Full refund available up to 7 days before the event.' },
+            'strict': { label: 'Strict', color: '#c62828', desc: 'Full refund available up to 30 days before the event.' },
+            'non-refundable': { label: 'Non-refundable', color: '#b71c1c', desc: 'No refunds allowed once tickets are purchased.' }
+        };
+
+        const pol = evt.attendeeWithdrawalPolicy;
+        const polMeta = pol ? attendeePolicyMeta[pol] : null;
+
+        const policySection = polMeta
+            ? `<div style="background:#fff8f8;border:1px solid #ffcdd2;border-radius:10px;padding:1rem;margin-bottom:1.25rem;">
+                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
+                    <i class="fa-solid fa-shield-halved" style="color:${polMeta.color};"></i>
+                    <span style="font-weight:700;color:${polMeta.color};font-size:0.9rem;">Refund Policy: ${polMeta.label}</span>
+                </div>
+                <p style="margin:0;font-size:0.82rem;color:#555;line-height:1.5;">${polMeta.desc}</p>
+               </div>`
+            : `<div style="background:#f5f5f5;border-radius:10px;padding:1rem;margin-bottom:1.25rem;">
+                <p style="margin:0;font-size:0.82rem;color:#777;"><i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>No refund policy set for this event. Please contact the organizer.</p>
+               </div>`;
+
+        const modal = document.createElement('div');
+        modal.id = 'withdraw-modal';
+        modal.innerHTML = `
+            <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(3px);" onclick="if(event.target===this)document.getElementById('withdraw-modal').remove()">
+                <div style="background:white;border-radius:16px;width:90%;max-width:440px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalSlideIn 0.3s ease;">
+                    <div style="background:linear-gradient(135deg,#c62828,#ef5350);padding:1.75rem 2rem;text-align:center;">
+                        <div style="width:60px;height:60px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;">
+                            <i class="fa-solid fa-right-from-bracket" style="font-size:1.6rem;color:white;"></i>
+                        </div>
+                        <h3 style="color:white;font-size:1.2rem;margin:0 0 0.25rem;">Withdraw Registration</h3>
+                        <p style="color:rgba(255,255,255,0.85);margin:0;font-size:0.85rem;">${evt.title}</p>
+                    </div>
+                    <div style="padding:1.75rem 2rem;">
+                        <p style="margin:0 0 1.25rem;color:#333;font-size:0.9rem;line-height:1.6;">Are you sure you want to withdraw from this event? This action cannot be undone.</p>
+                        ${policySection}
+                        <div style="display:flex;gap:0.75rem;">
+                            <button onclick="document.getElementById('withdraw-modal').remove()" style="flex:1;padding:12px;background:white;color:#333;border:2px solid #e0e0e0;border-radius:8px;font-weight:600;cursor:pointer;">Cancel</button>
+                            <button onclick="confirmWithdraw('${regId}')" style="flex:1;padding:12px;background:linear-gradient(135deg,#c62828,#ef5350);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px;"></i>Confirm Withdrawal</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    };
+
+    window.confirmWithdraw = function (regId) {
+        const regs = getRegistrations();
+        const reg = regs.find(r => r.id === regId);
+        if (reg) {
+            reg.status = 'Withdrawn';
+            reg.withdrawnDate = new Date().toISOString().split('T')[0];
+            saveRegistrations(regs);
+        }
+        document.getElementById('withdraw-modal')?.remove();
+        showToast('You have successfully withdrawn from this event.');
+        renderAll();
     };
 
     // --- PROFILE ---
@@ -1076,6 +1242,25 @@
         updateStats();
     }
 
+    // ==========================================================================
+    // --- BROADCAST NOTIFICATIONS ---
+    // ==========================================================================
+
+    const BROADCASTS_KEY = 'eventia_broadcasts';
+    const READ_NOTIFS_KEY = 'eventia_read_notifs';
+
+    function getBroadcasts() {
+        return JSON.parse(localStorage.getItem(BROADCASTS_KEY)) || [];
+    }
+
+    function getReadNotifIds() {
+        return JSON.parse(localStorage.getItem(READ_NOTIFS_KEY)) || [];
+    }
+
+    function saveReadNotifIds(ids) {
+        localStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(ids));
+    }
+
     function getAttendeeRelevantBroadcasts() {
         const regs = getRegistrations();
         const registeredEventIds = regs.map(r => r.eventId);
@@ -1203,8 +1388,11 @@
     };
 
     // --- INIT ---
-    // Start App by fetching real data from Django
-    await initData(true);
+    localStorage.removeItem(READ_NOTIFS_KEY); // Just reset read status to test unread badge
+    seedAttendeeData();
+    loadProfile();
+    renderAll();
+    initNotifications();
 
 })();
 
