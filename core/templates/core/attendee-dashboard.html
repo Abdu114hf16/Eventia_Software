@@ -119,7 +119,7 @@
                     Welcome back
                 </p>
                 <h1 class="hero-title" style="font-size: clamp(2rem, 4vw, 3.2rem); white-space: nowrap;">Hello, <span
-                        class="hero-title-gradient" id="attendee-hero-name">Attendee</span></h1>
+                        class="hero-title-gradient" id="attendee-hero-name">{{ request.user.first_name|default:"Attendee" }}</span></h1>
                 <div class="hero-tagline">
                     <div class="hero-tagline-line"></div>
                     <p>Discover events. Book tickets. Enjoy the experience.</p>
@@ -445,15 +445,9 @@
     <script>
         window.CSRF_TOKEN = "{{ csrf_token }}";
 
-        // This injects the broadcasts directly from Django into the Attendee Logic
-        window.DJANGO_BROADCASTS = {{ broadcasts_json|safe }};
-
         document.addEventListener('DOMContentLoaded', () => {
-            
-            // --- DETACH JAVASCRIPT FROM OUR DJANGO-RENDERED CARDS ---
-            // Because we changed the ID to 'django-events-grid', attendee-logic.js won't wipe it out.
-            // But we must wire up the search bar and category pills to filter our Django cards manually.
-            
+
+            // --- Filter Django-rendered event cards ---
             const searchInput = document.getElementById('landing-search');
             const locFilter = document.getElementById('landing-location-filter');
             const searchBtn = document.getElementById('landing-search-btn');
@@ -470,9 +464,9 @@
                 document.querySelectorAll('#django-events-grid .lp-event-card').forEach(card => {
                     const matchesCat = catVal === 'all' || card.dataset.category === catVal;
                     const matchesLoc = locVal === 'all' || (card.dataset.location && card.dataset.location.includes(locVal.toLowerCase()));
-                    const matchesSearch = !searchVal || 
-                        card.dataset.title.includes(searchVal) || 
-                        card.dataset.desc.includes(searchVal) || 
+                    const matchesSearch = !searchVal ||
+                        card.dataset.title.includes(searchVal) ||
+                        card.dataset.desc.includes(searchVal) ||
                         card.dataset.location.includes(searchVal);
 
                     if (matchesCat && matchesLoc && matchesSearch) {
@@ -483,7 +477,6 @@
                     }
                 });
 
-                // Handle 'No Events Found' message dynamically
                 let noEventsMessage = document.getElementById('django-no-events-msg');
                 if (visibleCount === 0) {
                     if (!noEventsMessage) {
@@ -501,7 +494,7 @@
             if (searchInput) searchInput.addEventListener('input', filterDjangoEvents);
             if (locFilter) locFilter.addEventListener('change', filterDjangoEvents);
             if (searchBtn) searchBtn.addEventListener('click', filterDjangoEvents);
-            
+
             pills.forEach(pill => {
                 pill.addEventListener('click', () => {
                     pills.forEach(p => p.classList.remove('active'));
@@ -510,19 +503,6 @@
                 });
             });
 
-            // ------------------------------------------------------------------
-
-            // Hijack the local storage function to use real DB data
-            window.getAttendeeRelevantBroadcasts = function() {
-                return window.DJANGO_BROADCASTS;
-            }
-
-            // Re-run the notification render logic explicitly
-            if(typeof renderNotifBadge === 'function') {
-                renderNotifBadge();
-                renderNotifList();
-            }
-            
             // Switch back to profile view automatically if saving via Django reload
             if (window.location.hash === '#profile') {
                 switchAttendeeViewPublic('profile');

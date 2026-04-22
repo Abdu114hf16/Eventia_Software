@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="base.css?v=1">
-    <link rel="stylesheet" href="dashboard.css?v=1">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -21,7 +22,7 @@
     <!-- Sidebar Navigation -->
     <aside class="sidebar scega-header" id="sidebar">
         <div class="sidebar-header">
-            <img src="assets/logo_fixed.png" alt="Eventia" class="sidebar-logo">
+            <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="sidebar-logo">
             <span class="sidebar-brand">SCEGA ADMIN</span>
             <button class="sidebar-close-btn" id="sidebar-close" aria-label="Close sidebar">
                 <i class="fa-solid fa-xmark"></i>
@@ -32,14 +33,13 @@
             <a href="#" class="nav-item active" data-view="overview">
                 <i class="fa-solid fa-grid-2"></i> Dashboard
             </a>
-            <!-- Event Requests Merged into Dashboard -->
             <a href="#" class="nav-item" data-view="history">
                 <i class="fa-solid fa-clock-rotate-left"></i> History
             </a>
         </nav>
 
         <div class="sidebar-footer">
-            <a href="login.html" class="nav-item">
+            <a href="{% url 'logout_scega' %}" class="nav-item">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
         </div>
@@ -76,7 +76,7 @@
                         <i class="fa-solid fa-hourglass-start"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="stat-pending" style="color: #ff9800;">0</h3>
+                        <h3 style="color: #ff9800;">{{ pending_count }}</h3>
                         <p>Pending Requests</p>
                     </div>
                 </div>
@@ -85,7 +85,7 @@
                         <i class="fa-solid fa-check-double"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="stat-approved" style="color: #2e7d32;">0</h3>
+                        <h3 style="color: #2e7d32;">{{ approved_count }}</h3>
                         <p>Approved Events</p>
                     </div>
                 </div>
@@ -94,19 +94,57 @@
                         <i class="fa-solid fa-ban"></i>
                     </div>
                     <div class="stat-info">
-                        <h3 id="stat-rejected" style="color: #c62828;">0</h3>
+                        <h3 style="color: #c62828;">{{ rejected_count }}</h3>
                         <p>Rejected Events</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Pending Events Queue - Card Layout -->
+            <!-- Pending Events Queue -->
             <div class="section-header" style="margin-top: 2rem;">
                 <h2>Pending Events Queue</h2>
             </div>
 
             <div id="pending-events-cards" style="display: grid; gap: 1rem;">
-                <!-- Populated via JS -->
+                {% if pending_events %}
+                    {% for evt in pending_events %}
+                    <div style="background: white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; transition: box-shadow 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="background: linear-gradient(135deg, #004e92, #4dabf7); color: white; padding: 0.75rem; border-radius: 10px; text-align: center; min-width: 55px; box-shadow: 0 4px 12px rgba(0, 78, 146, 0.25);">
+                                <div style="font-size: 0.65rem; text-transform: uppercase; opacity: 0.9;">{{ evt.date|date:"M" }}</div>
+                                <div style="font-size: 1.4rem; font-weight: 700; line-height: 1;">{{ evt.date|date:"j" }}</div>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                    <h4 style="margin: 0; font-size: 1.05rem; font-weight: 600; color: #222;">{{ evt.title }}</h4>
+                                    <span style="background: #e8f0fe; color: #1a73e8; padding: 2px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 500;">{{ evt.category|default:"General" }}</span>
+                                </div>
+                                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
+                                    <span><i class="fa-regular fa-clock" style="margin-right: 4px;"></i>{{ evt.time|default:"TBD" }}</span>
+                                    <span><i class="fa-solid fa-location-dot" style="margin-right: 4px;"></i>{{ evt.location|default:"TBD" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button onclick="viewEventDetails({{ evt.id }})" class="btn btn-sm" style="padding: 8px 14px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; font-size: 0.8rem; cursor: pointer; color: #555; font-weight: 500;">
+                                <i class="fa-solid fa-eye" style="margin-right: 4px;"></i>View
+                            </button>
+                            <button onclick="approveEvent({{ evt.id }})" class="btn btn-sm btn-success" style="padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-weight: 500;">
+                                <i class="fa-solid fa-check" style="margin-right: 4px;"></i>Approve
+                            </button>
+                            <button onclick="openRejectionModal({{ evt.id }})" class="btn btn-sm btn-danger" style="padding: 8px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-weight: 500;">
+                                <i class="fa-solid fa-xmark" style="margin-right: 4px;"></i>Reject
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 12px; color: #666;">
+                        <i class="fa-regular fa-calendar-check" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem; display: block;"></i>
+                        <p style="margin: 0; font-size: 1rem;">No pending requests at the moment</p>
+                        <p style="margin: 0.5rem 0 0; font-size: 0.85rem; color: #999;">All caught up!</p>
+                    </div>
+                {% endif %}
             </div>
         </section>
 
@@ -123,7 +161,49 @@
             </div>
 
             <div id="history-events-cards" style="display: grid; gap: 0.75rem;">
-                <!-- Populated via JS -->
+                {% if history_events %}
+                    {% for evt in history_events %}
+                    {% with is_rejected=evt.status|stringformat:"s" %}
+                    <div class="history-card" data-status="{% if evt.status == 'REJECTED' %}rejected{% else %}approved{% endif %}" style="background: white; border: 1px solid #e8e8e8; border-radius: 12px; padding: 1rem 1.25rem; display: flex; align-items: flex-start; gap: 1rem; transition: all 0.2s ease;">
+                        <!-- Status Icon -->
+                        <div style="width: 42px; height: 42px; background: {% if evt.status == 'REJECTED' %}rgba(198, 40, 40, 0.1){% else %}rgba(46, 125, 50, 0.1){% endif %}; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="fa-solid {% if evt.status == 'REJECTED' %}fa-circle-xmark{% else %}fa-circle-check{% endif %}" style="font-size: 1.2rem; color: {% if evt.status == 'REJECTED' %}#c62828{% else %}#2e7d32{% endif %};"></i>
+                        </div>
+                        <!-- Content -->
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1rem; font-weight: 600; color: #222;">{{ evt.title }}</h4>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 4px; font-size: 0.8rem; color: #888;">
+                                        <span><i class="fa-regular fa-calendar" style="margin-right: 4px;"></i>{{ evt.date }}</span>
+                                        <span><i class="fa-solid fa-tag" style="margin-right: 4px;"></i>{{ evt.category|default:"Event" }}</span>
+                                    </div>
+                                </div>
+                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: {% if evt.status == 'REJECTED' %}rgba(198, 40, 40, 0.1){% else %}rgba(46, 125, 50, 0.1){% endif %}; color: {% if evt.status == 'REJECTED' %}#c62828{% else %}#2e7d32{% endif %};">{% if evt.status == 'REJECTED' %}Rejected{% else %}Approved{% endif %}</span>
+                            </div>
+                            {% if evt.status == 'REJECTED' and evt.rejection_reason %}
+                            <div style="margin-top: 0.75rem; padding: 0.75rem; background: rgba(198, 40, 40, 0.05); border-radius: 8px; border-left: 3px solid #c62828;">
+                                <div style="font-size: 0.7rem; color: #999; text-transform: uppercase; margin-bottom: 4px;">Rejection Reason</div>
+                                <div style="font-size: 0.85rem; color: #555;">
+                                    {% if evt.rejection_reason|length > 80 %}
+                                        {{ evt.rejection_reason|truncatechars:80 }}
+                                        <button onclick="showFullComment('{{ evt.rejection_reason|escapejs }}')" style="background: none; border: none; color: #c62828; cursor: pointer; font-size: 0.8rem; font-weight: 500;">Read more</button>
+                                    {% else %}
+                                        {{ evt.rejection_reason }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; padding: 3rem; background: #f8f9fa; border-radius: 12px; color: #666;">
+                        <i class="fa-regular fa-folder-open" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem; display: block;"></i>
+                        <p style="margin: 0; font-size: 1rem;">No history yet</p>
+                    </div>
+                {% endif %}
             </div>
         </section>
 
@@ -134,19 +214,13 @@
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
         <div class="modal"
             style="background: white; padding: 0; border-radius: 16px; width: 90%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); overflow: hidden; animation: modalSlideIn 0.3s ease;">
-
-            <!-- Modal Header with Icon -->
             <div style="background: linear-gradient(135deg, #ff6b6b, #c62828); padding: 2rem; text-align: center;">
-                <div
-                    style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.8rem; color: white;"></i>
                 </div>
                 <h3 style="color: white; font-size: 1.5rem; margin: 0;">Reject Event</h3>
-                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;">This action will notify
-                    the organizer</p>
+                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;">This action will notify the organizer</p>
             </div>
-
-            <!-- Modal Body -->
             <div style="padding: 2rem;">
                 <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
                     <i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i>
@@ -159,12 +233,8 @@
                 <p style="color: #999; font-size: 0.8rem; margin-top: 0.5rem;">
                     <i class="fa-solid fa-info-circle"></i> The organizer will see this message in their dashboard.
                 </p>
-
-                <!-- Action Buttons -->
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                    <button class="btn btn-outline" onclick="closeRejectionModal()" style="flex: 1; padding: 0.8rem;">
-                        Cancel
-                    </button>
+                    <button class="btn btn-outline" onclick="closeRejectionModal()" style="flex: 1; padding: 0.8rem;">Cancel</button>
                     <button class="btn btn-danger" onclick="confirmRejection()"
                         style="flex: 1; padding: 0.8rem; background: #c62828; color: white; border: none;">
                         <i class="fa-solid fa-xmark"></i> Reject Event
@@ -176,53 +246,24 @@
 
     <style>
         @keyframes modalSlideIn {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-
-        /* Mobile overrides for SCEGA inline-styled elements */
         @media (max-width: 768px) {
             #pending-events-cards > div,
-            #history-events-cards > .history-card {
-                grid-template-columns: 1fr !important;
-            }
-
+            #history-events-cards > .history-card { grid-template-columns: 1fr !important; }
             #rejection-modal .modal,
-            #event-details-modal .modal {
-                width: 95% !important;
-                max-width: 100% !important;
-                max-height: 90dvh !important;
-                overflow-y: auto !important;
-                border-radius: 14px !important;
-            }
-
-            .history-filter-btn {
-                padding: 6px 12px !important;
-                font-size: 0.8rem !important;
-            }
+            #event-details-modal .modal { width: 95% !important; max-width: 100% !important; max-height: 90dvh !important; overflow-y: auto !important; border-radius: 14px !important; }
+            .history-filter-btn { padding: 6px 12px !important; font-size: 0.8rem !important; }
         }
-
         @media (max-width: 480px) {
-            #pending-events-cards {
-                gap: 0.75rem !important;
-            }
-
+            #pending-events-cards { gap: 0.75rem !important; }
             #rejection-modal .modal,
-            #event-details-modal .modal {
-                width: 100% !important;
-                border-radius: 14px 14px 0 0 !important;
-            }
+            #event-details-modal .modal { width: 100% !important; border-radius: 14px 14px 0 0 !important; }
         }
     </style>
 
-    <!-- MODAL: EVENT DETAILS -->
+    <!-- MODAL: EVENT DETAILS (populated by JS) -->
     <div id="event-details-modal" class="modal-overlay hidden"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
         <div class="modal"
@@ -233,25 +274,29 @@
                     onclick="document.getElementById('event-details-modal').style.display='none'"><i
                         class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="modal-body" id="event-details-content">
-                <!-- Details injected here -->
-            </div>
+            <div class="modal-body" id="event-details-content"></div>
         </div>
     </div>
 
-    <script src="dummy_data.js"></script>
-    <script src="scega-logic.js"></script>
-    <script src="app.js"></script>
+    <!-- Inject event data as JSON for JS modals (view details) -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Init SCEGA Dashboard functionality
-            if (typeof initScegaDashboard === 'function') {
-                initScegaDashboard();
-            } else {
-                console.error("Error: initScegaDashboard is not a function. scega-logic.js might not have loaded.");
-            }
-        });
+        window.CSRF_TOKEN = '{{ csrf_token }}';
+        window.SCEGA_EVENTS = {
+            {% for evt in pending_events %}
+            "{{ evt.id }}": {
+                id: {{ evt.id }},
+                title: "{{ evt.title|escapejs }}",
+                category: "{{ evt.category|default:'General'|escapejs }}",
+                date: "{{ evt.date|date:'Y-m-d' }}",
+                time: "{{ evt.time|default:'TBD' }}",
+                location: "{{ evt.location|default:'TBD'|escapejs }}",
+                description: "{{ evt.description|default:'No description provided.'|escapejs }}",
+                price: "{{ evt.ticket_price|default:'0' }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
     </script>
+    <script src="{% static 'js/scega-logic.js' %}"></script>
 </body>
 
 </html>

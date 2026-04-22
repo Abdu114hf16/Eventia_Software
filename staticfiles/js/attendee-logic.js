@@ -1,119 +1,37 @@
 /**
  * ATTENDEE PAGE LOGIC
- * Handles all FR3.0 features: Browse, Register, Tickets, Profile, History, Feedback
+ * All data comes from the database via /api/attendee/data/
+ * Zero localStorage usage.
  */
 
 const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
 
 (function () {
-    const EVENTS_DB = 'eventia_events_db';
-    const REGISTRATIONS_DB = 'eventia_registrations_db';
-    const PROFILE_DB = 'eventia_attendee_profile';
 
-    // --- DATA ACCESS ---
-    function getEvents() {
-        return JSON.parse(localStorage.getItem(EVENTS_DB)) || [];
-    }
+    // --- IN-MEMORY DATA STORE (populated from API) ---
+    let API_DATA = {
+        events: [],
+        registrations: [],
+        broadcasts: [],
+        profile: { firstName: '', lastName: '', email: '', phone: '', jobTitle: '', avatar: null }
+    };
 
-    function getRegistrations() {
-        return JSON.parse(localStorage.getItem(REGISTRATIONS_DB)) || [];
-    }
-
-    function saveRegistrations(regs) {
-        localStorage.setItem(REGISTRATIONS_DB, JSON.stringify(regs));
-    }
-
-    function getProfile() {
-        return JSON.parse(localStorage.getItem(PROFILE_DB)) || {
-            firstName: 'Ahmed',
-            lastName: 'Al-Rashid',
-            email: 'ahmed@example.com',
-            phone: '+966 55 123 4567',
-            jobTitle: '',
-            avatar: null
-        };
-    }
-
-    function saveProfile(profile) {
-        localStorage.setItem(PROFILE_DB, JSON.stringify(profile));
-    }
-
-    // --- SEED ATTENDEE DATA ---
-    function seedAttendeeData() {
-        // TEMPORARY: Clear registrations to force the update for testing
-        localStorage.removeItem(REGISTRATIONS_DB);
-
-        if (!localStorage.getItem(REGISTRATIONS_DB)) {
-            const events = getEvents();
-            const dummyRegs = [];
-
-            // Register for some past and upcoming events
-            events.forEach(evt => {
-                // Commented out 3 existing dummy examples to allow checking the buying flow
-                /* 
-                if (evt.id === '101') {
-                    dummyRegs.push({
-                        id: 'reg_' + evt.id,
-                        eventId: evt.id,
-                        ticketType: 'VIP',
-                        ticketPrice: '599',
-                        registeredDate: '2025-12-20',
-                        ticketCode: 'EVT-101-VIP-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                        attended: true,
-                        rating: 4,
-                        feedback: 'Great event! Loved the AI showcase.',
-                        feedbackDate: '2026-01-02'
-                    });
-                }
-                */
-                if (evt.id === '105') {
-                    dummyRegs.push({
-                        id: 'reg_' + evt.id,
-                        eventId: evt.id,
-                        ticketType: 'Standard',
-                        ticketPrice: '100',
-                        registeredDate: '2025-11-15',
-                        ticketCode: 'EVT-105-STD-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                        attended: true,
-                        rating: 5,
-                        feedback: 'Excellent conference! Very informative sessions.',
-                        feedbackDate: '2025-12-05'
-                    });
-                }
-                /*
-                if (evt.id === '103') {
-                    dummyRegs.push({
-                        id: 'reg_' + evt.id,
-                        eventId: evt.id,
-                        ticketType: 'Executive',
-                        ticketPrice: '750',
-                        registeredDate: '2026-01-28',
-                        ticketCode: 'EVT-103-EXE-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                        attended: false,
-                        rating: null,
-                        feedback: null,
-                        feedbackDate: null
-                    });
-                }
-                */
-                if (evt.id === '106') {
-                    dummyRegs.push({
-                        id: 'reg_' + evt.id,
-                        eventId: evt.id,
-                        ticketType: 'Participant',
-                        ticketPrice: '50',
-                        registeredDate: '2026-02-01',
-                        ticketCode: 'EVT-106-PRT-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                        attended: false,
-                        rating: null,
-                        feedback: null,
-                        feedbackDate: null
-                    });
-                }
-            });
-            saveRegistrations(dummyRegs);
+    // --- FETCH DATA FROM DATABASE ---
+    async function initData() {
+        try {
+            const response = await fetch('/api/attendee/data/', { credentials: 'same-origin' });
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            API_DATA = await response.json();
+        } catch (error) {
+            console.error("API Error:", error);
         }
     }
+
+    // --- DATA ACCESS (from in-memory store) ---
+    function getEvents() { return API_DATA.events || []; }
+    function getRegistrations() { return API_DATA.registrations || []; }
+    function getProfile() { return API_DATA.profile || {}; }
+    function getAttendeeRelevantBroadcasts() { return API_DATA.broadcasts || []; }
 
     // --- GRADIENT MAP ---
     const categoryGradients = {
@@ -136,97 +54,27 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         'Other': 'fa-calendar'
     };
 
-    // --- RENDER BROWSE EVENTS ---
+    // --- RENDER BROWSE EVENTS (no-op: Django renders events in template) ---
     function renderBrowseEvents() {
-        const events = getEvents();
-        const registrations = getRegistrations();
-        const grid = document.getElementById('landing-events-grid');
-        if (!grid) return;
-
-        const searchVal = (document.getElementById('landing-search')?.value || '').toLowerCase();
-        const locVal = document.getElementById('landing-location-filter')?.value || 'all';
-        const catVal = document.querySelector('.cat-pill.active')?.dataset.category || 'all';
-
-        // Only show upcoming/ongoing events
-        let filtered = events.filter(e => {
-            if (e.status === 'Rejected' || e.status === 'Pending') return false;
-            const matchesCat = catVal === 'all' || e.category === catVal;
-            const matchesLoc = locVal === 'all' || (e.location && e.location.includes(locVal));
-            const matchesSearch = !searchVal ||
-                e.title.toLowerCase().includes(searchVal) ||
-                (e.description && e.description.toLowerCase().includes(searchVal)) ||
-                (e.location && e.location.toLowerCase().includes(searchVal));
-            return matchesCat && matchesLoc && matchesSearch;
-        });
-
-        if (filtered.length === 0) {
-            grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; color: #888;">
-                <i class="fa-regular fa-calendar-xmark" style="font-size: 3rem; margin-bottom: 1rem; display: block; color: #ccc;"></i>
-                <h3 style="margin: 0 0 0.5rem; color: #555;">No events found</h3>
-                <p style="margin: 0;">Try adjusting your search or filters.</p>
-            </div>`;
-            return;
-        }
-
-        grid.innerHTML = filtered.map(evt => {
-            const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
-            const icon = categoryIcons[evt.category] || 'fa-calendar';
-            const isRegistered = registrations.some(r => r.eventId === evt.id && r.status !== 'Withdrawn');
-            const priceDisplay = evt.price && parseInt(evt.price) > 0 ? `From ${evt.price} ${SAR_ICON}` : 'Free';
-
-            const eventDate = new Date(evt.date);
-            const dateFormatted = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-            return `
-                <div class="lp-event-card reveal-on-scroll revealed" data-category="${evt.category}">
-                    <div class="lp-card-image" style="background: ${gradient};">
-                        <i class="fa-solid ${icon}"></i>
-                        <div class="lp-card-badge">${evt.category || 'Event'}</div>
-                        <div class="lp-card-price">${priceDisplay}</div>
-                    </div>
-                    <div class="lp-card-body">
-                        <h3 class="lp-card-title">${evt.title}</h3>
-                        <div class="lp-card-meta">
-                            <span><i class="fa-regular fa-calendar"></i> ${dateFormatted}</span>
-                            <span><i class="fa-solid fa-location-dot"></i> ${evt.location || 'TBD'}</span>
-                        </div>
-                        <p class="lp-card-desc">${(evt.description || '').substring(0, 100)}${evt.description && evt.description.length > 100 ? '...' : ''}</p>
-                        <div class="lp-card-footer" style="display: flex; gap: 0.5rem;">
-                            <button class="btn btn-primary btn-sm lp-view-btn" onclick="viewEventDetails('${evt.id}')">View Details</button>
-                            ${isRegistered
-                    ? `<button class="btn btn-sm" style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; cursor: default;" disabled><i class="fa-solid fa-check"></i> Registered</button>`
-                    : `<button class="btn btn-sm" style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;" onclick="openRegisterModal('${evt.id}')"><i class="fa-solid fa-ticket"></i> Register</button>`
-                }
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        // Events are rendered server-side in the Django template (#django-events-grid).
+        // This function is kept as a no-op so renderAll() doesn't break.
     }
 
     // --- VIEW EVENT DETAILS MODAL ---
     window.viewEventDetails = function (eventId) {
         const events = getEvents();
-        const evt = events.find(e => e.id === eventId);
+        const evt = events.find(e => String(e.id) === String(eventId));
         if (!evt) return;
 
         const existing = document.getElementById('event-detail-modal');
         if (existing) existing.remove();
 
         const registrations = getRegistrations();
-        const isRegistered = registrations.some(r => r.eventId === evt.id && r.status !== 'Withdrawn');
+        const isRegistered = registrations.some(r => String(r.eventId) === String(evt.id));
 
         let ticketInfo = '<div style="color: #2e7d32; font-weight: 600;"><i class="fa-solid fa-ticket" style="margin-right: 6px;"></i>Free Event</div>';
-        if (evt.price && parseInt(evt.price) > 0) {
-            if (evt.tickets && evt.tickets.length > 0) {
-                ticketInfo = evt.tickets.map(t =>
-                    `<div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
-                        <span>${t.name}</span><strong>${t.price} ${SAR_ICON}</strong>
-                    </div>`
-                ).join('');
-            } else {
-                ticketInfo = `<div style="color: #1976d2; font-weight: 600;"><i class="fa-solid fa-ticket" style="margin-right: 6px;"></i>${evt.price} ${SAR_ICON}</div>`;
-            }
+        if (evt.price && parseFloat(evt.price) > 0) {
+            ticketInfo = `<div style="color: #1976d2; font-weight: 600;"><i class="fa-solid fa-ticket" style="margin-right: 6px;"></i>${evt.price} ${SAR_ICON}</div>`;
         }
 
         let actionBtn = isRegistered
@@ -288,12 +136,11 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
 
     window.openRegisterModal = function (eventId) {
         const events = getEvents();
-        const evt = events.find(e => e.id === eventId);
+        const evt = events.find(e => String(e.id) === String(eventId));
         if (!evt) return;
 
-        // Check duplicate
         const regs = getRegistrations();
-        if (regs.some(r => r.eventId === eventId)) {
+        if (regs.some(r => String(r.eventId) === String(eventId))) {
             showToast('You are already registered for this event.');
             return;
         }
@@ -301,15 +148,9 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         const existing = document.getElementById('register-modal');
         if (existing) existing.remove();
 
-        let ticketOptions = '<option value="Standard|0">Standard - Free</option>';
-        if (evt.tickets && evt.tickets.length > 0) {
-            ticketOptions = evt.tickets.map(t =>
-                `<option value="${t.name}|${t.price}">${t.name} - ${parseInt(t.price) > 0 ? t.price + ' ' + SAR_ICON : 'Free'}</option>`
-            ).join('');
-        }
-
-        const isFree = !evt.price || parseInt(evt.price) === 0;
-        const basePrice = evt.tickets && evt.tickets.length > 0 ? parseInt(evt.tickets[0].price) : (parseInt(evt.price) || 0);
+        const isFree = !evt.price || parseFloat(evt.price) === 0;
+        const basePrice = parseFloat(evt.price) || 0;
+        const ticketOptions = `<option value="Standard|${basePrice}">${isFree ? 'Standard - Free' : 'Standard - ' + basePrice + ' SAR'}</option>`;
 
         const modal = document.createElement('div');
         modal.id = 'register-modal';
@@ -359,8 +200,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                             <i class="fa-solid fa-shield-halved" style="color:#f59e0b;font-size:1rem;"></i>
                             <span style="font-size:0.8rem;color:#78350f;font-weight:500;">Demo payment — no real charge will be made</span>
                         </div>
-
-                        <!-- Payment Method Tabs -->
                         <div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;">
                             <button onclick="regSelectPayMethod(this,'card')" class="pay-method-btn active" style="flex:1;padding:10px 8px;border:2px solid #004e92;border-radius:10px;background:#e8f0fe;color:#004e92;font-weight:600;cursor:pointer;font-size:0.82rem;display:flex;flex-direction:column;align-items:center;gap:4px;">
                                 <i class="fa-solid fa-credit-card" style="font-size:1.1rem;"></i> Credit Card
@@ -372,12 +211,10 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                                 <i class="fa-brands fa-apple-pay" style="font-size:1.1rem;"></i> Apple Pay
                             </button>
                         </div>
-
-                        <!-- Card Form -->
                         <div id="pay-card-form">
                             <div style="margin-bottom:1rem;">
                                 <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.35rem;">CARDHOLDER NAME</label>
-                                <input id="pay-name" type="text" placeholder="Ahmed Al-Rashid" value="Ahmed Al-Rashid" style="width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#004e92'" onblur="this.style.borderColor='#e0e0e0'">
+                                <input id="pay-name" type="text" placeholder="Your full name" style="width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:0.9rem;outline:none;box-sizing:border-box;" onfocus="this.style.borderColor='#004e92'" onblur="this.style.borderColor='#e0e0e0'">
                             </div>
                             <div style="margin-bottom:1rem;">
                                 <label style="display:block;font-size:0.82rem;font-weight:600;color:#444;margin-bottom:0.35rem;">CARD NUMBER</label>
@@ -397,15 +234,12 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Order Summary -->
                         <div id="reg-order-summary" style="background:#f8f9fa;border-radius:10px;padding:0.9rem 1rem;margin-bottom:1.25rem;">
                             <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span id="pay-summary-ticket">Ticket</span><span id="pay-summary-price">0 SAR</span></div>
                             <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span>Service fee</span><span>0 SAR</span></div>
                             <div style="height:1px;background:#e0e0e0;margin:8px 0;"></div>
                             <div style="display:flex;justify-content:space-between;font-weight:700;color:#222;"><span>Total</span><span id="pay-summary-total">0 SAR</span></div>
                         </div>
-
                         <div style="display:flex;gap:0.75rem;">
                             <button onclick="regGoToStep1()" style="padding:12px 16px;background:white;color:#555;border:2px solid #e0e0e0;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;"><i class="fa-solid fa-arrow-left"></i></button>
                             <button onclick="regProcessPayment('${evt.id}')" style="flex:1;padding:12px;background:linear-gradient(135deg,#16a34a,#22c55e);color:white;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:0.9rem;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i>Pay & Confirm</button>
@@ -428,8 +262,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                             <h3 style="margin:0 0 0.5rem;color:#166534;font-size:1.2rem;">Payment Successful!</h3>
                             <p style="margin:0;color:#555;font-size:0.85rem;">Your ticket has been confirmed</p>
                         </div>
-
-                        <!-- Ticket Card -->
                         <div id="reg-receipt-card" style="background:linear-gradient(135deg,#004e92,#4dabf7);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem;color:white;">
                             <div style="font-size:0.75rem;opacity:0.8;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;">Event</div>
                             <div id="rc-event-title" style="font-size:1rem;font-weight:700;margin-bottom:1rem;">${evt.title}</div>
@@ -444,7 +276,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                                 <div id="rc-code" style="font-family:monospace;font-size:0.9rem;font-weight:700;letter-spacing:1.5px;"></div>
                             </div>
                         </div>
-
                         <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.25rem;">
                             <p style="margin:0;font-size:0.8rem;color:#166534;line-height:1.6;">
                                 <i class="fa-solid fa-ticket" style="margin-right:6px;"></i>
@@ -459,7 +290,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         `;
         document.body.appendChild(modal);
 
-        // Inject spinner keyframe if needed
         if (!document.getElementById('reg-pay-styles')) {
             const s = document.createElement('style');
             s.id = 'reg-pay-styles';
@@ -470,7 +300,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             document.head.appendChild(s);
         }
 
-        // Initialize price display
         regUpdatePrice();
     };
 
@@ -522,7 +351,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         document.getElementById('sdot-2').style.background = 'white';
         document.getElementById('reg-header-icon').className = 'fa-solid fa-credit-card';
         document.getElementById('reg-header-title').textContent = 'Payment Details';
-        // Update order summary price
         regUpdatePrice();
     };
 
@@ -535,8 +363,8 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         document.getElementById('reg-header-title').textContent = 'Select Your Ticket';
     };
 
+    // --- PROCESS PAYMENT: saves registration to database ---
     window.regProcessPayment = function (eventId) {
-        // Show processing spinner
         document.getElementById('reg-step-2').style.display = 'none';
         document.getElementById('reg-step-3').style.display = 'block';
         document.getElementById('sdot-2').style.background = 'rgba(255,255,255,0.5)';
@@ -544,28 +372,34 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         document.getElementById('reg-header-icon').className = 'fa-solid fa-shield-halved';
         document.getElementById('reg-header-title').textContent = 'Securing Payment...';
 
-        setTimeout(() => {
-            // Get ticket details
-            const sel = document.getElementById('reg-ticket-select');
-            const [ticketName, ticketPrice] = (sel ? sel.value : 'Standard|0').split('|');
-            const ticketCode = 'EVT-' + eventId + '-' + ticketName.substring(0, 3).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+        const sel = document.getElementById('reg-ticket-select');
+        const [ticketName, ticketPrice] = (sel ? sel.value : 'Standard|0').split('|');
 
-            // Save registration
-            const newReg = {
-                id: 'reg_' + eventId,
-                eventId: eventId,
+        // POST registration to Django API
+        fetch('/api/attendee/register-json/' + eventId + '/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.CSRF_TOKEN
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({
                 ticketType: ticketName,
-                ticketPrice: ticketPrice,
-                registeredDate: new Date().toISOString().split('T')[0],
-                ticketCode: ticketCode,
-                attended: false,
-                rating: null,
-                feedback: null,
-                feedbackDate: null
-            };
-            const regs = getRegistrations();
-            regs.push(newReg);
-            saveRegistrations(regs);
+                ticketPrice: parseFloat(ticketPrice) || 0
+            })
+        })
+        .then(res => res.json())
+        .then(async data => {
+            if (data.error) {
+                showToast(data.error);
+                document.getElementById('register-modal')?.remove();
+                return;
+            }
+
+            // Refresh data from server
+            await initData();
+
+            const ticketCode = 'EVT-' + eventId + '-' + ticketName.substring(0, 3).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
             // Populate receipt
             const rcCode = document.getElementById('rc-code');
@@ -583,7 +417,12 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             document.getElementById('reg-header-title').textContent = 'Booking Confirmed!';
 
             renderAll();
-        }, 2200);
+        })
+        .catch(err => {
+            console.error('Registration error:', err);
+            showToast('Registration failed. Please try again.');
+            document.getElementById('register-modal')?.remove();
+        });
     };
 
     window.switchAttendeeViewPublic = function (view) {
@@ -597,33 +436,7 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         if (view === 'notifications') renderNotifList();
     };
 
-    // --- LEGACY confirmRegistration (kept for safety, now unused) ---
-    window.confirmRegistration = function (eventId) {
-        const selectEl = document.getElementById('reg-ticket-select');
-        if (!selectEl) return;
-        const [ticketName, ticketPrice] = selectEl.value.split('|');
-        const ticketCode = 'EVT-' + eventId + '-' + ticketName.substring(0, 3).toUpperCase() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        const newReg = {
-            id: 'reg_' + eventId,
-            eventId: eventId,
-            ticketType: ticketName,
-            ticketPrice: ticketPrice,
-            registeredDate: new Date().toISOString().split('T')[0],
-            ticketCode: ticketCode,
-            attended: false,
-            rating: null,
-            feedback: null,
-            feedbackDate: null
-        };
-        const regs = getRegistrations();
-        regs.push(newReg);
-        saveRegistrations(regs);
-        document.getElementById('register-modal')?.remove();
-        showToast('Registration successful! Your ticket: ' + ticketCode);
-        renderAll();
-    };
-
-    // --- BARCODE HELPERS (uses JsBarcode from CDN) ---
+    // --- BARCODE HELPERS ---
     function renderBarcodeToCanvas(canvasOrId, ticketCode) {
         try {
             if (typeof JsBarcode !== 'undefined') {
@@ -644,11 +457,11 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         }
     }
 
-    // --- SHOW BADGE MODAL (bigger, clearer layout with name, job title, barcode) ---
+    // --- SHOW BADGE MODAL ---
     window.openBadgeModal = function (regId) {
-        const reg = getRegistrations().find(r => r.id === regId);
+        const reg = getRegistrations().find(r => String(r.id) === String(regId));
         if (!reg) return;
-        const evt = getEvents().find(e => e.id === reg.eventId);
+        const evt = getEvents().find(e => String(e.id) === String(reg.eventId));
         if (!evt) return;
         const profile = getProfile();
         const eventDate = new Date(evt.date);
@@ -658,7 +471,7 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         const existing = document.getElementById('badge-modal');
         if (existing) existing.remove();
 
-        const fullName = (profile.firstName + ' ' + profile.lastName).trim() || 'Attendee';
+        const fullName = ((profile.firstName || '') + ' ' + (profile.lastName || '')).trim() || 'Attendee';
         const jobTitle = (profile.jobTitle || '').trim();
 
         const modal = document.createElement('div');
@@ -698,12 +511,11 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             renderBarcodeToCanvas('badge-barcode-canvas-' + reg.id, reg.ticketCode);
         }, 50);
 
-        // Send to email: mailto with pre-filled subject and body
         const email = (profile.email || '').trim();
-        const subject = encodeURIComponent('Your event badge – ' + evt.title);
+        const subject = encodeURIComponent('Your event badge \u2013 ' + evt.title);
         const body = encodeURIComponent(
             'Hello ' + fullName + ',\n\nYour event badge details for "' + evt.title + '":\n\n' +
-            'Date: ' + dateStr + '\nTime: ' + (evt.time || 'TBD') + '\nLocation: ' + (evt.location || 'TBD') + '\nTicket type: ' + reg.ticketType + '\nTicket code: ' + reg.ticketCode + '\n\n— Eventia'
+            'Date: ' + dateStr + '\nTime: ' + (evt.time || 'TBD') + '\nLocation: ' + (evt.location || 'TBD') + '\nTicket type: ' + reg.ticketType + '\nTicket code: ' + reg.ticketCode + '\n\n\u2014 Eventia'
         );
         const emailLink = document.getElementById('badge-email-link');
         if (emailLink) {
@@ -733,10 +545,11 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
 
         const events = getEvents();
         const registrations = getRegistrations();
+        const now = new Date();
         const upcomingRegs = registrations.filter(r => {
             if (r.status === 'Withdrawn') return false;
-            const evt = events.find(e => e.id === r.eventId);
-            return evt && new Date(evt.date) >= new Date();
+            const evt = events.find(e => String(e.id) === String(r.eventId));
+            return evt && new Date(evt.date) >= now;
         });
 
         if (upcomingRegs.length === 0) {
@@ -748,25 +561,15 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             return;
         }
 
-        // Attendee withdrawal policy metadata
-        const attendeePolicyMeta = {
-            'flexible': { label: 'Flexible', color: '#2e7d32', bg: '#e8f5e9', border: '#c8e6c9', desc: 'Full refund available up to 1 day before the event.' },
-            'moderate': { label: 'Moderate', color: '#e65100', bg: '#fff3e0', border: '#ffe0b2', desc: 'Full refund available up to 7 days before the event.' },
-            'strict': { label: 'Strict', color: '#c62828', bg: '#fbe9e7', border: '#ffccbc', desc: 'Full refund available up to 30 days before the event.' },
-            'non-refundable': { label: 'Non-refundable', color: '#b71c1c', bg: '#ffebee', border: '#ffcdd2', desc: 'No refunds allowed once tickets are purchased.' }
-        };
-
         container.innerHTML = upcomingRegs.map(reg => {
-            const evt = events.find(e => e.id === reg.eventId);
+            const evt = events.find(e => String(e.id) === String(reg.eventId));
             if (!evt) return '';
 
             const eventDate = new Date(evt.date);
             const month = eventDate.toLocaleString('default', { month: 'short' }).toUpperCase();
             const day = eventDate.getDate();
             const gradient = categoryGradients[evt.category] || categoryGradients['Other'];
-            const barcodeId = 'ticket-barcode-' + reg.id.replace(/[^a-zA-Z0-9-_]/g, '_');
-
-
+            const barcodeId = 'ticket-barcode-' + String(reg.id).replace(/[^a-zA-Z0-9-_]/g, '_');
 
             return `
                 <div class="ticket-card">
@@ -793,7 +596,7 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                         <button type="button" class="btn btn-primary btn-sm ticket-show-badge-btn" onclick="openBadgeModal('${reg.id}')" style="width: 100%; margin-top: 1rem;">
                             <i class="fa-solid fa-id-card"></i> Show my badge
                         </button>
-                        <button type="button" onclick="openWithdrawModal('${reg.id}', '${evt.id}')" style="width:100%;margin-top:0.5rem;padding:9px;background:white;color:#c62828;border:1.5px solid #ffcdd2;border-radius:8px;font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ffebee'" onmouseout="this.style.background='white'">
+                        <button type="button" onclick="openWithdrawModal('${reg.id}', '${reg.eventId}')" style="width:100%;margin-top:0.5rem;padding:9px;background:white;color:#c62828;border:1.5px solid #ffcdd2;border-radius:8px;font-weight:600;font-size:0.82rem;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='#ffebee'" onmouseout="this.style.background='white'">
                             <i class="fa-solid fa-right-from-bracket" style="margin-right:5px;"></i>Withdraw Registration
                         </button>
                     </div>
@@ -801,11 +604,9 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             `;
         }).join('');
 
-        // Render barcodes after DOM is updated
+        // Render barcodes
         upcomingRegs.forEach(reg => {
-            const evt = events.find(e => e.id === reg.eventId);
-            if (!evt) return;
-            const barcodeId = 'ticket-barcode-' + reg.id.replace(/[^a-zA-Z0-9-_]/g, '_');
+            const barcodeId = 'ticket-barcode-' + String(reg.id).replace(/[^a-zA-Z0-9-_]/g, '_');
             const canvas = document.getElementById(barcodeId);
             if (canvas && typeof JsBarcode !== 'undefined') {
                 try {
@@ -824,7 +625,7 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         const registrations = getRegistrations();
         const pastRegs = registrations.filter(r => {
             if (r.status === 'Withdrawn') return false;
-            const evt = events.find(e => e.id === r.eventId);
+            const evt = events.find(e => String(e.id) === String(r.eventId));
             return evt && new Date(evt.date) < new Date();
         });
 
@@ -838,13 +639,12 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         }
 
         container.innerHTML = pastRegs.map(reg => {
-            const evt = events.find(e => e.id === reg.eventId);
+            const evt = events.find(e => String(e.id) === String(reg.eventId));
             if (!evt) return '';
 
             const eventDate = new Date(evt.date);
             const dateFormatted = eventDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-            // Star rating display
             let starsHTML = '';
             if (reg.rating) {
                 for (let i = 1; i <= 5; i++) {
@@ -857,10 +657,10 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                         <div style="font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 0.5rem;">Your Feedback</div>
                         <div style="margin-bottom: 0.5rem;">${starsHTML}</div>
                         <p style="margin: 0; color: #333; font-size: 0.9rem; line-height: 1.5;">${reg.feedback}</p>
-                        <div style="font-size: 0.75rem; color: #999; margin-top: 0.5rem;">Submitted: ${reg.feedbackDate}</div>
+                        <div style="font-size: 0.75rem; color: #999; margin-top: 0.5rem;">Submitted: ${reg.feedbackDate || ''}</div>
                    </div>`
                 : `<div style="margin-top: 1rem;">
-                        <button class="btn btn-primary btn-sm" onclick="openFeedbackModal('${reg.id}', '${evt.id}')" style="width: 100%;">
+                        <button class="btn btn-primary btn-sm" onclick="openFeedbackModal('${reg.id}', '${reg.eventId}')" style="width: 100%;">
                             <i class="fa-solid fa-star"></i> Rate & Leave Feedback
                         </button>
                    </div>`;
@@ -894,7 +694,7 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
     // --- FEEDBACK MODAL ---
     window.openFeedbackModal = function (regId, eventId) {
         const events = getEvents();
-        const evt = events.find(e => e.id === eventId);
+        const evt = events.find(e => String(e.id) === String(eventId));
         if (!evt) return;
 
         const existing = document.getElementById('feedback-modal');
@@ -936,7 +736,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         `;
         document.body.appendChild(modal);
 
-        // Star click handlers
         modal.querySelectorAll('.feedback-star').forEach(star => {
             star.addEventListener('click', () => {
                 const rating = parseInt(star.dataset.rating);
@@ -949,63 +748,48 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         });
     };
 
+    // --- SUBMIT FEEDBACK TO DATABASE ---
     window.submitFeedback = function (regId) {
         const rating = parseInt(document.getElementById('feedback-rating').value);
         const text = document.getElementById('feedback-text').value.trim();
 
-        if (rating === 0) {
-            showToast('Please select a rating.');
-            return;
-        }
-        if (!text) {
-            showToast('Please write your feedback.');
-            return;
-        }
+        if (rating === 0) { showToast('Please select a rating.'); return; }
+        if (!text) { showToast('Please write your feedback.'); return; }
 
-        const regs = getRegistrations();
-        const idx = regs.findIndex(r => r.id === regId);
-        if (idx > -1) {
-            regs[idx].rating = rating;
-            regs[idx].feedback = text;
-            regs[idx].feedbackDate = new Date().toISOString().split('T')[0];
-            saveRegistrations(regs);
-        }
-
-        document.getElementById('feedback-modal')?.remove();
-        showToast('Thank you for your feedback!');
-        renderHistory();
+        fetch('/api/attendee/feedback/' + regId + '/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': window.CSRF_TOKEN
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({ rating: rating, feedback: text })
+        })
+        .then(res => res.json())
+        .then(async data => {
+            if (data.error) {
+                showToast(data.error);
+                return;
+            }
+            document.getElementById('feedback-modal')?.remove();
+            showToast('Thank you for your feedback!');
+            await initData();
+            renderHistory();
+        })
+        .catch(err => {
+            console.error('Feedback error:', err);
+            showToast('Failed to submit feedback.');
+        });
     };
 
     // --- WITHDRAW REGISTRATION ---
     window.openWithdrawModal = function (regId, eventId) {
         const events = getEvents();
-        const evt = events.find(e => e.id === eventId);
+        const evt = events.find(e => String(e.id) === String(eventId));
         if (!evt) return;
 
         const existing = document.getElementById('withdraw-modal');
         if (existing) existing.remove();
-
-        const attendeePolicyMeta = {
-            'flexible': { label: 'Flexible', color: '#2e7d32', desc: 'Full refund available up to 1 day before the event.' },
-            'moderate': { label: 'Moderate', color: '#e65100', desc: 'Full refund available up to 7 days before the event.' },
-            'strict': { label: 'Strict', color: '#c62828', desc: 'Full refund available up to 30 days before the event.' },
-            'non-refundable': { label: 'Non-refundable', color: '#b71c1c', desc: 'No refunds allowed once tickets are purchased.' }
-        };
-
-        const pol = evt.attendeeWithdrawalPolicy;
-        const polMeta = pol ? attendeePolicyMeta[pol] : null;
-
-        const policySection = polMeta
-            ? `<div style="background:#fff8f8;border:1px solid #ffcdd2;border-radius:10px;padding:1rem;margin-bottom:1.25rem;">
-                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.4rem;">
-                    <i class="fa-solid fa-shield-halved" style="color:${polMeta.color};"></i>
-                    <span style="font-weight:700;color:${polMeta.color};font-size:0.9rem;">Refund Policy: ${polMeta.label}</span>
-                </div>
-                <p style="margin:0;font-size:0.82rem;color:#555;line-height:1.5;">${polMeta.desc}</p>
-               </div>`
-            : `<div style="background:#f5f5f5;border-radius:10px;padding:1rem;margin-bottom:1.25rem;">
-                <p style="margin:0;font-size:0.82rem;color:#777;"><i class="fa-solid fa-circle-info" style="margin-right:5px;"></i>No refund policy set for this event. Please contact the organizer.</p>
-               </div>`;
 
         const modal = document.createElement('div');
         modal.id = 'withdraw-modal';
@@ -1021,7 +805,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                     </div>
                     <div style="padding:1.75rem 2rem;">
                         <p style="margin:0 0 1.25rem;color:#333;font-size:0.9rem;line-height:1.6;">Are you sure you want to withdraw from this event? This action cannot be undone.</p>
-                        ${policySection}
                         <div style="display:flex;gap:0.75rem;">
                             <button onclick="document.getElementById('withdraw-modal').remove()" style="flex:1;padding:12px;background:white;color:#333;border:2px solid #e0e0e0;border-radius:8px;font-weight:600;cursor:pointer;">Cancel</button>
                             <button onclick="confirmWithdraw('${regId}')" style="flex:1;padding:12px;background:linear-gradient(135deg,#c62828,#ef5350);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px;"></i>Confirm Withdrawal</button>
@@ -1033,82 +816,39 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         document.body.appendChild(modal);
     };
 
+    // --- CONFIRM WITHDRAWAL: deletes ticket from database ---
     window.confirmWithdraw = function (regId) {
-        const regs = getRegistrations();
-        const reg = regs.find(r => r.id === regId);
-        if (reg) {
-            reg.status = 'Withdrawn';
-            reg.withdrawnDate = new Date().toISOString().split('T')[0];
-            saveRegistrations(regs);
-        }
-        document.getElementById('withdraw-modal')?.remove();
-        showToast('You have successfully withdrawn from this event.');
-        renderAll();
+        fetch('/dashboard/attendee/cancel/' + regId + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': window.CSRF_TOKEN },
+            credentials: 'same-origin'
+        })
+        .then(async () => {
+            document.getElementById('withdraw-modal')?.remove();
+            showToast('You have successfully withdrawn from this event.');
+            await initData();
+            renderAll();
+            // Reload page to refresh Django-rendered event cards (registered status)
+            setTimeout(() => window.location.reload(), 800);
+        })
+        .catch(err => {
+            console.error('Withdraw error:', err);
+            showToast('Failed to withdraw. Please try again.');
+        });
     };
 
-    // --- PROFILE ---
+    // --- PROFILE (loaded from API, saved via Django form in template) ---
     function loadProfile() {
         const profile = getProfile();
-        const firstNameEl = document.getElementById('profile-firstname');
-        const lastNameEl = document.getElementById('profile-lastname');
-        const emailEl = document.getElementById('profile-email');
-        const phoneEl = document.getElementById('profile-phone');
-        const jobTitleEl = document.getElementById('profile-jobtitle');
-        const avatarText = document.getElementById('profile-avatar-text');
-        const avatarImg = document.getElementById('profile-avatar-img');
         const displayName = document.getElementById('profile-display-name');
         const heroName = document.getElementById('attendee-hero-name');
+        const avatarText = document.getElementById('profile-avatar-text');
 
-        if (firstNameEl) firstNameEl.value = profile.firstName;
-        if (lastNameEl) lastNameEl.value = profile.lastName;
-        if (emailEl) emailEl.value = profile.email;
-        if (phoneEl) phoneEl.value = profile.phone;
-        if (jobTitleEl) jobTitleEl.value = profile.jobTitle || '';
-        if (displayName) displayName.textContent = profile.firstName + ' ' + profile.lastName;
-        if (heroName) heroName.textContent = profile.firstName;
-        if (avatarText) avatarText.textContent = profile.firstName.charAt(0).toUpperCase();
-
-        if (profile.avatar && avatarImg) {
-            avatarImg.src = profile.avatar;
-            avatarImg.style.display = 'block';
-            if (avatarText) avatarText.style.display = 'none';
+        if (displayName) displayName.textContent = ((profile.firstName || '') + ' ' + (profile.lastName || '')).trim();
+        if (heroName) heroName.textContent = profile.firstName || 'Attendee';
+        if (avatarText && !profile.avatar) {
+            avatarText.textContent = (profile.firstName || 'A').charAt(0).toUpperCase();
         }
-    }
-
-    // Profile form submit
-    const profileForm = document.getElementById('profile-form');
-    if (profileForm) {
-        profileForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const profile = getProfile();
-            profile.firstName = document.getElementById('profile-firstname').value;
-            profile.lastName = document.getElementById('profile-lastname').value;
-            profile.email = document.getElementById('profile-email').value;
-            profile.phone = document.getElementById('profile-phone').value;
-            const jobEl = document.getElementById('profile-jobtitle');
-            profile.jobTitle = jobEl ? jobEl.value.trim() : '';
-            saveProfile(profile);
-            loadProfile();
-            showToast('Profile updated successfully!');
-        });
-    }
-
-    // Profile picture upload [FR 3.3.1]
-    const pfpInput = document.getElementById('pfp-upload');
-    if (pfpInput) {
-        pfpInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const profile = getProfile();
-                profile.avatar = ev.target.result;
-                saveProfile(profile);
-                loadProfile();
-                showToast('Profile picture updated!');
-            };
-            reader.readAsDataURL(file);
-        });
     }
 
     // --- STATS ---
@@ -1118,12 +858,12 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         const now = new Date();
 
         const upcoming = regs.filter(r => {
-            const evt = events.find(e => e.id === r.eventId);
+            const evt = events.find(e => String(e.id) === String(r.eventId));
             return evt && new Date(evt.date) >= now;
         }).length;
 
         const attended = regs.filter(r => {
-            const evt = events.find(e => e.id === r.eventId);
+            const evt = events.find(e => String(e.id) === String(r.eventId));
             return evt && new Date(evt.date) < now;
         }).length;
 
@@ -1142,14 +882,12 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         const target = document.getElementById('view-' + viewName);
         if (target) target.style.display = '';
 
-        // Update nav active state (only top nav buttons)
         document.querySelectorAll('.nav-links .att-nav-link').forEach(link => {
             link.classList.remove('active');
             if (link.dataset.view === viewName && !link.dataset.scroll) {
                 link.classList.add('active');
             }
         });
-        // Special: if clicking "My Tickets", highlight that button
         if (viewName === 'home' && scrollTo === 'my-tickets-section') {
             document.querySelectorAll('.nav-links .att-nav-link').forEach(link => {
                 link.classList.remove('active');
@@ -1167,7 +905,7 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         }
     }
 
-    // Nav link click handlers (view switching)
+    // Nav link click handlers
     document.querySelectorAll('.att-nav-link').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1177,7 +915,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         });
     });
 
-    // Logo click -> home
     const logo = document.getElementById('nav-logo');
     if (logo) {
         logo.addEventListener('click', (e) => {
@@ -1185,33 +922,6 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             switchAttendeeView('home');
         });
     }
-
-    // --- SEARCH & FILTER LISTENERS ---
-    const searchInput = document.getElementById('landing-search');
-    if (searchInput) searchInput.addEventListener('input', renderBrowseEvents);
-
-    const locFilter = document.getElementById('landing-location-filter');
-    if (locFilter) locFilter.addEventListener('change', renderBrowseEvents);
-
-    const searchBtn = document.getElementById('landing-search-btn');
-    if (searchBtn) searchBtn.addEventListener('click', renderBrowseEvents);
-
-    document.querySelectorAll('.cat-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-            document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-            renderBrowseEvents();
-        });
-    });
-
-    // --- SMOOTH SCROLL (within home view) ---
-    document.querySelectorAll('.nav-scroll-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = document.querySelector(link.getAttribute('href'));
-            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-    });
 
     // Navbar scroll effect
     window.addEventListener('scroll', () => {
@@ -1243,43 +953,16 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
     }
 
     // ==========================================================================
-    // --- BROADCAST NOTIFICATIONS ---
+    // --- BROADCAST NOTIFICATIONS (from database, read status in memory) ---
     // ==========================================================================
 
-    const BROADCASTS_KEY = 'eventia_broadcasts';
-    const READ_NOTIFS_KEY = 'eventia_read_notifs';
-
-    function getBroadcasts() {
-        return JSON.parse(localStorage.getItem(BROADCASTS_KEY)) || [];
-    }
-
-    function getReadNotifIds() {
-        return JSON.parse(localStorage.getItem(READ_NOTIFS_KEY)) || [];
-    }
-
-    function saveReadNotifIds(ids) {
-        localStorage.setItem(READ_NOTIFS_KEY, JSON.stringify(ids));
-    }
-
-    function getAttendeeRelevantBroadcasts() {
-        const regs = getRegistrations();
-        const registeredEventIds = regs.map(r => r.eventId);
-        const broadcasts = getBroadcasts();
-        // Only show broadcasts for events the attendee is registered for
-        return broadcasts.filter(b => registeredEventIds.includes(b.eventId))
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Newest first
-    }
-
-    function initNotifications() {
-        renderNotifBadge();
-    }
+    let readNotifIds = [];
 
     function renderNotifBadge() {
         const badge = document.getElementById('notif-badge');
         if (!badge) return;
         const broadcasts = getAttendeeRelevantBroadcasts();
-        const readIds = getReadNotifIds();
-        const unreadCount = broadcasts.filter(b => !readIds.includes(b.id)).length;
+        const unreadCount = broadcasts.filter(b => !readNotifIds.includes(String(b.id))).length;
         if (unreadCount > 0) {
             badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
             badge.style.display = 'flex';
@@ -1292,11 +975,9 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         const list = document.getElementById('notif-list');
         if (!list) return;
         const broadcasts = getAttendeeRelevantBroadcasts();
-        const readIds = getReadNotifIds();
         const events = getEvents();
 
-        // Update toolbar count label
-        const unreadCount = broadcasts.filter(b => !readIds.includes(b.id)).length;
+        const unreadCount = broadcasts.filter(b => !readNotifIds.includes(String(b.id))).length;
         const countLabel = document.getElementById('notif-count-label');
         if (countLabel) {
             countLabel.innerHTML = broadcasts.length === 0 ? '' :
@@ -1315,8 +996,8 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         }
 
         list.innerHTML = broadcasts.map(b => {
-            const isRead = readIds.includes(b.id);
-            const evt = events.find(e => e.id === b.eventId);
+            const isRead = readNotifIds.includes(String(b.id));
+            const evt = events.find(e => String(e.id) === String(b.eventId));
             const evtTitle = evt ? evt.title : 'Event';
             const evtCategory = evt ? evt.category : '';
             const ts = new Date(b.timestamp);
@@ -1326,12 +1007,8 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
             return `
                 <div style="position:relative;background:white;border-radius:14px;margin-bottom:1rem;box-shadow:0 2px 12px rgba(0,0,0,${isRead ? '0.05' : '0.09'});overflow:hidden;border:1.5px solid ${isRead ? '#e5e7eb' : '#bfdbfe'};transition:box-shadow 0.2s;"
                     onmouseenter="this.style.boxShadow='0 6px 24px rgba(0,0,0,0.12)'" onmouseleave="this.style.boxShadow='0 2px 12px rgba(0,0,0,${isRead ? '0.05' : '0.09'})'">
-
-                    <!-- Unread bar -->
                     ${!isRead ? `<div style="position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#004e92,#4dabf7);border-radius:14px 0 0 14px;"></div>` : ''}
-
                     <div style="padding:1.25rem 1.5rem ${!isRead ? '1.25rem 1.75rem' : '1.25rem 1.5rem'};">
-                        <!-- Card header -->
                         <div style="display:flex;align-items:center;gap:0.875rem;margin-bottom:1rem;">
                             <div style="width:42px;height:42px;border-radius:50%;background:${isRead ? '#f1f5f9' : 'linear-gradient(135deg,#004e92,#4dabf7)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                                 <i class="fa-solid fa-bullhorn" style="font-size:1rem;color:${isRead ? '#94a3b8' : 'white'};"></i>
@@ -1340,18 +1017,14 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                                 <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
                                     <span style="font-size:0.78rem;font-weight:700;color:#004e92;background:#eff6ff;padding:3px 10px;border-radius:20px;white-space:nowrap;">${evtTitle}</span>
                                     ${evtCategory ? `<span style="font-size:0.72rem;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:20px;">${evtCategory}</span>` : ''}
-                                    ${!isRead ? `<span style="font-size:0.72rem;font-weight:700;color:#ef4444;background:#fef2f2;padding:2px 8px;border-radius:20px;">● NEW</span>` : ''}
+                                    ${!isRead ? `<span style="font-size:0.72rem;font-weight:700;color:#ef4444;background:#fef2f2;padding:2px 8px;border-radius:20px;">\u25cf NEW</span>` : ''}
                                 </div>
                                 <div style="font-size:0.75rem;color:#9ca3af;margin-top:3px;">
-                                    <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${dateStr} · ${timeStr}
+                                    <i class="fa-regular fa-calendar" style="margin-right:4px;"></i>${dateStr} \u00b7 ${timeStr}
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Message body -->
                         <p style="margin:0 0 1rem;font-size:0.95rem;color:#1f2937;line-height:1.75;word-break:break-word;">${b.message}</p>
-
-                        <!-- Footer action -->
                         ${!isRead ? `
                         <div style="display:flex;justify-content:flex-end;">
                             <button onclick="markNotifRead('${b.id}')" style="background:transparent;border:1.5px solid #004e92;color:#004e92;border-radius:8px;padding:5px 14px;cursor:pointer;font-size:0.8rem;font-weight:600;transition:all 0.2s;"
@@ -1365,12 +1038,9 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
         }).join('');
     }
 
-
     window.markNotifRead = function (notifId) {
-        const readIds = getReadNotifIds();
-        if (!readIds.includes(notifId)) {
-            readIds.push(notifId);
-            saveReadNotifIds(readIds);
+        if (!readNotifIds.includes(String(notifId))) {
+            readNotifIds.push(String(notifId));
         }
         renderNotifBadge();
         renderNotifList();
@@ -1378,21 +1048,18 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
 
     window.markAllNotifsRead = function () {
         const broadcasts = getAttendeeRelevantBroadcasts();
-        const readIds = getReadNotifIds();
         broadcasts.forEach(b => {
-            if (!readIds.includes(b.id)) readIds.push(b.id);
+            if (!readNotifIds.includes(String(b.id))) readNotifIds.push(String(b.id));
         });
-        saveReadNotifIds(readIds);
         renderNotifBadge();
         renderNotifList();
     };
 
-    // --- INIT ---
-    localStorage.removeItem(READ_NOTIFS_KEY); // Just reset read status to test unread badge
-    seedAttendeeData();
-    loadProfile();
-    renderAll();
-    initNotifications();
+    // --- INIT: fetch from database then render ---
+    initData().then(() => {
+        loadProfile();
+        renderAll();
+        renderNotifBadge();
+    });
 
 })();
-

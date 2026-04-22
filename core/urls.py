@@ -59,6 +59,9 @@ urlpatterns = [
     # Organizer Dashboard Data API
     path('api/organizer/data/', views.api_organizer_data, name='api_organizer_data'),
 
+    # Vendor Dashboard Data API
+    path('api/vendor/data/', views.api_vendor_data, name='api_vendor_data'),
+
     # Organizer Analytics API
     path('api/organizer/analytics/', views.api_organizer_analytics, name='api_organizer_analytics'),
 

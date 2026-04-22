@@ -106,21 +106,14 @@ def login_attendee(request):
 def attendee_dashboard(request):
     if request.user.role != 'ATTENDEE': return redirect('home')
 
-    # NEW: Fetch all events so we can render them with Django templating
     events = Event.objects.filter(status='APPROVED').order_by('date')
 
     user_tickets = Ticket.objects.filter(attendee=request.user)
     registered_event_ids = list(user_tickets.values_list('event_id', flat=True))
-    broadcasts = Broadcast.objects.filter(event__id__in=registered_event_ids).order_by('-timestamp')
-
-    broadcasts_data = [{
-        'id': b.id, 'eventId': b.event.id, 'message': b.message, 'timestamp': b.timestamp.isoformat()
-    } for b in broadcasts]
 
     return render(request, 'core/attendee-dashboard.html', {
         'events': events,
         'registered_event_ids': registered_event_ids,
-        'broadcasts_json': json.dumps(broadcasts_data, cls=DjangoJSONEncoder)
     })
 
 
@@ -973,6 +966,122 @@ def api_organizer_data(request):
         'eventVendors': event_vendors_data,
         'messages': messages_data,
         'broadcasts': broadcasts_data,
+    })
+
+
+# --- VENDOR DASHBOARD DATA API ---
+
+@login_required
+def api_vendor_data(request):
+    """Returns all dashboard data for the vendor, replacing localStorage."""
+    if request.user.role != 'VENDOR':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+
+    try:
+        vendor_profile = request.user.vendor_profile
+    except VendorProfile.DoesNotExist:
+        return JsonResponse({'error': 'No vendor profile'}, status=404)
+
+    today = date.today()
+
+    # Incoming requests (sent by organizer TO this vendor)
+    incoming_requests = Request.objects.filter(vendor=vendor_profile, sent_by='ORGANIZER').order_by('-created_at')
+    # Outgoing requests (sent by this vendor TO organizer)
+    outgoing_requests = Request.objects.filter(vendor=vendor_profile, sent_by='VENDOR').order_by('-created_at')
+    # Approved requests (from either side)
+    approved_requests = Request.objects.filter(vendor=vendor_profile, status='APPROVED')
+
+    # All upcoming events for browsing
+    all_events = Event.objects.filter(status='APPROVED').order_by('date')
+
+    # Already applied event IDs
+    applied_event_ids = list(
+        Request.objects.filter(vendor=vendor_profile).values_list('event_id', flat=True)
+    )
+
+    # Build events data
+    events_data = []
+    for evt in all_events:
+        events_data.append({
+            'id': str(evt.id),
+            'title': evt.title,
+            'category': evt.category or 'Other',
+            'date': evt.date.strftime('%Y-%m-%d'),
+            'time': evt.time.strftime('%H:%M') if evt.time else 'TBD',
+            'location': evt.location or 'TBD',
+            'description': evt.description or '',
+            'price': str(evt.ticket_price),
+            'tickets': [{'name': 'Standard', 'price': str(evt.ticket_price)}],
+            'withdrawalPolicy': evt.withdrawal_policy or '',
+            'attendees': Ticket.objects.filter(event=evt, status='ACTIVE').count(),
+            'organizer': evt.organizer.organization_name if evt.organizer else 'Event Organizer',
+        })
+
+    # Build invitations (organizer -> vendor)
+    invitations_data = []
+    for r in incoming_requests:
+        invitations_data.append({
+            'id': str(r.id),
+            'eventId': str(r.event.id),
+            'vendorId': str(r.vendor.id),
+            'status': r.get_status_display(),
+            'message': r.message,
+            'serviceType': '',
+            'dateSent': r.created_at.strftime('%Y-%m-%d'),
+        })
+
+    # Build applications (vendor -> organizer)
+    applications_data = []
+    for r in outgoing_requests:
+        applications_data.append({
+            'id': str(r.id),
+            'eventId': str(r.event.id),
+            'vendorId': str(r.vendor.id),
+            'status': r.get_status_display(),
+            'message': r.message,
+            'serviceType': r.message.split(']')[0].replace('[', '') if r.message.startswith('[') else '',
+            'dateReceived': r.created_at.strftime('%Y-%m-%d'),
+        })
+
+    # Build approved event-vendor data (for event management)
+    event_vendors_data = []
+    for r in approved_requests:
+        history = [{
+            'status': su.status, 'note': su.note,
+            'timestamp': su.timestamp.isoformat(), 'source': su.source
+        } for su in VendorStatusUpdate.objects.filter(request=r).order_by('timestamp')]
+        event_vendors_data.append({
+            'requestId': str(r.id),
+            'eventId': str(r.event.id),
+            'vendorId': str(r.vendor.id),
+            'status': 'Confirmed',
+            'preparationStatus': r.preparation_status or 'Pending',
+            'updateRequested': r.update_requested,
+            'statusHistory': history,
+        })
+
+    # Messages
+    messages_list = [{
+        'id': str(m.id),
+        'eventId': str(m.event.id),
+        'vendorId': str(m.vendor.id),
+        'sender': m.sender,
+        'text': m.text,
+        'timestamp': m.timestamp.isoformat()
+    } for m in Message.objects.filter(vendor=vendor_profile).order_by('timestamp')]
+
+    return JsonResponse({
+        'events': events_data,
+        'invitations': invitations_data,
+        'applications': applications_data,
+        'eventVendors': event_vendors_data,
+        'messages': messages_list,
+        'appliedEventIds': [str(eid) for eid in applied_event_ids],
+        'stats': {
+            'pendingInvites': incoming_requests.filter(status='PENDING').count(),
+            'activeEvents': approved_requests.filter(event__date__gte=today).count(),
+            'completedEvents': approved_requests.filter(event__date__lt=today).count(),
+        }
     })
 
 
