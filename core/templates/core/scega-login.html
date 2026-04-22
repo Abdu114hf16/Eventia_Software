@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body style="background-color: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
 
-    <div style="background: white; padding: 3rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center;">
+<body
+    style="background-color: #f0f2f5; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+
+    <div
+        style="background: white; padding: 3rem; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center;">
 
         <div style="margin-bottom: 2rem;">
-            <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" style="height: 50px; margin-bottom: 1rem;">
+            <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia"
+                style="height: 50px; margin-bottom: 1rem;">
             <h2 style="color: #2d3436; font-size: 1.5rem; margin: 0; font-weight: 700;">SCEGA Portal</h2>
             <p style="color: #636e72; font-size: 0.9rem; margin-top: 0.5rem;">Restricted Access</p>
         </div>
@@ -22,42 +27,49 @@
             {% csrf_token %}
 
             {% if messages %}
-                {% for message in messages %}
-                    <div style="background: #fee2e2; color: #b91c1c; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 1.5rem;">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+            {% for message in messages %}
+            <div
+                style="background: #fee2e2; color: #b91c1c; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                {{ message }}
+            </div>
+            {% endfor %}
             {% endif %}
 
             {% if form.errors %}
-                <div style="background: #fee2e2; color: #b91c1c; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 1.5rem;">
-                    Invalid credentials.
-                </div>
+            <div
+                style="background: #fee2e2; color: #b91c1c; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; margin-bottom: 1.5rem;">
+                Invalid credentials.
+            </div>
             {% endif %}
 
             <div style="margin-bottom: 1rem; text-align: left;">
-                <label style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #444;">Username</label>
+                <label
+                    style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #444;">Username</label>
                 <input type="text" name="username" required
                     style="width: 100%; padding: 0.8rem; border: 1px solid #dfe6e9; border-radius: 8px; font-size: 1rem; outline: none;">
             </div>
 
             <div style="margin-bottom: 2rem; text-align: left;">
-                <label style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #444;">Password</label>
+                <label
+                    style="display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.5rem; color: #444;">Password</label>
                 <input type="password" name="password" required
                     style="width: 100%; padding: 0.8rem; border: 1px solid #dfe6e9; border-radius: 8px; font-size: 1rem; outline: none;">
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 0.8rem;">
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; justify-content: center; padding: 0.8rem;">
                 Log In
             </button>
         </form>
 
         <div style="margin-top: 2rem; border-top: 1px solid #eee; padding-top: 1rem;">
-            <a href="{% url 'home' %}" style="color: #636e72; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;">
+            <a href="{% url 'home' %}"
+                style="color: #636e72; text-decoration: none; font-size: 0.9rem; transition: color 0.2s;">
                 &larr; Back to Eventia
             </a>
         </div>
     </div>
 
 </body>
+
 </html>

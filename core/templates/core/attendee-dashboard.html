@@ -52,7 +52,8 @@
                             style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid white;">0</span>
                     </button>
                 </div>
-                <a href="{% url 'logout' %}" class="btn btn-primary btn-sm" style="border-radius: 20px; font-size: 0.85rem;">
+                <a href="{% url 'logout' %}" class="btn btn-primary btn-sm"
+                    style="border-radius: 20px; font-size: 0.85rem;">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </div>
@@ -90,7 +91,8 @@
             </div>
         </section>
 
-    </div><div id="view-home" class="attendee-view">
+    </div>
+    <div id="view-home" class="attendee-view">
 
         <section class="hero-landing" id="hero">
             <div class="hero-bg">
@@ -119,7 +121,8 @@
                     Welcome back
                 </p>
                 <h1 class="hero-title" style="font-size: clamp(2rem, 4vw, 3.2rem); white-space: nowrap;">Hello, <span
-                        class="hero-title-gradient" id="attendee-hero-name">{{ request.user.first_name|default:"Attendee" }}</span></h1>
+                        class="hero-title-gradient" id="attendee-hero-name">{{
+                        request.user.first_name|default:"Attendee" }}</span></h1>
                 <div class="hero-tagline">
                     <div class="hero-tagline-line"></div>
                     <p>Discover events. Book tickets. Enjoy the experience.</p>
@@ -201,9 +204,11 @@
 
                 <div class="landing-events-grid" id="django-events-grid">
                     {% if events %}
-                        {% for event in events %}
-                        <div class="lp-event-card reveal-on-scroll revealed" data-category="{{ event.category }}" data-location="{{ event.location|lower }}" data-title="{{ event.title|lower }}" data-desc="{{ event.description|lower }}">
-                            <div class="lp-card-image" style="
+                    {% for event in events %}
+                    <div class="lp-event-card reveal-on-scroll revealed" data-category="{{ event.category }}"
+                        data-location="{{ event.location|lower }}" data-title="{{ event.title|lower }}"
+                        data-desc="{{ event.description|lower }}">
+                        <div class="lp-card-image" style="
                                 {% if event.banner %}background: url('{{ event.banner.url }}') center/cover no-repeat;
                                 {% elif event.category == 'Tech' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
                                 {% elif event.category == 'Art' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
@@ -213,45 +218,52 @@
                                 {% elif event.category == 'Sports' %}background: linear-gradient(135deg, #fc4a1a, #f7b733);
                                 {% else %}background: linear-gradient(135deg, #667eea, #764ba2);{% endif %}
                             ">
-                                {% if not event.banner %}
-                                    {% if event.category == 'Tech' %}<i class="fa-solid fa-laptop-code"></i>
-                                    {% elif event.category == 'Art' %}<i class="fa-solid fa-palette"></i>
-                                    {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
-                                    {% elif event.category == 'Music' %}<i class="fa-solid fa-music"></i>
-                                    {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
-                                    {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
-                                    {% else %}<i class="fa-solid fa-calendar"></i>{% endif %}
+                            {% if not event.banner %}
+                            {% if event.category == 'Tech' %}<i class="fa-solid fa-laptop-code"></i>
+                            {% elif event.category == 'Art' %}<i class="fa-solid fa-palette"></i>
+                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
+                            {% elif event.category == 'Music' %}<i class="fa-solid fa-music"></i>
+                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                            {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
+                            {% else %}<i class="fa-solid fa-calendar"></i>{% endif %}
+                            {% endif %}
+
+                            <div class="lp-card-badge">{{ event.category|default:'Event' }}</div>
+                            <div class="lp-card-price">
+                                {% if event.ticket_price > 0 %}From {{ event.ticket_price }} SR{% else %}Free{% endif %}
+                            </div>
+                        </div>
+                        <div class="lp-card-body">
+                            <h3 class="lp-card-title">{{ event.title }}</h3>
+                            <div class="lp-card-meta">
+                                <span><i class="fa-regular fa-calendar"></i> {{ event.date|date:"M d, Y" }}</span>
+                                <span><i class="fa-solid fa-location-dot"></i> {{ event.location|default:'TBD' }}</span>
+                            </div>
+                            <p class="lp-card-desc">{{ event.description|truncatechars:100 }}</p>
+                            <div class="lp-card-footer" style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-primary btn-sm lp-view-btn"
+                                    onclick="viewEventDetails('{{ event.id }}')">View Details</button>
+
+                                {% if event.id in registered_event_ids %}
+                                <button class="btn btn-sm"
+                                    style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; cursor: default;"
+                                    disabled><i class="fa-solid fa-check"></i> Registered</button>
+                                {% else %}
+                                <button class="btn btn-sm"
+                                    style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;"
+                                    onclick="openRegisterModal('{{ event.id }}')"><i class="fa-solid fa-ticket"></i>
+                                    Register</button>
                                 {% endif %}
-                                
-                                <div class="lp-card-badge">{{ event.category|default:'Event' }}</div>
-                                <div class="lp-card-price">
-                                    {% if event.ticket_price > 0 %}From {{ event.ticket_price }} SR{% else %}Free{% endif %}
-                                </div>
-                            </div>
-                            <div class="lp-card-body">
-                                <h3 class="lp-card-title">{{ event.title }}</h3>
-                                <div class="lp-card-meta">
-                                    <span><i class="fa-regular fa-calendar"></i> {{ event.date|date:"M d, Y" }}</span>
-                                    <span><i class="fa-solid fa-location-dot"></i> {{ event.location|default:'TBD' }}</span>
-                                </div>
-                                <p class="lp-card-desc">{{ event.description|truncatechars:100 }}</p>
-                                <div class="lp-card-footer" style="display: flex; gap: 0.5rem;">
-                                    <button class="btn btn-primary btn-sm lp-view-btn" onclick="viewEventDetails('{{ event.id }}')">View Details</button>
-                                    
-                                    {% if event.id in registered_event_ids %}
-                                        <button class="btn btn-sm" style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; cursor: default;" disabled><i class="fa-solid fa-check"></i> Registered</button>
-                                    {% else %}
-                                        <button class="btn btn-sm" style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;" onclick="openRegisterModal('{{ event.id }}')"><i class="fa-solid fa-ticket"></i> Register</button>
-                                    {% endif %}
-                                </div>
                             </div>
                         </div>
-                        {% endfor %}
+                    </div>
+                    {% endfor %}
                     {% else %}
-                        <div class="no-events-state" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
-                            <i class="fa-regular fa-calendar-xmark" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem; display: block;"></i>
-                            <h3 style="margin: 0 0 0.5rem; color: #555;">No events found</h3>
-                        </div>
+                    <div class="no-events-state" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                        <i class="fa-regular fa-calendar-xmark"
+                            style="font-size: 3rem; color: #ccc; margin-bottom: 1rem; display: block;"></i>
+                        <h3 style="margin: 0 0 0.5rem; color: #555;">No events found</h3>
+                    </div>
                     {% endif %}
                 </div>
 
@@ -266,11 +278,12 @@
                 </div>
                 <div id="my-tickets-container"
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
-                    </div>
+                </div>
             </div>
         </section>
 
-    </div><div id="view-history" class="attendee-view" style="display: none;">
+    </div>
+    <div id="view-history" class="attendee-view" style="display: none;">
 
         <section
             style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 6rem 0 3rem; color: white; text-align: center;">
@@ -288,11 +301,12 @@
         <section class="landing-events" id="history-section" style="background: #f0f4f8; min-height: 40vh;">
             <div class="container">
                 <div id="history-container" style="display: grid; gap: 1rem; max-width: 900px; margin: 0 auto;">
-                    </div>
+                </div>
             </div>
         </section>
 
-    </div><div id="view-profile" class="attendee-view" style="display: none;">
+    </div>
+    <div id="view-profile" class="attendee-view" style="display: none;">
 
         <section
             style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 6rem 0 3rem; color: white; text-align: center;">
@@ -312,97 +326,127 @@
                 <div style="max-width: 700px; margin: 0 auto;">
                     <div
                         style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e8e8e8;">
-                        
-                        <form id="profile-form" method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
+
+                        <form id="profile-form" method="POST" action="{% url 'update_profile' %}"
+                            enctype="multipart/form-data">
                             {% csrf_token %}
-                            
+
                             <div
                                 style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
                                 <div id="profile-avatar"
                                     style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;"
-                                    onclick="document.getElementById('pfp-upload').click()" title="Click to change photo">
-                                    
+                                    onclick="document.getElementById('pfp-upload').click()"
+                                    title="Click to change photo">
+
                                     {% if user.profile_picture %}
-                                        <img id="profile-avatar-img" src="{{ user.profile_picture.url }}"
-                                            style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;"
-                                            alt="Profile">
-                                        <span id="profile-avatar-text" style="display: none;">{{ user.first_name|first|default:"A" }}</span>
+                                    <img id="profile-avatar-img" src="{{ user.profile_picture.url }}"
+                                        style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;"
+                                        alt="Profile">
+                                    <span id="profile-avatar-text" style="display: none;">{{
+                                        user.first_name|first|default:"A" }}</span>
                                     {% else %}
-                                        <img id="profile-avatar-img"
-                                            style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: none;"
-                                            alt="Profile">
-                                        <span id="profile-avatar-text">{{ user.first_name|first|default:"A" }}</span>
+                                    <img id="profile-avatar-img"
+                                        style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: none;"
+                                        alt="Profile">
+                                    <span id="profile-avatar-text">{{ user.first_name|first|default:"A" }}</span>
                                     {% endif %}
-    
+
                                     <div
                                         style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 4px; text-align: center;">
                                         <i class="fa-solid fa-camera"></i>
                                     </div>
                                 </div>
-                                
-                                <input type="file" name="profile_picture" id="pfp-upload" accept="image/*" style="display: none;" onchange="previewAvatar(event)">
-                                
-                                <h3 id="profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ user.first_name }} {{ user.last_name }}
+
+                                <input type="file" name="profile_picture" id="pfp-upload" accept="image/*"
+                                    style="display: none;" onchange="previewAvatar(event)">
+
+                                <h3 id="profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{
+                                    user.first_name }} {{ user.last_name }}
                                 </h3>
                                 <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia
                                     Member</p>
                             </div>
-    
+
                             <div style="padding: 2rem;">
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                     <div>
-                                        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First Name</label>
-                                        <input type="text" name="first_name" id="profile-firstname" value="{{ user.first_name }}" required
+                                        <label
+                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First
+                                            Name</label>
+                                        <input type="text" name="first_name" id="profile-firstname"
+                                            value="{{ user.first_name }}" required
                                             style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                             onfocus="this.style.borderColor='#004e92'"
                                             onblur="this.style.borderColor='#e0e0e0'">
                                     </div>
                                     <div>
-                                        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last Name</label>
-                                        <input type="text" name="last_name" id="profile-lastname" value="{{ user.last_name }}" required
+                                        <label
+                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last
+                                            Name</label>
+                                        <input type="text" name="last_name" id="profile-lastname"
+                                            value="{{ user.last_name }}" required
                                             style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                             onfocus="this.style.borderColor='#004e92'"
                                             onblur="this.style.borderColor='#e0e0e0'">
                                     </div>
                                 </div>
                                 <div style="margin-bottom: 1rem;">
-                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email Address</label>
-                                    <input type="email" name="email" id="profile-email" value="{{ user.email }}" required
+                                    <label
+                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email
+                                        Address</label>
+                                    <input type="email" name="email" id="profile-email" value="{{ user.email }}"
+                                        required
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
                                 </div>
                                 <div style="margin-bottom: 1rem;">
-                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone Number</label>
-                                    <input type="tel" name="phone_number" id="profile-phone" value="{{ user.phone_number|default:'' }}"
+                                    <label
+                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
+                                        Number</label>
+                                    <input type="tel" name="phone_number" id="profile-phone"
+                                        value="{{ user.phone_number|default:'' }}"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
                                 </div>
                                 <div style="margin-bottom: 1rem;">
-                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Job Title <span style="color: #888; font-weight: 400;">(optional)</span></label>
-                                    <input type="text" name="job_title" id="profile-jobtitle" placeholder="e.g. Software Engineer" value="{{ user.attendee_profile.job_title|default:'' }}"
+                                    <label
+                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Job
+                                        Title <span style="color: #888; font-weight: 400;">(optional)</span></label>
+                                    <input type="text" name="job_title" id="profile-jobtitle"
+                                        placeholder="e.g. Software Engineer"
+                                        value="{{ user.attendee_profile.job_title|default:'' }}"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                                     <div>
-                                        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">New Password</label>
-                                        <input type="password" name="password" id="profile-password" placeholder="Leave blank to keep current"
+                                        <label
+                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">New
+                                            Password</label>
+                                        <input type="password" name="password" id="profile-password"
+                                            placeholder="Leave blank to keep current"
                                             style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                             onfocus="this.style.borderColor='#004e92'"
                                             onblur="this.style.borderColor='#e0e0e0'">
                                     </div>
                                     <div>
-                                        <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm Password</label>
-                                        <input type="password" name="password_confirm" id="profile-password-confirm" placeholder="Leave blank to keep current"
+                                        <label
+                                            style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm
+                                            Password</label>
+                                        <input type="password" name="password_confirm" id="profile-password-confirm"
+                                            placeholder="Leave blank to keep current"
                                             style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                             onfocus="this.style.borderColor='#004e92'"
                                             onblur="this.style.borderColor='#e0e0e0'">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;">
+                                <button type="submit" class="btn btn-primary"
+                                    style="width: 100%; padding: 12px; font-size: 1rem;">
                                     <i class="fa-solid fa-floppy-disk"></i> Save Changes
                                 </button>
                             </div>
@@ -412,11 +456,12 @@
             </div>
         </section>
 
-    </div><footer class="site-footer">
+    </div>
+    <footer class="site-footer">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia" class="footer-logo">
+                    <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="footer-logo">
                     <p>Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees
                         for exceptional experiences.</p>
                 </div>
@@ -511,63 +556,63 @@
             // --- AJAX Form Submission for Profile ---
             const profileForm = document.getElementById('profile-form');
             if (profileForm) {
-                profileForm.addEventListener('submit', function(e) {
-                    e.preventDefault(); 
-                    
+                profileForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
                     const btn = this.querySelector('button[type="submit"]');
                     const originalHtml = btn.innerHTML;
-                    
+
                     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
                     btn.disabled = true;
 
                     fetch(this.action, {
                         method: this.method,
-                        body: new FormData(this) 
+                        body: new FormData(this)
                     })
-                    .then(response => {
-                        if (response.ok) {
-                            btn.innerHTML = '<i class="fa-solid fa-check"></i> Profile Updated!';
-                            btn.style.background = '#16a34a';
-                            btn.style.borderColor = '#16a34a';
+                        .then(response => {
+                            if (response.ok) {
+                                btn.innerHTML = '<i class="fa-solid fa-check"></i> Profile Updated!';
+                                btn.style.background = '#16a34a';
+                                btn.style.borderColor = '#16a34a';
 
-                            setTimeout(() => {
-                                window.location.hash = 'profile';
-                                window.location.reload();
-                            }, 800);
-                        } else {
-                            alert("Error saving profile. Please check your inputs.");
+                                setTimeout(() => {
+                                    window.location.hash = 'profile';
+                                    window.location.reload();
+                                }, 800);
+                            } else {
+                                alert("Error saving profile. Please check your inputs.");
+                                btn.innerHTML = originalHtml;
+                                btn.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error("Profile save error:", error);
+                            alert("Network error while saving.");
                             btn.innerHTML = originalHtml;
                             btn.disabled = false;
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Profile save error:", error);
-                        alert("Network error while saving.");
-                        btn.innerHTML = originalHtml;
-                        btn.disabled = false;
-                    });
+                        });
                 });
             }
         });
-        
+
         function previewAvatar(event) {
             const input = event.target;
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                
-                reader.onload = function(e) {
+
+                reader.onload = function (e) {
                     const imgElement = document.getElementById('profile-avatar-img');
                     const textElement = document.getElementById('profile-avatar-text');
-                    
+
                     imgElement.src = e.target.result;
                     imgElement.style.display = 'block';
-                    
+
                     if (textElement) {
                         textElement.style.display = 'none';
                     }
                 }
-                
-                reader.readAsDataURL(input.files[0]); 
+
+                reader.readAsDataURL(input.files[0]);
             }
         }
     </script>
@@ -576,4 +621,5 @@
     <script src="{% static 'js/attendee-logic.js' %}?v=5"></script>
 
 </body>
+
 </html>

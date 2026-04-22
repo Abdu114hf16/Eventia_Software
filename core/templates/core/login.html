@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,12 +10,13 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
 
     <nav class="navbar">
         <div class="container nav-container">
             <a href="{% url 'dashboard' %}" class="logo" id="nav-logo">
-                <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia Logo" class="logo-img">
+                <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
             </a>
             <div class="nav-links">
                 <a href="{% url 'dashboard' %}" class="btn-text">Home</a>
@@ -68,4 +70,5 @@
 
     <script src="{% static 'js/app.js' %}"></script>
 </body>
+
 </html>

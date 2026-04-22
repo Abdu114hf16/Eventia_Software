@@ -17,45 +17,55 @@
     <style>
         /* Mobile overrides for inline-styled elements */
         @media (max-width: 768px) {
+
             /* Request / invitation tab cards: single column */
-            #view-requests > div:first-child,
-            #view-invitations > div:first-child {
+            #view-requests>div:first-child,
+            #view-invitations>div:first-child {
                 grid-template-columns: 1fr !important;
             }
+
             .request-tab {
                 padding: 1rem !important;
             }
+
             .request-tab div:first-child {
                 width: 40px !important;
                 height: 40px !important;
             }
+
             /* Browse events grid: single column */
             #browse-events-container {
                 grid-template-columns: 1fr !important;
             }
+
             /* Invitations/upcoming cards */
             #invitations-cards-container,
             #upcoming-events-container {
                 gap: 0.75rem !important;
             }
+
             /* Inline grid sections */
             [style*="grid-template-columns: 1fr 1fr"] {
                 grid-template-columns: 1fr !important;
             }
+
             [style*="grid-template-columns: repeat(3"] {
                 grid-template-columns: 1fr 1fr !important;
             }
+
             /* Profile container */
-            #view-profile > div {
+            #view-profile>div {
                 max-width: 100% !important;
             }
+
             /* Status bar flex wrap */
             .em-status-bar {
                 flex-wrap: wrap !important;
                 gap: 0.75rem !important;
             }
+
             /* Section filter headers */
-            .section-header > div[style*="display: flex"] {
+            .section-header>div[style*="display: flex"] {
                 flex-wrap: wrap !important;
                 gap: 0.5rem !important;
             }
@@ -66,10 +76,12 @@
                 padding: 0.85rem !important;
                 gap: 0.75rem !important;
             }
+
             .request-tab div:first-child {
                 width: 36px !important;
                 height: 36px !important;
             }
+
             [style*="grid-template-columns: repeat(3"] {
                 grid-template-columns: 1fr !important;
             }
@@ -133,7 +145,8 @@
 
             <div class="header-profile">
                 <div class="profile-info">
-                    <span class="profile-name" id="vendor-name-display">{{ request.user.vendor_profile.organization_name|default:request.user.username }}</span>
+                    <span class="profile-name" id="vendor-name-display">{{
+                        request.user.vendor_profile.organization_name|default:request.user.username }}</span>
                     <span class="profile-role"
                         style="font-size: 0.8rem; color: var(--text-muted); display: block;">Vendor</span>
                 </div>
@@ -744,7 +757,8 @@
                             </div>
                         </div>
                         <input type="file" id="vendor-pfp-upload" accept="image/*" style="display: none;">
-                        <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.vendor_profile.organization_name|default:request.user.username }}</h3>
+                        <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{
+                            request.user.vendor_profile.organization_name|default:request.user.username }}</h3>
                         <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia
                             Vendor</p>
                     </div>
@@ -756,7 +770,8 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Business
                                     Name</label>
-                                <input type="text" id="vendor-profile-bizname" value="{{ request.user.vendor_profile.organization_name }}" required
+                                <input type="text" id="vendor-profile-bizname"
+                                    value="{{ request.user.vendor_profile.organization_name }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -765,7 +780,8 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Contact
                                     Person</label>
-                                <input type="text" id="vendor-profile-contact" value="{{ request.user.get_full_name }}" required
+                                <input type="text" id="vendor-profile-contact" value="{{ request.user.get_full_name }}"
+                                    required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
@@ -783,7 +799,8 @@
                                 <label
                                     style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
                                     Number</label>
-                                <input type="tel" id="vendor-profile-phone" value="{{ request.user.phone_number }}" required
+                                <input type="tel" id="vendor-profile-phone" value="{{ request.user.phone_number }}"
+                                    required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
