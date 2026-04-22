@@ -243,7 +243,10 @@ class Command(BaseCommand):
                 last_name=org_name.split()[-1],
                 role='ORGANIZER',
             )
-            profile = OrganizerProfile.objects.create(user=user, organization_name=org_name)
+            # Signal auto-creates OrganizerProfile, so update it
+            profile = user.organizer_profile
+            profile.organization_name = org_name
+            profile.save()
             profiles.append(profile)
             self.stdout.write(f'  Organizer: {org_name}')
         return profiles
@@ -327,12 +330,12 @@ class Command(BaseCommand):
                 last_name=last,
                 role='ATTENDEE',
             )
-            AttendeeProfile.objects.create(
-                user=user,
-                date_of_birth=date(dob_year, dob_month, dob_day),
-                gender=gender,
-                job_title=job,
-            )
+            # Signal auto-creates AttendeeProfile, so update it
+            profile = user.attendee_profile
+            profile.date_of_birth = date(dob_year, dob_month, dob_day)
+            profile.gender = gender
+            profile.job_title = job
+            profile.save()
             users.append(user)
 
         self.stdout.write(f'  Created {count} attendees')
