@@ -46,7 +46,7 @@
                 </div>
                 <div style="flex: 1; text-align: center;">
                     <i class="fa-solid fa-ticket" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
-                    <h3 style="margin: 0;">{% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} SAR{% endif %}</h3>
+                    <h3 style="margin: 0;">{% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} <img src="{% static 'assets/sar_symbol.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% endif %}</h3>
                     <p style="color: #666; margin: 0;">Price</p>
                 </div>
             </div>

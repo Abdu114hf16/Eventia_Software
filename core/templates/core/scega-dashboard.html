@@ -280,6 +280,7 @@
 
     <!-- Inject event data as JSON for JS modals (view details) -->
     <script>
+        window.STATIC_URL = "{% static '' %}";
         window.CSRF_TOKEN = '{{ csrf_token }}';
         window.SCEGA_EVENTS = {
             {% for evt in pending_events %}

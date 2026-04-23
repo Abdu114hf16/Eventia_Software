@@ -230,7 +230,7 @@
 
                             <div class="lp-card-badge">{{ event.category|default:'Event' }}</div>
                             <div class="lp-card-price">
-                                {% if event.ticket_price > 0 %}From {{ event.ticket_price }} SR{% else %}Free{% endif %}
+                                {% if event.ticket_price > 0 %}From {{ event.ticket_price }} <img src="{% static 'assets/sar_white.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% else %}Free{% endif %}
                             </div>
                         </div>
                         <div class="lp-card-body">
@@ -488,6 +488,7 @@
     </footer>
 
     <script>
+        window.STATIC_URL = "{% static '' %}";
         window.CSRF_TOKEN = "{{ csrf_token }}";
 
         document.addEventListener('DOMContentLoaded', () => {

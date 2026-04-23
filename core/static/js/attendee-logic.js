@@ -4,7 +4,8 @@
  * Zero localStorage usage.
  */
 
-const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
+const SAR_ICON = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
+const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar_white.svg" class="sar-icon" alt="SAR">';
 
 (function () {
 
@@ -235,10 +236,10 @@ const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
                             </div>
                         </div>
                         <div id="reg-order-summary" style="background:#f8f9fa;border-radius:10px;padding:0.9rem 1rem;margin-bottom:1.25rem;">
-                            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span id="pay-summary-ticket">Ticket</span><span id="pay-summary-price">0 SAR</span></div>
-                            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span>Service fee</span><span>0 SAR</span></div>
+                            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span id="pay-summary-ticket">Ticket</span><span id="pay-summary-price">0 ${SAR_ICON}</span></div>
+                            <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#666;margin-bottom:6px;"><span>Service fee</span><span>0 ${SAR_ICON}</span></div>
                             <div style="height:1px;background:#e0e0e0;margin:8px 0;"></div>
-                            <div style="display:flex;justify-content:space-between;font-weight:700;color:#222;"><span>Total</span><span id="pay-summary-total">0 SAR</span></div>
+                            <div style="display:flex;justify-content:space-between;font-weight:700;color:#222;"><span>Total</span><span id="pay-summary-total">0 ${SAR_ICON}</span></div>
                         </div>
                         <div style="display:flex;gap:0.75rem;">
                             <button onclick="regGoToStep1()" style="padding:12px 16px;background:white;color:#555;border:2px solid #e0e0e0;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;"><i class="fa-solid fa-arrow-left"></i></button>
