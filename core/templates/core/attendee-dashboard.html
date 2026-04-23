@@ -159,11 +159,11 @@
                     </div>
                     <select id="landing-location-filter" class="search-select">
                         <option value="all">All Cities</option>
-                        <option value="Riyadh">Riyadh</option>
-                        <option value="Jeddah">Jeddah</option>
-                        <option value="Dammam">Dammam</option>
-                        <option value="Mecca">Mecca</option>
-                        <option value="Al Ula">Al Ula</option>
+                        <option value="riyadh">Riyadh</option>
+                        <option value="jeddah">Jeddah</option>
+                        <option value="dhahran">Dhahran</option>
+                        <option value="kaust">KAUST</option>
+                        <option value="kfupm">KFUPM</option>
                     </select>
                     <button class="btn btn-primary search-btn" id="landing-search-btn">
                         <i class="fa-solid fa-search"></i> Search
@@ -173,23 +173,44 @@
                     <button class="cat-pill active" data-category="all">
                         <i class="fa-solid fa-fire"></i> All Events
                     </button>
-                    <button class="cat-pill" data-category="Tech">
-                        <i class="fa-solid fa-laptop-code"></i> Tech
+                    <button class="cat-pill" data-category="Conference">
+                        <i class="fa-solid fa-microphone"></i> Conference
                     </button>
-                    <button class="cat-pill" data-category="Art">
-                        <i class="fa-solid fa-palette"></i> Art
+                    <button class="cat-pill" data-category="Exhibition">
+                        <i class="fa-solid fa-store"></i> Exhibition
+                    </button>
+                    <button class="cat-pill" data-category="Entertainment">
+                        <i class="fa-solid fa-masks-theater"></i> Entertainment
+                    </button>
+                    <button class="cat-pill" data-category="Workshop">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Workshop
+                    </button>
+                    <button class="cat-pill" data-category="Sports">
+                        <i class="fa-solid fa-futbol"></i> Sports
                     </button>
                     <button class="cat-pill" data-category="Business">
                         <i class="fa-solid fa-briefcase"></i> Business
                     </button>
-                    <button class="cat-pill" data-category="Music">
-                        <i class="fa-solid fa-music"></i> Music
+                    <button class="cat-pill" data-category="Food & Culture">
+                        <i class="fa-solid fa-utensils"></i> Food & Culture
+                    </button>
+                    <button class="cat-pill" data-category="Technology">
+                        <i class="fa-solid fa-laptop-code"></i> Technology
                     </button>
                     <button class="cat-pill" data-category="Education">
                         <i class="fa-solid fa-graduation-cap"></i> Education
                     </button>
-                    <button class="cat-pill" data-category="Sports">
-                        <i class="fa-solid fa-futbol"></i> Sports
+                    <button class="cat-pill" data-category="Culture">
+                        <i class="fa-solid fa-landmark"></i> Culture
+                    </button>
+                    <button class="cat-pill" data-category="Family">
+                        <i class="fa-solid fa-children"></i> Family
+                    </button>
+                    <button class="cat-pill" data-category="Shopping">
+                        <i class="fa-solid fa-bag-shopping"></i> Shopping
+                    </button>
+                    <button class="cat-pill cat-pill-reset" id="reset-filters-btn" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;display:none;">
+                        <i class="fa-solid fa-xmark"></i> Reset
                     </button>
                 </div>
             </div>
@@ -210,22 +231,34 @@
                         data-desc="{{ event.description|lower }}">
                         <div class="lp-card-image" style="
                                 {% if event.banner %}background: url('{{ event.banner.url }}') center/cover no-repeat;
-                                {% elif event.category == 'Tech' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
-                                {% elif event.category == 'Art' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
-                                {% elif event.category == 'Business' %}background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
-                                {% elif event.category == 'Music' %}background: linear-gradient(135deg, #eb3349, #f45c43);
-                                {% elif event.category == 'Education' %}background: linear-gradient(135deg, #11998e, #38ef7d);
+                                {% elif event.category == 'Conference' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+                                {% elif event.category == 'Exhibition' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
+                                {% elif event.category == 'Entertainment' %}background: linear-gradient(135deg, #eb3349, #f45c43);
+                                {% elif event.category == 'Workshop' %}background: linear-gradient(135deg, #11998e, #38ef7d);
                                 {% elif event.category == 'Sports' %}background: linear-gradient(135deg, #fc4a1a, #f7b733);
+                                {% elif event.category == 'Business' %}background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+                                {% elif event.category == 'Food & Culture' %}background: linear-gradient(135deg, #F09819, #EDDE5D);
+                                {% elif event.category == 'Technology' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+                                {% elif event.category == 'Education' %}background: linear-gradient(135deg, #56ab2f, #a8e063);
+                                {% elif event.category == 'Culture' %}background: linear-gradient(135deg, #6441A5, #2a0845);
+                                {% elif event.category == 'Family' %}background: linear-gradient(135deg, #ff6a88, #ff99ac);
+                                {% elif event.category == 'Shopping' %}background: linear-gradient(135deg, #f953c6, #b91d73);
                                 {% else %}background: linear-gradient(135deg, #667eea, #764ba2);{% endif %}
                             ">
                             {% if not event.banner %}
-                            {% if event.category == 'Tech' %}<i class="fa-solid fa-laptop-code"></i>
-                            {% elif event.category == 'Art' %}<i class="fa-solid fa-palette"></i>
-                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
-                            {% elif event.category == 'Music' %}<i class="fa-solid fa-music"></i>
-                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                            {% if event.category == 'Conference' %}<i class="fa-solid fa-microphone"></i>
+                            {% elif event.category == 'Exhibition' %}<i class="fa-solid fa-store"></i>
+                            {% elif event.category == 'Entertainment' %}<i class="fa-solid fa-masks-theater"></i>
+                            {% elif event.category == 'Workshop' %}<i class="fa-solid fa-screwdriver-wrench"></i>
                             {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
-                            {% else %}<i class="fa-solid fa-calendar"></i>{% endif %}
+                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
+                            {% elif event.category == 'Food & Culture' %}<i class="fa-solid fa-utensils"></i>
+                            {% elif event.category == 'Technology' %}<i class="fa-solid fa-laptop-code"></i>
+                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                            {% elif event.category == 'Culture' %}<i class="fa-solid fa-landmark"></i>
+                            {% elif event.category == 'Family' %}<i class="fa-solid fa-children"></i>
+                            {% elif event.category == 'Shopping' %}<i class="fa-solid fa-bag-shopping"></i>
+                            {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
                             {% endif %}
 
                             <div class="lp-card-badge">{{ event.category|default:'Event' }}</div>
@@ -267,6 +300,11 @@
                     {% endif %}
                 </div>
 
+                <div class="load-more-wrapper">
+                    <button class="btn btn-outline btn-lg" id="load-more-events">
+                        <i class="fa-solid fa-arrow-down"></i> Load More Events
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -476,8 +514,8 @@
                     <h4>Cities</h4>
                     <a href="#">Riyadh</a>
                     <a href="#">Jeddah</a>
-                    <a href="#">Dammam</a>
-                    <a href="#">Al Ula</a>
+                    <a href="#">Dhahran</a>
+                    <a href="#">KAUST</a>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -494,60 +532,177 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- Filter Django-rendered event cards ---
-            const searchInput = document.getElementById('landing-search');
-            const locFilter = document.getElementById('landing-location-filter');
-            const searchBtn = document.getElementById('landing-search-btn');
-            const pills = document.querySelectorAll('.cat-pill');
+            var EVENTS_PER_PAGE = 6;
+            var visibleCount = EVENTS_PER_PAGE;
+            var allCards = Array.from(document.querySelectorAll('#django-events-grid .lp-event-card'));
+            var searchInput = document.getElementById('landing-search');
+            var locFilter = document.getElementById('landing-location-filter');
+            var searchBtn = document.getElementById('landing-search-btn');
+            var loadMoreBtn = document.getElementById('load-more-events');
+            var resetBtn = document.getElementById('reset-filters-btn');
+            var pills = document.querySelectorAll('.cat-pill:not(.cat-pill-reset)');
+            var noEventsEl = document.getElementById('django-no-events-msg') || document.querySelector('#django-events-grid .no-events-state');
 
-            function filterDjangoEvents() {
-                const searchVal = (searchInput?.value || '').toLowerCase();
-                const locVal = locFilter?.value || 'all';
-                const activePill = document.querySelector('.cat-pill.active');
-                const catVal = activePill ? activePill.dataset.category : 'all';
+            // --- Smart Search: tokenize query, match ALL tokens in combined text ---
+            function matchesSearch(card, tokens) {
+                if (tokens.length === 0) return true;
+                var text = (card.dataset.title || '') + ' ' +
+                           (card.dataset.category || '').toLowerCase() + ' ' +
+                           (card.dataset.location || '') + ' ' +
+                           (card.dataset.desc || '');
+                return tokens.every(function (t) { return text.indexOf(t) !== -1; });
+            }
 
-                let visibleCount = 0;
+            function matchesLocation(card, city) {
+                if (city === 'all') return true;
+                return (card.dataset.location || '').indexOf(city.toLowerCase()) !== -1;
+            }
 
-                document.querySelectorAll('#django-events-grid .lp-event-card').forEach(card => {
-                    const matchesCat = catVal === 'all' || card.dataset.category === catVal;
-                    const matchesLoc = locVal === 'all' || (card.dataset.location && card.dataset.location.includes(locVal.toLowerCase()));
-                    const matchesSearch = !searchVal ||
-                        card.dataset.title.includes(searchVal) ||
-                        card.dataset.desc.includes(searchVal) ||
-                        card.dataset.location.includes(searchVal);
+            // --- Multi-select categories ---
+            function getActiveCategories() {
+                var active = document.querySelectorAll('.cat-pill.active:not(.cat-pill-reset)');
+                var cats = [];
+                active.forEach(function (p) { cats.push(p.dataset.category); });
+                return cats;
+            }
 
-                    if (matchesCat && matchesLoc && matchesSearch) {
-                        card.style.display = '';
-                        visibleCount++;
+            function matchesCategory(card, cats) {
+                if (cats.length === 0 || cats.indexOf('all') !== -1) return true;
+                return cats.indexOf(card.dataset.category) !== -1;
+            }
+
+            function getSearchTokens() {
+                var raw = (searchInput.value || '').toLowerCase().trim();
+                if (!raw) return [];
+                return raw.split(/\s+/);
+            }
+
+            function hasActiveFilters() {
+                var cats = getActiveCategories();
+                var hasSearch = (searchInput.value || '').trim() !== '';
+                var hasLoc = locFilter.value !== 'all';
+                var hasCat = cats.length > 0 && cats.indexOf('all') === -1;
+                return hasSearch || hasLoc || hasCat;
+            }
+
+            function applyFilters() {
+                var tokens = getSearchTokens();
+                var city = locFilter.value;
+                var cats = getActiveCategories();
+                var matched = 0;
+                var shown = 0;
+
+                allCards.forEach(function (card) {
+                    var passes = matchesSearch(card, tokens) &&
+                                 matchesLocation(card, city) &&
+                                 matchesCategory(card, cats);
+                    if (passes) {
+                        matched++;
+                        if (matched <= visibleCount) {
+                            card.style.display = '';
+                            card.style.animation = 'fadeInUp 0.4s ease forwards';
+                            shown++;
+                        } else {
+                            card.style.display = 'none';
+                        }
                     } else {
                         card.style.display = 'none';
                     }
                 });
 
-                let noEventsMessage = document.getElementById('django-no-events-msg');
-                if (visibleCount === 0) {
-                    if (!noEventsMessage) {
-                        noEventsMessage = document.createElement('div');
-                        noEventsMessage.id = 'django-no-events-msg';
-                        noEventsMessage.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: #888;';
-                        noEventsMessage.innerHTML = `<i class="fa-regular fa-calendar-xmark" style="font-size: 3rem; margin-bottom: 1rem; display: block; color: #ccc;"></i><h3 style="margin: 0 0 0.5rem; color: #555;">No events found</h3><p style="margin: 0;">Try adjusting your search or filters.</p>`;
-                        document.getElementById('django-events-grid').appendChild(noEventsMessage);
+                // Show/hide load more button
+                if (loadMoreBtn) {
+                    loadMoreBtn.style.display = (matched > shown) ? '' : 'none';
+                }
+
+                // Show/hide reset button
+                if (resetBtn) {
+                    resetBtn.style.display = hasActiveFilters() ? '' : 'none';
+                }
+
+                // Show/hide no-results message
+                if (matched === 0) {
+                    if (!noEventsEl) {
+                        noEventsEl = document.createElement('div');
+                        noEventsEl.id = 'django-no-events-msg';
+                        noEventsEl.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: #888;';
+                        noEventsEl.innerHTML = '<i class="fa-regular fa-calendar-xmark" style="font-size:3rem;margin-bottom:1rem;display:block;color:#ccc;"></i><h3 style="margin:0 0 0.5rem;color:#555;">No events found</h3><p style="margin:0;">Try adjusting your search or filters.</p>';
+                        document.getElementById('django-events-grid').appendChild(noEventsEl);
                     }
-                } else if (noEventsMessage) {
-                    noEventsMessage.remove();
+                    noEventsEl.style.display = '';
+                } else if (noEventsEl) {
+                    noEventsEl.style.display = 'none';
                 }
             }
 
-            if (searchInput) searchInput.addEventListener('input', filterDjangoEvents);
-            if (locFilter) locFilter.addEventListener('change', filterDjangoEvents);
-            if (searchBtn) searchBtn.addEventListener('click', filterDjangoEvents);
-
-            pills.forEach(pill => {
-                pill.addEventListener('click', () => {
-                    pills.forEach(p => p.classList.remove('active'));
-                    pill.classList.add('active');
-                    filterDjangoEvents();
+            // --- Category pills: multi-select ---
+            pills.forEach(function (pill) {
+                pill.addEventListener('click', function () {
+                    var cat = pill.dataset.category;
+                    if (cat === 'all') {
+                        // "All" clears other selections
+                        pills.forEach(function (p) { p.classList.remove('active'); });
+                        pill.classList.add('active');
+                    } else {
+                        // Remove "All" active state
+                        var allPill = document.querySelector('.cat-pill[data-category="all"]');
+                        if (allPill) allPill.classList.remove('active');
+                        // Toggle this pill
+                        pill.classList.toggle('active');
+                        // If nothing selected, revert to "All"
+                        var anyActive = document.querySelector('.cat-pill.active:not(.cat-pill-reset)');
+                        if (!anyActive && allPill) allPill.classList.add('active');
+                    }
+                    visibleCount = EVENTS_PER_PAGE;
+                    applyFilters();
                 });
             });
+
+            // --- Reset button ---
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    locFilter.value = 'all';
+                    pills.forEach(function (p) { p.classList.remove('active'); });
+                    var allPill = document.querySelector('.cat-pill[data-category="all"]');
+                    if (allPill) allPill.classList.add('active');
+                    visibleCount = EVENTS_PER_PAGE;
+                    applyFilters();
+                });
+            }
+
+            // --- Search ---
+            function triggerSearch() {
+                visibleCount = EVENTS_PER_PAGE;
+                applyFilters();
+            }
+
+            if (searchBtn) searchBtn.addEventListener('click', triggerSearch);
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function (e) {
+                    if (e.key === 'Enter') triggerSearch();
+                });
+                var debounceTimer;
+                searchInput.addEventListener('input', function () {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(function () {
+                        visibleCount = EVENTS_PER_PAGE;
+                        applyFilters();
+                    }, 300);
+                });
+            }
+            if (locFilter) locFilter.addEventListener('change', triggerSearch);
+
+            // --- Load More ---
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    visibleCount += EVENTS_PER_PAGE;
+                    applyFilters();
+                });
+            }
+
+            // --- Initial render ---
+            applyFilters();
 
             // Switch back to profile view automatically if saving via Django reload
             if (window.location.hash === '#profile') {
@@ -619,7 +774,7 @@
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="{% static 'js/attendee-logic.js' %}?v=5"></script>
+    <script src="{% static 'js/attendee-logic.js' %}?v=6"></script>
 
 </body>
 

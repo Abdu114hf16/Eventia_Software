@@ -1809,6 +1809,9 @@
                 <button class="cat-pill" data-category="Shopping">
                     <i class="fa-solid fa-bag-shopping"></i> Shopping
                 </button>
+                <button class="cat-pill cat-pill-reset" id="reset-filters-btn" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;display:none;">
+                    <i class="fa-solid fa-xmark"></i> Reset
+                </button>
             </div>
         </div>
     </section>
@@ -1987,8 +1990,8 @@
                     <h4>Cities</h4>
                     <a href="#">Riyadh</a>
                     <a href="#">Jeddah</a>
-                    <a href="#">Dammam</a>
-                    <a href="#">Al Ula</a>
+                    <a href="#">Dhahran</a>
+                    <a href="#">KAUST</a>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -2009,7 +2012,9 @@
         var locationFilter = document.getElementById('landing-location-filter');
         var searchBtn = document.getElementById('landing-search-btn');
         var loadMoreBtn = document.getElementById('load-more-events');
+        var resetBtn = document.getElementById('reset-filters-btn');
         var noEventsEl = document.querySelector('.no-events-state');
+        var pills = document.querySelectorAll('.cat-pill:not(.cat-pill-reset)');
 
         // --- Smart Search: tokenize query, match if ALL tokens found in combined text ---
         function matchesSearch(card, tokens) {
@@ -2026,14 +2031,17 @@
             return (card.dataset.location || '').indexOf(city.toLowerCase()) !== -1;
         }
 
-        function matchesCategory(card, cat) {
-            if (cat === 'all') return true;
-            return card.dataset.category === cat;
+        // --- Multi-select categories ---
+        function getActiveCategories() {
+            var active = document.querySelectorAll('.cat-pill.active:not(.cat-pill-reset)');
+            var cats = [];
+            active.forEach(function (p) { cats.push(p.dataset.category); });
+            return cats;
         }
 
-        function getActiveCategory() {
-            var active = document.querySelector('.cat-pill.active');
-            return active ? active.dataset.category : 'all';
+        function matchesCategory(card, cats) {
+            if (cats.length === 0 || cats.indexOf('all') !== -1) return true;
+            return cats.indexOf(card.dataset.category) !== -1;
         }
 
         function getSearchTokens() {
@@ -2042,17 +2050,25 @@
             return raw.split(/\s+/);
         }
 
+        function hasActiveFilters() {
+            var cats = getActiveCategories();
+            var hasSearch = (searchInput.value || '').trim() !== '';
+            var hasLoc = locationFilter.value !== 'all';
+            var hasCat = cats.length > 0 && cats.indexOf('all') === -1;
+            return hasSearch || hasLoc || hasCat;
+        }
+
         function applyFilters() {
             var tokens = getSearchTokens();
             var city = locationFilter.value;
-            var cat = getActiveCategory();
+            var cats = getActiveCategories();
             var matched = 0;
             var shown = 0;
 
             allCards.forEach(function (card) {
                 var passes = matchesSearch(card, tokens) &&
                              matchesLocation(card, city) &&
-                             matchesCategory(card, cat);
+                             matchesCategory(card, cats);
                 if (passes) {
                     matched++;
                     if (matched <= visibleCount) {
@@ -2072,6 +2088,11 @@
                 loadMoreBtn.style.display = (matched > shown) ? '' : 'none';
             }
 
+            // Show/hide reset button
+            if (resetBtn) {
+                resetBtn.style.display = hasActiveFilters() ? '' : 'none';
+            }
+
             // Show/hide no-results message
             if (matched === 0) {
                 if (!noEventsEl) {
@@ -2088,15 +2109,41 @@
             }
         }
 
-        // --- Category pills ---
-        document.querySelectorAll('.cat-pill').forEach(function (pill) {
+        // --- Category pills: multi-select ---
+        pills.forEach(function (pill) {
             pill.addEventListener('click', function () {
-                document.querySelectorAll('.cat-pill').forEach(function (p) { p.classList.remove('active'); });
-                pill.classList.add('active');
+                var cat = pill.dataset.category;
+                if (cat === 'all') {
+                    // "All" clears other selections
+                    pills.forEach(function (p) { p.classList.remove('active'); });
+                    pill.classList.add('active');
+                } else {
+                    // Remove "All" active state
+                    var allPill = document.querySelector('.cat-pill[data-category="all"]');
+                    if (allPill) allPill.classList.remove('active');
+                    // Toggle this pill
+                    pill.classList.toggle('active');
+                    // If nothing selected, revert to "All"
+                    var anyActive = document.querySelector('.cat-pill.active:not(.cat-pill-reset)');
+                    if (!anyActive && allPill) allPill.classList.add('active');
+                }
                 visibleCount = EVENTS_PER_PAGE;
                 applyFilters();
             });
         });
+
+        // --- Reset button ---
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                locationFilter.value = 'all';
+                pills.forEach(function (p) { p.classList.remove('active'); });
+                var allPill = document.querySelector('.cat-pill[data-category="all"]');
+                if (allPill) allPill.classList.add('active');
+                visibleCount = EVENTS_PER_PAGE;
+                applyFilters();
+            });
+        }
 
         // --- Search (button click + Enter key) ---
         function triggerSearch() {

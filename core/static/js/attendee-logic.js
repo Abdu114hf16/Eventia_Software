@@ -36,23 +36,35 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
 
     // --- GRADIENT MAP ---
     const categoryGradients = {
-        'Tech': 'linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC)',
-        'Art': 'linear-gradient(135deg, #8E2DE2, #4A00E0)',
-        'Business': 'linear-gradient(135deg, #0F2027, #203A43, #2C5364)',
-        'Music': 'linear-gradient(135deg, #eb3349, #f45c43)',
-        'Education': 'linear-gradient(135deg, #11998e, #38ef7d)',
+        'Conference': 'linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC)',
+        'Exhibition': 'linear-gradient(135deg, #8E2DE2, #4A00E0)',
+        'Entertainment': 'linear-gradient(135deg, #eb3349, #f45c43)',
+        'Workshop': 'linear-gradient(135deg, #11998e, #38ef7d)',
         'Sports': 'linear-gradient(135deg, #fc4a1a, #f7b733)',
-        'Other': 'linear-gradient(135deg, #636363, #a2ab58)'
+        'Business': 'linear-gradient(135deg, #0F2027, #203A43, #2C5364)',
+        'Food & Culture': 'linear-gradient(135deg, #F09819, #EDDE5D)',
+        'Technology': 'linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC)',
+        'Education': 'linear-gradient(135deg, #56ab2f, #a8e063)',
+        'Culture': 'linear-gradient(135deg, #6441A5, #2a0845)',
+        'Family': 'linear-gradient(135deg, #ff6a88, #ff99ac)',
+        'Shopping': 'linear-gradient(135deg, #f953c6, #b91d73)',
+        'Other': 'linear-gradient(135deg, #667eea, #764ba2)'
     };
 
     const categoryIcons = {
-        'Tech': 'fa-laptop-code',
-        'Art': 'fa-palette',
-        'Business': 'fa-briefcase',
-        'Music': 'fa-music',
-        'Education': 'fa-graduation-cap',
+        'Conference': 'fa-microphone',
+        'Exhibition': 'fa-store',
+        'Entertainment': 'fa-masks-theater',
+        'Workshop': 'fa-screwdriver-wrench',
         'Sports': 'fa-futbol',
-        'Other': 'fa-calendar'
+        'Business': 'fa-briefcase',
+        'Food & Culture': 'fa-utensils',
+        'Technology': 'fa-laptop-code',
+        'Education': 'fa-graduation-cap',
+        'Culture': 'fa-landmark',
+        'Family': 'fa-children',
+        'Shopping': 'fa-bag-shopping',
+        'Other': 'fa-calendar-day'
     };
 
     // --- RENDER BROWSE EVENTS (no-op: Django renders events in template) ---
