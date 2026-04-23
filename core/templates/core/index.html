@@ -1809,8 +1809,10 @@
                 <button class="cat-pill" data-category="Shopping">
                     <i class="fa-solid fa-bag-shopping"></i> Shopping
                 </button>
-                <button class="cat-pill cat-pill-reset" id="reset-filters-btn" style="background:#fee2e2;color:#dc2626;border-color:#fca5a5;display:none;">
-                    <i class="fa-solid fa-xmark"></i> Reset
+            </div>
+            <div id="reset-filters-wrapper" style="display:none;margin-top:10px;">
+                <button class="btn btn-sm" id="reset-filters-btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:50px;padding:8px 20px;font-weight:600;font-size:0.85rem;cursor:pointer;">
+                    <i class="fa-solid fa-xmark"></i> Reset Filters
                 </button>
             </div>
         </div>
@@ -2013,6 +2015,7 @@
         var searchBtn = document.getElementById('landing-search-btn');
         var loadMoreBtn = document.getElementById('load-more-events');
         var resetBtn = document.getElementById('reset-filters-btn');
+        var resetWrapper = document.getElementById('reset-filters-wrapper');
         var noEventsEl = document.querySelector('.no-events-state');
         var pills = document.querySelectorAll('.cat-pill:not(.cat-pill-reset)');
 
@@ -2089,8 +2092,8 @@
             }
 
             // Show/hide reset button
-            if (resetBtn) {
-                resetBtn.style.display = hasActiveFilters() ? '' : 'none';
+            if (resetWrapper) {
+                resetWrapper.style.display = hasActiveFilters() ? '' : 'none';
             }
 
             // Show/hide no-results message
