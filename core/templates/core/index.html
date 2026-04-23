@@ -1773,23 +1773,41 @@
                 <button class="cat-pill active" data-category="all">
                     <i class="fa-solid fa-fire"></i> All Events
                 </button>
-                <button class="cat-pill" data-category="Tech">
-                    <i class="fa-solid fa-laptop-code"></i> Tech
+                <button class="cat-pill" data-category="Conference">
+                    <i class="fa-solid fa-microphone"></i> Conference
                 </button>
-                <button class="cat-pill" data-category="Art">
-                    <i class="fa-solid fa-palette"></i> Art
+                <button class="cat-pill" data-category="Exhibition">
+                    <i class="fa-solid fa-store"></i> Exhibition
+                </button>
+                <button class="cat-pill" data-category="Entertainment">
+                    <i class="fa-solid fa-masks-theater"></i> Entertainment
+                </button>
+                <button class="cat-pill" data-category="Workshop">
+                    <i class="fa-solid fa-screwdriver-wrench"></i> Workshop
+                </button>
+                <button class="cat-pill" data-category="Sports">
+                    <i class="fa-solid fa-futbol"></i> Sports
                 </button>
                 <button class="cat-pill" data-category="Business">
                     <i class="fa-solid fa-briefcase"></i> Business
                 </button>
-                <button class="cat-pill" data-category="Music">
-                    <i class="fa-solid fa-music"></i> Music
+                <button class="cat-pill" data-category="Food & Culture">
+                    <i class="fa-solid fa-utensils"></i> Food & Culture
+                </button>
+                <button class="cat-pill" data-category="Technology">
+                    <i class="fa-solid fa-laptop-code"></i> Technology
                 </button>
                 <button class="cat-pill" data-category="Education">
                     <i class="fa-solid fa-graduation-cap"></i> Education
                 </button>
-                <button class="cat-pill" data-category="Sports">
-                    <i class="fa-solid fa-futbol"></i> Sports
+                <button class="cat-pill" data-category="Culture">
+                    <i class="fa-solid fa-landmark"></i> Culture
+                </button>
+                <button class="cat-pill" data-category="Family">
+                    <i class="fa-solid fa-children"></i> Family
+                </button>
+                <button class="cat-pill" data-category="Shopping">
+                    <i class="fa-solid fa-bag-shopping"></i> Shopping
                 </button>
             </div>
         </div>
@@ -1805,28 +1823,40 @@
 
                 {% if events %}
                 {% for event in events %}
-                <div class="lp-event-card" data-category="{{ event.category }}">
+                <div class="lp-event-card" data-category="{{ event.category }}" data-title="{{ event.title|lower }}" data-location="{{ event.location|lower }}" data-description="{{ event.description|lower|truncatechars:150 }}">
                     <div class="lp-card-image" style="
                             {% if event.banner %}
                                 background: url('{{ event.banner.url }}') center/cover no-repeat;
                             {% else %}
-                                {% if event.category == 'Tech' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
-                                {% elif event.category == 'Art' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
-                                {% elif event.category == 'Business' %}background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
-                                {% elif event.category == 'Music' %}background: linear-gradient(135deg, #eb3349, #f45c43);
-                                {% elif event.category == 'Education' %}background: linear-gradient(135deg, #11998e, #38ef7d);
+                                {% if event.category == 'Conference' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+                                {% elif event.category == 'Exhibition' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
+                                {% elif event.category == 'Entertainment' %}background: linear-gradient(135deg, #eb3349, #f45c43);
+                                {% elif event.category == 'Workshop' %}background: linear-gradient(135deg, #11998e, #38ef7d);
                                 {% elif event.category == 'Sports' %}background: linear-gradient(135deg, #fc4a1a, #f7b733);
+                                {% elif event.category == 'Business' %}background: linear-gradient(135deg, #0F2027, #203A43, #2C5364);
+                                {% elif event.category == 'Food & Culture' %}background: linear-gradient(135deg, #F09819, #EDDE5D);
+                                {% elif event.category == 'Technology' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+                                {% elif event.category == 'Education' %}background: linear-gradient(135deg, #56ab2f, #a8e063);
+                                {% elif event.category == 'Culture' %}background: linear-gradient(135deg, #6441A5, #2a0845);
+                                {% elif event.category == 'Family' %}background: linear-gradient(135deg, #ff6a88, #ff99ac);
+                                {% elif event.category == 'Shopping' %}background: linear-gradient(135deg, #f953c6, #b91d73);
                                 {% else %}background: linear-gradient(135deg, #667eea, #764ba2);{% endif %}
                             {% endif %}
                         ">
-                        
+
                         {% if not event.banner %}
-                            {% if event.category == 'Tech' %}<i class="fa-solid fa-laptop-code"></i>
-                            {% elif event.category == 'Art' %}<i class="fa-solid fa-palette"></i>
-                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
-                            {% elif event.category == 'Music' %}<i class="fa-solid fa-music"></i>
-                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                            {% if event.category == 'Conference' %}<i class="fa-solid fa-microphone"></i>
+                            {% elif event.category == 'Exhibition' %}<i class="fa-solid fa-store"></i>
+                            {% elif event.category == 'Entertainment' %}<i class="fa-solid fa-masks-theater"></i>
+                            {% elif event.category == 'Workshop' %}<i class="fa-solid fa-screwdriver-wrench"></i>
                             {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
+                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
+                            {% elif event.category == 'Food & Culture' %}<i class="fa-solid fa-utensils"></i>
+                            {% elif event.category == 'Technology' %}<i class="fa-solid fa-laptop-code"></i>
+                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                            {% elif event.category == 'Culture' %}<i class="fa-solid fa-landmark"></i>
+                            {% elif event.category == 'Family' %}<i class="fa-solid fa-children"></i>
+                            {% elif event.category == 'Shopping' %}<i class="fa-solid fa-bag-shopping"></i>
                             {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
                         {% endif %}
 
@@ -1971,20 +2001,149 @@
 
     <script src="{% static 'js/app.js' %}?v=3"></script>
     <script>
-        // Smooth scroll for nav links
-        document.querySelectorAll('.nav-scroll-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = document.querySelector(link.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    (function () {
+        var EVENTS_PER_PAGE = 6;
+        var visibleCount = EVENTS_PER_PAGE;
+        var allCards = Array.from(document.querySelectorAll('.lp-event-card'));
+        var searchInput = document.getElementById('landing-search');
+        var locationFilter = document.getElementById('landing-location-filter');
+        var searchBtn = document.getElementById('landing-search-btn');
+        var loadMoreBtn = document.getElementById('load-more-events');
+        var noEventsEl = document.querySelector('.no-events-state');
+
+        // --- Smart Search: tokenize query, match if ALL tokens found in combined text ---
+        function matchesSearch(card, tokens) {
+            if (tokens.length === 0) return true;
+            var text = (card.dataset.title || '') + ' ' +
+                       (card.dataset.category || '').toLowerCase() + ' ' +
+                       (card.dataset.location || '') + ' ' +
+                       (card.dataset.description || '');
+            return tokens.every(function (t) { return text.indexOf(t) !== -1; });
+        }
+
+        function matchesLocation(card, city) {
+            if (city === 'all') return true;
+            return (card.dataset.location || '').indexOf(city.toLowerCase()) !== -1;
+        }
+
+        function matchesCategory(card, cat) {
+            if (cat === 'all') return true;
+            return card.dataset.category === cat;
+        }
+
+        function getActiveCategory() {
+            var active = document.querySelector('.cat-pill.active');
+            return active ? active.dataset.category : 'all';
+        }
+
+        function getSearchTokens() {
+            var raw = (searchInput.value || '').toLowerCase().trim();
+            if (!raw) return [];
+            return raw.split(/\s+/);
+        }
+
+        function applyFilters() {
+            var tokens = getSearchTokens();
+            var city = locationFilter.value;
+            var cat = getActiveCategory();
+            var matched = 0;
+            var shown = 0;
+
+            allCards.forEach(function (card) {
+                var passes = matchesSearch(card, tokens) &&
+                             matchesLocation(card, city) &&
+                             matchesCategory(card, cat);
+                if (passes) {
+                    matched++;
+                    if (matched <= visibleCount) {
+                        card.style.display = '';
+                        card.style.animation = 'fadeInUp 0.4s ease forwards';
+                        shown++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                } else {
+                    card.style.display = 'none';
                 }
+            });
+
+            // Show/hide load more button
+            if (loadMoreBtn) {
+                loadMoreBtn.style.display = (matched > shown) ? '' : 'none';
+            }
+
+            // Show/hide no-results message
+            if (matched === 0) {
+                if (!noEventsEl) {
+                    noEventsEl = document.createElement('div');
+                    noEventsEl.className = 'no-events-state';
+                    noEventsEl.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 3rem;';
+                    noEventsEl.innerHTML = '<i class="fa-regular fa-calendar-xmark" style="font-size:3rem;color:#ddd;margin-bottom:1rem;display:block;"></i>' +
+                        '<p style="color:#64748b;">No events match your search. Try different keywords.</p>';
+                    document.getElementById('landing-events-grid').appendChild(noEventsEl);
+                }
+                noEventsEl.style.display = '';
+            } else if (noEventsEl) {
+                noEventsEl.style.display = 'none';
+            }
+        }
+
+        // --- Category pills ---
+        document.querySelectorAll('.cat-pill').forEach(function (pill) {
+            pill.addEventListener('click', function () {
+                document.querySelectorAll('.cat-pill').forEach(function (p) { p.classList.remove('active'); });
+                pill.classList.add('active');
+                visibleCount = EVENTS_PER_PAGE;
+                applyFilters();
             });
         });
 
-        // Navbar scroll effect
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('landing-navbar');
+        // --- Search (button click + Enter key) ---
+        function triggerSearch() {
+            visibleCount = EVENTS_PER_PAGE;
+            applyFilters();
+        }
+
+        if (searchBtn) searchBtn.addEventListener('click', triggerSearch);
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function (e) {
+                if (e.key === 'Enter') triggerSearch();
+            });
+            // Live search as user types (debounced)
+            var debounceTimer;
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    visibleCount = EVENTS_PER_PAGE;
+                    applyFilters();
+                }, 300);
+            });
+        }
+        if (locationFilter) locationFilter.addEventListener('change', triggerSearch);
+
+        // --- Load More ---
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function () {
+                visibleCount += EVENTS_PER_PAGE;
+                applyFilters();
+            });
+        }
+
+        // --- Initial render: show first batch ---
+        applyFilters();
+
+        // --- Smooth scroll for nav links ---
+        document.querySelectorAll('.nav-scroll-link').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var target = document.querySelector(link.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        // --- Navbar scroll effect ---
+        window.addEventListener('scroll', function () {
+            var nav = document.getElementById('landing-navbar');
             if (window.scrollY > 50) {
                 nav.classList.add('nav-scrolled');
             } else {
@@ -1992,48 +2151,31 @@
             }
         });
 
-        // Category pill toggle
-        document.querySelectorAll('.cat-pill').forEach(pill => {
-            pill.addEventListener('click', () => {
-                document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
-                pill.classList.add('active');
-                const cat = pill.dataset.category;
-                document.querySelectorAll('.lp-event-card').forEach(card => {
-                    if (cat === 'all' || card.dataset.category === cat) {
-                        card.style.display = '';
-                        card.style.animation = 'fadeInUp 0.4s ease forwards';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-            });
-        });
-
-        // Save/heart toggle
-        document.querySelectorAll('.lp-card-save').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const icon = btn.querySelector('i');
+        // --- Save/heart toggle ---
+        document.querySelectorAll('.lp-card-save').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var icon = btn.querySelector('i');
                 icon.classList.toggle('fa-regular');
                 icon.classList.toggle('fa-solid');
                 btn.classList.toggle('saved');
             });
         });
 
-        // Scroll reveal animation
-        const observerOptions = { threshold: 0.1, rootMargin: '0px 0px -50px 0px' };
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+        // --- Scroll reveal animation ---
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('revealed');
                     observer.unobserve(entry.target);
                 }
             });
-        }, observerOptions);
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-        document.querySelectorAll('.lp-event-card, .hiw-card, .pstat, .cta-card').forEach(el => {
+        document.querySelectorAll('.hiw-card, .pstat, .cta-card').forEach(function (el) {
             el.classList.add('reveal-on-scroll');
             observer.observe(el);
         });
+    })();
     </script>
 </body>
 
