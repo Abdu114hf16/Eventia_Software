@@ -107,10 +107,6 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-STATICFILES_DIRS = [
-    BASE_DIR / "core" / "static",
-]
-
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 LOGIN_REDIRECT_URL = 'dashboard'
