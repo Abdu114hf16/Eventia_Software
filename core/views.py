@@ -84,17 +84,15 @@ def login_attendee(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+
+            # Prevent non-attendees from logging in here
+            if user.role != 'ATTENDEE':
+                messages.error(request, "Access Denied. Organizers and Vendors must use the Business Login page.")
+                return render(request, 'core/login.html', {'form': form})
+
+            # If they are an attendee, log them in
             login(request, user)
-
-            # --- EXPLICIT REDIRECT LOGIC ---
-            if user.role == 'ATTENDEE':
-                return redirect('attendee_dashboard')
-            elif user.role == 'ORGANIZER':
-                return redirect('organizer_dashboard')
-            elif user.role == 'SCEGA_ADMIN':
-                return redirect('scega_dashboard')
-
-            return redirect('dashboard')
+            return redirect('attendee_dashboard')
         else:
             messages.error(request, "Invalid credentials.")
     else:
@@ -266,14 +264,18 @@ def login_business(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+
+            # Prevent attendees (or SCEGA admins) from logging in here
+            if user.role not in ['ORGANIZER', 'VENDOR']:
+                messages.error(request, "Access Denied. Attendees must use the standard login page.")
+                return render(request, 'core/login-business.html', {'form': form})
+
+            # Log them in and redirect based on their specific business role
             login(request, user)
             if user.role == 'ORGANIZER':
                 return redirect('organizer_dashboard')
             elif user.role == 'VENDOR':
                 return redirect('vendor_dashboard')
-            elif user.role == 'SCEGA_ADMIN':
-                return redirect('scega_dashboard')
-            return redirect('dashboard')
         else:
             messages.error(request, "Invalid business credentials.")
     else:
