@@ -294,18 +294,6 @@ function initVendorDashboard() {
                 </div>`;
         }
 
-        const policyLabels = { 'flexible': 'Flexible \u2014 Up to 7 days before event', 'moderate': 'Moderate \u2014 Up to 14 days before event', 'strict': 'Strict \u2014 Up to 30 days before event', 'non-refundable': 'Non-refundable \u2014 No withdrawal allowed' };
-        const policyColors = { 'flexible': '#2e7d32', 'moderate': '#ff9800', 'strict': '#e65100', 'non-refundable': '#c62828' };
-        const policyBgs = { 'flexible': '#e8f5e9', 'moderate': '#fff3e0', 'strict': '#fbe9e7', 'non-refundable': '#ffebee' };
-        const pol = event.withdrawalPolicy;
-        const policySection = pol && policyLabels[pol] ? `
-            <div style="margin-bottom: 1.25rem; background: ${policyBgs[pol]}; padding: 1rem; border-radius: 10px; border-left: 4px solid ${policyColors[pol]};">
-                <div style="font-size: 0.8rem; color: ${policyColors[pol]}; text-transform: uppercase; font-weight: 600; margin-bottom: 6px;">
-                    <i class="fa-solid fa-shield-halved" style="margin-right: 4px;"></i>WITHDRAWAL POLICY
-                </div>
-                <span style="font-weight: 600; color: #333; font-size: 0.95rem;">${policyLabels[pol]}</span>
-            </div>` : '';
-
         const modal = document.createElement('div');
         modal.id = 'invitation-details-modal';
         modal.innerHTML = `
@@ -341,7 +329,6 @@ function initVendorDashboard() {
                             <div style="font-size: 0.8rem; color: #5f6368; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">DESCRIPTION</div>
                             <p style="margin: 0; line-height: 1.6; color: #333;">${event.description || 'No description provided.'}</p>
                         </div>
-                        ${policySection}
                         ${req.message ? `
                         <div style="margin-bottom: 1.25rem; background: #e8f0fe; padding: 1rem; border-radius: 8px; border-left: 3px solid #1a73e8;">
                             <div style="font-size: 0.8rem; color: #1565c0; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;"><i class="fa-solid fa-envelope" style="margin-right: 4px;"></i>MESSAGE FROM ORGANIZER</div>
@@ -536,7 +523,6 @@ function initVendorDashboard() {
         }).catch(err => { console.error(err); showToast('Failed to accept invitation.'); });
     };
 
-    // Reject Logic
     window.openRejectModal = function (requestId) {
         const req = getInvitations().find(r => String(r.id) === String(requestId));
         if (!req) return;
@@ -582,77 +568,10 @@ function initVendorDashboard() {
         });
     }
 
-    // Withdraw Logic
-    function getWithdrawalPolicyInfo(policy, eventDate) {
-        const policyLabels = { 'flexible': 'Flexible \u2014 Up to 7 days before event', 'moderate': 'Moderate \u2014 Up to 14 days before event', 'strict': 'Strict \u2014 Up to 30 days before event', 'non-refundable': 'Non-refundable \u2014 No withdrawal allowed' };
-        const policyColors = { 'flexible': '#2e7d32', 'moderate': '#ff9800', 'strict': '#e65100', 'non-refundable': '#c62828' };
-        const policyBgs = { 'flexible': '#e8f5e9', 'moderate': '#fff3e0', 'strict': '#fbe9e7', 'non-refundable': '#ffebee' };
-        const policyIcons = { 'flexible': 'fa-unlock', 'moderate': 'fa-clock', 'strict': 'fa-lock', 'non-refundable': 'fa-ban' };
-
-        const label = policyLabels[policy] || 'No policy set';
-        const color = policyColors[policy] || '#666';
-        const bg = policyBgs[policy] || '#f5f5f5';
-        const icon = policyIcons[policy] || 'fa-shield';
-
-        let allowed = true;
-        let reason = '';
-        const now = new Date();
-        const evtDate = new Date(eventDate);
-        const daysUntilEvent = Math.ceil((evtDate - now) / (1000 * 60 * 60 * 24));
-
-        if (policy === 'non-refundable') { allowed = false; reason = 'Non-refundable policy. You cannot withdraw.'; }
-        else if (policy === 'strict' && daysUntilEvent < 30) { allowed = false; reason = `Deadline passed. Requires 30 days (${daysUntilEvent} remaining).`; }
-        else if (policy === 'moderate' && daysUntilEvent < 14) { allowed = false; reason = `Deadline passed. Requires 14 days (${daysUntilEvent} remaining).`; }
-        else if (policy === 'flexible' && daysUntilEvent < 7) { allowed = false; reason = `Deadline passed. Requires 7 days (${daysUntilEvent} remaining).`; }
-
-        return { label, color, bg, icon, allowed, reason, daysUntilEvent };
-    }
-
     window.openWithdrawModal = function (requestId) {
-        const evVendor = getEventVendors().find(ev => String(ev.requestId) === String(requestId));
-        if (!evVendor) return;
-
-        const events = getEvents();
-        const event = events.find(e => String(e.id) === String(evVendor.eventId));
-        const eventTitle = event ? event.title : 'Unknown Event';
-        const eventDate = event ? event.date : null;
-        const policy = event ? event.withdrawalPolicy : null;
-        const policyInfo = getWithdrawalPolicyInfo(policy, eventDate);
-
-        const policyBanner = document.getElementById('withdraw-policy-banner');
-        if (policyBanner) {
-            if (policy) {
-                policyBanner.style.display = 'block';
-                policyBanner.style.background = policyInfo.bg;
-                policyBanner.style.borderLeftColor = policyInfo.color;
-                policyBanner.innerHTML = `
-                <div style="display: flex; gap: 0.75rem; align-items: start;">
-                    <i class="fa-solid fa-shield-halved" style="color: ${policyInfo.color}; font-size: 1.1rem; margin-top: 2px;"></i>
-                    <div>
-                        <strong style="color: ${policyInfo.color}; display: block; margin-bottom: 4px;">Withdrawal Policy</strong>
-                        <p style="margin: 0; color: #555; font-size: 0.85rem; line-height: 1.5;"><i class="fa-solid ${policyInfo.icon}" style="margin-right: 4px;"></i>${policyInfo.label}</p>
-                        ${!policyInfo.allowed ? `<p style="margin: 6px 0 0; color: ${policyInfo.color}; font-size: 0.85rem; font-weight: 600;"><i class="fa-solid fa-circle-exclamation" style="margin-right: 4px;"></i>${policyInfo.reason}</p>` : ''}
-                    </div>
-                </div>`;
-            } else {
-                policyBanner.style.display = 'none';
-            }
-        }
-
-        const submitBtn = document.querySelector('#withdraw-form button[type="submit"]');
-        const reasonField = document.getElementById('withdraw-reason');
-        if (!policyInfo.allowed) {
-            if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; submitBtn.style.cursor = 'not-allowed'; }
-            if (reasonField) { reasonField.disabled = true; reasonField.placeholder = 'Withdrawal is not allowed under the current policy.'; reasonField.required = false; }
-        } else {
-            if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.style.cursor = 'pointer'; }
-            if (reasonField) { reasonField.disabled = false; reasonField.placeholder = 'Please provide a reason for your withdrawal...'; reasonField.required = true; }
-        }
-
         document.getElementById('withdraw-request-id').value = requestId;
-        document.getElementById('withdraw-event-title').value = eventTitle;
-        document.getElementById('withdraw-event-name-display').textContent = eventTitle;
-
+        
+        // Modal UI setup happens via DB fetch within HTML script tags now
         const modal = document.getElementById('withdraw-modal');
         if (modal) modal.style.display = 'flex';
     };
@@ -689,30 +608,9 @@ function initVendorDashboard() {
         });
     }
 
-    // Apply Modal Logic
     window.openApplyModal = function (eventId) {
         document.getElementById('apply-event-id').value = eventId;
-
-        const events = getEvents();
-        const event = events.find(e => String(e.id) === String(eventId));
-        const policyBanner = document.getElementById('apply-policy-banner');
-        if (event && policyBanner && event.withdrawalPolicy) {
-            const policyInfo = getWithdrawalPolicyInfo(event.withdrawalPolicy, event.date);
-            policyBanner.style.display = 'block';
-            policyBanner.style.background = policyInfo.bg;
-            policyBanner.style.borderLeftColor = policyInfo.color;
-            policyBanner.innerHTML = `
-                <div style="display: flex; gap: 0.75rem; align-items: start;">
-                    <i class="fa-solid fa-shield-halved" style="color: ${policyInfo.color}; font-size: 1.1rem; margin-top: 2px;"></i>
-                    <div>
-                        <strong style="color: ${policyInfo.color}; display: block; margin-bottom: 4px;">Withdrawal Policy</strong>
-                        <p style="margin: 0; color: #555; font-size: 0.85rem;"><i class="fa-solid ${policyInfo.icon}" style="margin-right: 4px;"></i>${policyInfo.label}</p>
-                    </div>
-                </div>`;
-        } else if (policyBanner) {
-            policyBanner.style.display = 'none';
-        }
-
+        // DB Fetch happens in HTML
         document.getElementById('apply-modal').classList.remove('hidden');
     };
 
@@ -791,7 +689,6 @@ function initVendorDashboard() {
         });
     }
 
-    // Tab switching for Invitations view
     const requestTabs = document.querySelectorAll('.request-tab');
     requestTabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -826,7 +723,6 @@ function initVendorDashboard() {
         });
     });
 
-    // Filter Listeners
     const inviteFilter = document.getElementById('invite-filter');
     if (inviteFilter) inviteFilter.addEventListener('change', renderInvitations);
     const applicationsFilter = document.getElementById('applications-status-filter');
@@ -838,7 +734,6 @@ function initVendorDashboard() {
     const browseFilter = document.getElementById('browse-events-filter');
     if (browseFilter) browseFilter.addEventListener('change', renderBrowseEvents);
 
-    // Browse Events category pills
     const browsePills = document.querySelectorAll('.browse-category-pill');
     browsePills.forEach(pill => {
         pill.addEventListener('click', () => {
@@ -995,13 +890,11 @@ function initVendorDashboard() {
     const vemStatusModal = document.getElementById('vem-status-update-modal');
     if (vemStatusModal) vemStatusModal.addEventListener('click', (e) => { if (e.target === vemStatusModal) closeVendorStatusUpdateModal(); });
 
-    // --- Open Vendor Event Management ---
     window.openVendorEventManage = function (eventId, requestId) {
         const events = getEvents();
         const evt = events.find(e => String(e.id) === String(eventId));
         if (!evt) return;
 
-        const evVendor = getEventVendors().find(ev => String(ev.requestId) === String(requestId));
         currentManagedEventId = eventId;
         currentManagedRequestId = requestId;
 
@@ -1044,19 +937,6 @@ function initVendorDashboard() {
             ticketsEl.innerHTML = '<p style="color:#888;margin:0;">No ticket tiers defined.</p>';
         }
 
-        const policyMeta = {
-            'flexible': { label: '\u2726 Flexible', css: 'em-policy-flexible', desc: 'Withdrawal allowed up to 7 days before the event.' },
-            'moderate': { label: '\u2726 Moderate', css: 'em-policy-moderate', desc: 'Withdrawal allowed up to 14 days before the event.' },
-            'strict': { label: '\u2726 Strict', css: 'em-policy-strict', desc: 'Withdrawal allowed up to 30 days before the event.' },
-            'non-refundable': { label: '\u2726 Non-refundable', css: 'em-policy-non-refundable', desc: 'No withdrawal permitted once confirmed.' }
-        };
-        const vendorBadgeEl = document.getElementById('vem-ov-vendor-policy-badge');
-        const vendorDescEl = document.getElementById('vem-ov-vendor-policy-desc');
-        const vendorPol = evt.withdrawalPolicy ? policyMeta[evt.withdrawalPolicy] : null;
-        vendorBadgeEl.className = 'em-policy-badge ' + (vendorPol ? vendorPol.css : 'em-policy-none');
-        vendorBadgeEl.textContent = vendorPol ? vendorPol.label : '\u2014 Not Set';
-        vendorDescEl.textContent = vendorPol ? vendorPol.desc : 'No withdrawal policy configured.';
-
         renderVendorOrgConversation(eventId);
         renderVendorPreparationCard(eventId);
         renderUpdateRequestBanner(eventId);
@@ -1081,7 +961,6 @@ function initVendorDashboard() {
         switchView('event-manage');
     };
 
-    // Tab switching for vendor event manage
     document.querySelectorAll('[data-vemtab]').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('[data-vemtab]').forEach(t => t.classList.remove('active'));
@@ -1093,7 +972,6 @@ function initVendorDashboard() {
         });
     });
 
-    // --- Render organizer conversation preview ---
     function renderVendorOrgConversation(eventId) {
         const allMessages = getMessages();
         const msgs = allMessages.filter(m => String(m.eventId) === String(eventId)).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -1127,7 +1005,6 @@ function initVendorDashboard() {
         if (convItem) convItem.onclick = function () { openOrganizerChat(eventId); };
     }
 
-    // --- Organizer Chat ---
     window.openOrganizerChat = function (eventId) {
         currentManagedEventId = eventId;
         const events = getEvents();
@@ -1169,41 +1046,6 @@ function initVendorDashboard() {
         setTimeout(() => { body.scrollTop = body.scrollHeight; }, 50);
     }
 
-    // Send chat message as vendor
-    const vemChatSendBtn = document.getElementById('vem-chat-send-btn');
-    const vemChatInput = document.getElementById('vem-chat-input');
-    if (vemChatSendBtn && vemChatInput) {
-        function sendVendorChatMessage() {
-            const text = vemChatInput.value.trim();
-            if (!text || !currentManagedEventId) return;
-
-            const evVendor = getEventVendors().find(v => String(v.eventId) === String(currentManagedEventId));
-            if (!evVendor) return;
-
-            fetch('/api/send_message/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': window.CSRF_TOKEN },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    event_id: currentManagedEventId,
-                    vendor_id: evVendor.vendorId,
-                    sender: 'vendor',
-                    text: text
-                })
-            }).then(async () => {
-                vemChatInput.value = '';
-                await loadData();
-                renderVendorChatMessages(currentManagedEventId);
-            }).catch(err => { console.error(err); showToast('Failed to send message.'); });
-        }
-
-        vemChatSendBtn.addEventListener('click', sendVendorChatMessage);
-        vemChatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendVendorChatMessage(); } });
-    }
-
-    const vemChatModal = document.getElementById('vem-chat-modal');
-    if (vemChatModal) vemChatModal.addEventListener('click', (e) => { if (e.target === vemChatModal) closeOrganizerChat(); });
-
     function showToast(msg) {
         const toast = document.createElement('div');
         toast.className = 'toast-notification';
@@ -1213,7 +1055,6 @@ function initVendorDashboard() {
         setTimeout(() => toast.remove(), 3000);
     }
 
-    // --- INIT: fetch from database then render ---
     loadData().then(() => {
         renderUpcomingEvents();
         renderMyApplications();
