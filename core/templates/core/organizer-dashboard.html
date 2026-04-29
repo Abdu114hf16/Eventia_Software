@@ -90,10 +90,8 @@
 
 <body class="dashboard-body">
 
-    <!-- Sidebar Backdrop (tap to close on mobile) -->
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="sidebar-logo">
@@ -105,7 +103,7 @@
 
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-view="overview">
-                <i class="fa-solid fa-grid-2"></i> Dashboard
+                <i class="fa-solid fa-house"></i> Dashboard
             </a>
             <a href="#" class="nav-item" data-view="create-event">
                 <i class="fa-solid fa-circle-plus"></i> Create Event
@@ -122,22 +120,21 @@
             <a href="#" class="nav-item" data-view="analytics">
                 <i class="fa-solid fa-chart-pie"></i> Analytics
             </a>
+            <a href="#" class="nav-item" data-view="profile" onclick="switchView('profile')">
+                <i class="fa-solid fa-user-gear"></i> Profile
+            </a>
         </nav>
 
         <div class="sidebar-footer">
-            <a href="#" class="nav-item" data-view="profile">
-                <i class="fa-solid fa-user-gear"></i> Profile
-            </a>
+
             <a href="{% url 'logout' %}" class="nav-item">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
         </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="dashboard-main">
 
-        <!-- Top Bar -->
         <header class="dashboard-header">
             <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
                 <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
@@ -152,13 +149,17 @@
                     <span class="profile-role"
                         style="font-size: 0.8rem; color: var(--text-muted); display: block;">Organizer</span>
                 </div>
-                <div class="profile-avatar">{{ request.user.first_name|make_list|first }}{{ request.user.last_name|make_list|first }}</div>
+                <div class="profile-avatar">
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;" alt="Profile">
+                    {% else %}
+                        {{ request.user.first_name|make_list|first }}{{ request.user.last_name|make_list|first }}
+                    {% endif %}
+                </div>
             </div>
         </header>
 
-        <!-- VIEW: DASHBOARD OVERVIEW -->
         <section id="view-overview" class="content-section active">
-            <!-- Stats -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
@@ -184,23 +185,19 @@
                 </div>
             </div>
 
-            <!-- Recent Activity / Quick List -->
             <div class="section-header">
                 <h2>Recent Events</h2>
                 <a href="#" class="btn btn-outline btn-sm" onclick="switchView('events-list')">View All</a>
             </div>
             <div id="recent-events-list">
-                <!-- Populated via JS -->
                 <p class="text-muted" style="text-align: center; padding: 2rem;">No events created yet.</p>
             </div>
         </section>
 
-        <!-- VIEW: CREATE EVENT -->
         <section id="view-create-event" class="content-section">
 
             <form id="create-event-form" class="create-event-form">
 
-                <!-- Basic Info Section -->
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> Basic Information</h3>
                     <div class="form-row">
@@ -224,7 +221,6 @@
                     </div>
                 </div>
 
-                <!-- Date & Location Section -->
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-calendar-days"></i> Date & Location</h3>
                     <div class="form-row">
@@ -244,7 +240,6 @@
                     </div>
                 </div>
 
-                <!-- Details Section -->
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-align-left"></i> Event Details</h3>
                     <div class="input-group">
@@ -255,7 +250,6 @@
                     </div>
                 </div>
 
-                <!-- Policies Section -->
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-shield-halved"></i> Withdrawal Policies</h3>
                     <div class="form-row">
@@ -293,14 +287,11 @@
                     </div>
                 </div>
 
-                <!-- Pricing & Media Section -->
                 <div class="form-section">
                     <h3 class="form-section-title"><i class="fa-solid fa-ticket"></i> Tickets</h3>
-                    <!-- Ticket Categories (Full Width) -->
                     <div class="input-group">
                         <label><i class="fa-solid fa-ticket"></i> Ticket Categories *</label>
                         <div id="ticket-categories-container">
-                            <!-- Dynamic Ticket Rows will be added here -->
                             <div class="ticket-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
                                 <input type="text" class="ticket-name" placeholder="Name (e.g. General)"
                                     value="Standard" required style="flex: 2;">
@@ -319,7 +310,6 @@
                         </button>
                     </div>
 
-                    <!-- Event Banner (Moved below) -->
                     <div class="input-group">
                         <label><i class="fa-solid fa-image"></i> Event Banner</label>
                         <div class="file-upload-area">
@@ -343,7 +333,6 @@
             </form>
         </section>
 
-        <!-- VIEW: EVENTS LIST -->
         <section id="view-events-list" class="content-section">
             <div class="section-header">
                 <div class="section-actions">
@@ -360,7 +349,6 @@
                 </div>
             </div>
 
-            <!-- Events List Header -->
             <div class="events-list-header"
                 style="display: grid; grid-template-columns: 80px 1fr 140px 120px; gap: 1.5rem; padding: 1rem 1.5rem; background: #f8f9fa; border-radius: 12px; margin-bottom: 1rem; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);">
                 <span>Date</span>
@@ -370,13 +358,10 @@
             </div>
 
             <div id="all-events-container">
-                <!-- Populated via JS -->
-            </div>
+                </div>
         </section>
 
-        <!-- VIEW: EVENT MANAGEMENT -->
         <section id="view-event-manage" class="content-section">
-            <!-- Header Bar -->
             <div class="em-header">
                 <button class="em-back-btn" onclick="switchView('events-list')">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -386,7 +371,6 @@
                 </div>
             </div>
 
-            <!-- Status Bar (below header) -->
             <div class="em-status-bar">
                 <div class="em-status-item">
                     <span class="em-status-label">Event Status</span>
@@ -398,7 +382,6 @@
                 </div>
             </div>
 
-            <!-- Quick Stats Row -->
             <div class="em-stats-row">
                 <div class="em-stat-card">
                     <div class="em-stat-icon" style="background: rgba(21, 101, 192, 0.12); color: #1565c0;">
@@ -438,7 +421,6 @@
                 </div>
             </div>
 
-            <!-- Tab Navigation -->
             <div class="em-tabs">
                 <button class="em-tab active" data-emtab="overview">
                     <i class="fa-solid fa-info-circle"></i> Overview
@@ -454,10 +436,8 @@
                 </button>
             </div>
 
-            <!-- Tab Content: Overview -->
             <div class="em-tab-content active" id="em-tab-overview">
                 <div class="em-overview-grid">
-                    <!-- Event Details Card -->
                     <div class="em-detail-card em-card-blue">
                         <div class="em-detail-card-header">
                             <i class="fa-solid fa-info-circle"></i> Event Details
@@ -490,7 +470,6 @@
                                 </div>
                                 <div class="em-detail-item-content" style="flex: 1;">
                                     <span class="em-detail-label">Description</span>
-                                    <!-- Display mode -->
                                     <div id="em-description-display"
                                         style="display: flex; align-items: flex-start; gap: 0.5rem;">
                                         <span class="em-detail-value" id="em-ov-description" style="flex: 1;">—</span>
@@ -501,7 +480,6 @@
                                             <i class="fa-solid fa-pen" style="font-size: 0.7rem;"></i> Edit
                                         </button>
                                     </div>
-                                    <!-- Edit mode (hidden by default) -->
                                     <div id="em-description-edit"
                                         style="display: none; flex-direction: column; gap: 0.5rem;">
                                         <textarea id="em-desc-textarea" rows="4"
@@ -522,7 +500,6 @@
                         </div>
                     </div>
 
-                    <!-- Date & Location Card -->
                     <div class="em-detail-card em-card-purple">
                         <div class="em-detail-card-header">
                             <i class="fa-solid fa-calendar-days"></i> Date &amp; Location
@@ -561,14 +538,12 @@
                         </div>
                     </div>
 
-                    <!-- Withdrawal Policy Card (Full Width) -->
                     <div class="em-detail-card em-full-width em-card-green">
                         <div class="em-detail-card-header">
                             <i class="fa-solid fa-shield-halved"></i> Withdrawal Policies
                         </div>
                         <div class="em-detail-card-body">
                             <div class="em-policy-panels">
-                                <!-- Vendor Policy -->
                                 <div class="em-policy-panel">
                                     <div class="em-policy-panel-title">
                                         <i class="fa-solid fa-store"></i> Vendor Policy
@@ -579,9 +554,7 @@
                                     <p class="em-policy-desc" id="em-ov-vendor-policy-desc">Applies to vendors
                                         participating in this event.</p>
                                 </div>
-                                <!-- Divider -->
                                 <div class="em-policy-divider"></div>
-                                <!-- Attendee Policy -->
                                 <div class="em-policy-panel">
                                     <div class="em-policy-panel-title">
                                         <i class="fa-solid fa-users"></i> Attendee Policy
@@ -596,19 +569,16 @@
                         </div>
                     </div>
 
-                    <!-- Ticket Tiers Card (Full Width) -->
                     <div class="em-detail-card em-full-width em-card-amber">
                         <div class="em-detail-card-header">
                             <i class="fa-solid fa-ticket"></i> Ticket Tiers
                         </div>
                         <div class="em-detail-card-body" id="em-ov-tickets">
-                            <!-- Populated via JS -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab Content: Vendors -->
             <div class="em-tab-content" id="em-tab-vendors">
                 <div class="em-vendors-toolbar">
                     <span id="em-vendors-count" class="em-vendors-count-label">0 vendors</span>
@@ -617,13 +587,10 @@
                     </button>
                 </div>
                 <div id="em-vendors-list" class="em-vendors-list">
-                    <!-- Populated via JS -->
-                </div>
+                    </div>
             </div>
 
-            <!-- Tab Content: Communication -->
             <div class="em-tab-content" id="em-tab-communication">
-                <!-- Sub-tabs -->
                 <div class="em-comm-subtabs">
                     <button class="em-comm-subtab active" data-commtab="vendor-msgs">
                         <i class="fa-solid fa-comments"></i> Vendor Messages
@@ -633,14 +600,11 @@
                     </button>
                 </div>
 
-                <!-- Vendor Messages Sub-panel -->
                 <div class="em-comm-panel active" id="em-comm-vendor-msgs">
                     <div id="em-vendor-conversations" class="em-conversations-list">
-                        <!-- Populated via JS -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Broadcasts Sub-panel -->
                 <div class="em-comm-panel" id="em-comm-broadcasts">
                     <div class="em-broadcast-compose">
                         <h4><i class="fa-solid fa-bullhorn"></i> New Broadcast to All Attendees</h4>
@@ -653,14 +617,12 @@
                     <div class="em-broadcast-history">
                         <h4><i class="fa-solid fa-clock-rotate-left"></i> Past Broadcasts</h4>
                         <div id="em-broadcasts-list">
-                            <!-- Populated via JS -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
 
 
-            <!-- Tab Content: Actions -->
             <div class="em-tab-content" id="em-tab-actions">
                 <div class="em-actions-grid">
                     <div class="em-action-card" id="em-action-edit">
@@ -688,7 +650,6 @@
             </div>
         </section>
 
-        <!-- MODAL: VENDOR CHAT -->
         <div id="em-chat-modal" class="modal-overlay hidden" style="z-index: 1002;">
             <div class="modal em-chat-modal-box">
                 <div class="em-chat-header">
@@ -709,8 +670,7 @@
                     </button>
                 </div>
                 <div class="em-chat-body" id="em-chat-body">
-                    <!-- Messages populated via JS -->
-                </div>
+                    </div>
                 <div class="em-chat-input-area">
                     <input type="text" id="em-chat-input" placeholder="Type a message..." autocomplete="off">
                     <button class="em-chat-send-btn" id="em-chat-send-btn">
@@ -720,7 +680,6 @@
             </div>
         </div>
 
-        <!-- MODAL: VENDOR STATUS DETAIL -->
         <div id="em-status-modal" class="modal-overlay hidden" style="z-index: 1003;">
             <div class="modal em-status-modal-box">
                 <div class="em-status-modal-header">
@@ -730,15 +689,13 @@
                     </button>
                 </div>
                 <div class="em-status-modal-body" id="em-status-modal-body">
-                    <!-- Populated via JS -->
-                </div>
+                    </div>
             </div>
         </div>
 
 
         <section id="view-vendors" class="content-section">
 
-            <!-- Search Hero Section -->
             <div
                 style="background: linear-gradient(135deg, #004e92, #4dabf7); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: white;">
                 <h2 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600;">
@@ -748,7 +705,6 @@
                 <p style="margin: 0 0 1rem 0; opacity: 0.85; font-size: 0.9rem;">Explore categories, compare options,
                     and send requests to top-rated vendors</p>
 
-                <!-- Search Bar -->
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 250px; position: relative;">
                         <i class="fa-solid fa-search"
@@ -768,7 +724,6 @@
                 </div>
             </div>
 
-            <!-- Category Pills - Scrollable -->
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <span style="font-weight: 600; color: #333; font-size: 0.9rem;">Categories:</span>
@@ -831,17 +786,13 @@
                 </div>
             </div>
 
-            <!-- Results Count -->
             <div style="margin-bottom: 1rem;">
                 <span id="vendor-results-count" style="font-size: 0.9rem; color: #666;"></span>
             </div>
 
-            <!-- Vendor Cards Grid -->
             <div id="vendors-grid" class="vendors-grid">
-                <!-- Populated via JS -->
-            </div>
+                </div>
 
-            <!-- Hidden Full Category Select for "View All" Modal -->
             <select id="vendor-category-select" style="display: none;">
                 <option value="all">All Categories</option>
                 <option value="Catering">Catering</option>
@@ -898,13 +849,10 @@
             </select>
         </section>
 
-        <!-- VIEW: REQUESTS MANAGEMENT -->
         <section id="view-requests" class="content-section">
 
-            <!-- Tab Cards (No hero - page header is enough) -->
             <div
                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
-                <!-- Outgoing Tab Card -->
                 <button class="request-tab active" data-tab="outgoing"
                     style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: none; border-radius: 12px; background: linear-gradient(135deg, #1565c0, #0d47a1); cursor: pointer; transition: all 0.3s ease; text-align: left; box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);">
                     <div
@@ -918,7 +866,6 @@
                     </div>
                 </button>
 
-                <!-- Incoming Tab Card -->
                 <button class="request-tab" data-tab="incoming"
                     style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 2px solid #e0e0e0; border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s ease; text-align: left; position: relative;">
                     <div
@@ -935,14 +882,12 @@
                 </button>
             </div>
 
-            <!-- OUTGOING REQUESTS SECTION -->
             <div id="outgoing-requests-section" class="request-section">
                 <div class="req-filter-bar">
                     <label class="req-filter-label">Show requests for:</label>
                     <select id="request-event-filter" class="req-filter-select">
                         <option value="all">All Events</option>
-                        <!-- Populated via JS -->
-                    </select>
+                        </select>
                     <select id="request-status-filter" class="req-filter-select">
                         <option value="all">All Status</option>
                         <option value="Pending">Pending</option>
@@ -962,14 +907,12 @@
                 </div>
             </div>
 
-            <!-- INCOMING REQUESTS SECTION -->
             <div id="incoming-requests-section" class="request-section" style="display: none;">
                 <div class="req-filter-bar">
                     <label class="req-filter-label">Show requests for:</label>
                     <select id="incoming-event-filter" class="req-filter-select">
                         <option value="all">All Events</option>
-                        <!-- Populated via JS -->
-                    </select>
+                        </select>
                     <select id="incoming-status-filter" class="req-filter-select">
                         <option value="all">All Status</option>
                         <option value="Pending">Pending</option>
@@ -987,7 +930,6 @@
             </div>
         </section>
 
-        <!-- MODAL: REQUEST DETAIL (View - card style) -->
         <div id="request-detail-modal" class="modal-overlay hidden" style="z-index: 1001;">
             <div class="modal req-detail-modal-box" style="max-width: 520px;">
                 <div class="req-detail-modal-header">
@@ -1062,7 +1004,6 @@
             </div>
         </div>
 
-        <!-- MODAL: SEND REQUEST -->
         <div id="request-modal" class="modal-overlay hidden">
             <div class="modal">
                 <div class="modal-header">
@@ -1082,8 +1023,7 @@
                             <label>Select Event *</label>
                             <select id="request-event-select" required>
                                 <option value="" disabled selected>Choose an event...</option>
-                                <!-- Populated via JS -->
-                            </select>
+                                </select>
                             <small
                                 style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;">
                                 Choose the event you want to link this request to.
@@ -1105,7 +1045,6 @@
                 </div>
             </div>
         </div>
-        <!-- MODAL: VIEW MESSAGE -->
         <div id="message-modal" class="modal-overlay hidden" style="z-index: 1000;">
             <div class="modal" style="max-width: 500px;">
                 <div class="modal-header">
@@ -1128,11 +1067,9 @@
         </div>
         </div>
 
-        <!-- VIEW: ANALYTICS -->
         <section id="view-analytics" class="content-section">
             <div class="analytics-dashboard">
 
-                <!-- Top-level tab bar -->
                 <div class="ana-main-tabs">
                     <button class="ana-main-tab active" data-ana-main="overview">
                         <i class="fa-solid fa-chart-bar"></i> Overview
@@ -1151,10 +1088,8 @@
                     </button>
                 </div>
 
-                <!-- ======== PANEL: OVERVIEW ======== -->
                 <div class="ana-main-panel active" id="ana-panel-overview">
 
-                    <!-- KPI Cards -->
                     <div class="ana-kpi-grid">
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-calendar-check"></i>
@@ -1188,7 +1123,6 @@
                         </div>
                     </div>
 
-                    <!-- Highlight Cards -->
                     <div class="ana-highlight-grid">
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-trophy"></i></div>
@@ -1220,7 +1154,6 @@
                         </div>
                     </div>
 
-                    <!-- Chart tabs -->
                     <div class="ana-chart-panel">
                         <div class="ana-tab-bar">
                             <button class="ana-tab active" data-ana-tab="attendance">Attendance</button>
@@ -1241,14 +1174,12 @@
 
                 </div>
 
-                <!-- ======== PANEL: ATTENDEES ======== -->
                 <div class="ana-main-panel" id="ana-panel-attendees">
 
                     <div class="ana-event-report-header" style="margin-bottom:1.5rem;">
                         <h3><i class="fa-solid fa-users"></i> Attendees</h3>
                     </div>
 
-                    <!-- Attendees KPI row -->
                     <div class="ana-kpi-grid" style="margin-bottom:1.5rem;">
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-users"></i>
@@ -1272,7 +1203,6 @@
                         </div>
                     </div>
 
-                    <!-- Attendees chart tabs -->
                     <div class="ana-chart-panel">
                         <div class="ana-tab-bar">
                             <button class="ana-tab active" data-ana-att-tab="age-groups">Age Groups</button>
@@ -1292,8 +1222,7 @@
                                     </div>
                                 </div>
                                 <div id="att-loyalty-list" class="att-loyalty-list">
-                                    <!-- Populated via JS -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
                     </div>
@@ -1306,7 +1235,6 @@
 
                 </div>
 
-                <!-- ======== PANEL: EVENT REPORT ======== -->
                 <div class="ana-main-panel" id="ana-panel-event-report">
 
                     <div class="ana-event-report-header">
@@ -1321,7 +1249,6 @@
 
                     <div id="ana-event-report-body" class="ana-event-report-body" style="display:none;">
 
-                        <!-- Event title banner -->
                         <div class="ana-evt-title-banner">
                             <div class="ana-evt-title-info">
                                 <h2 id="ana-evt-title-name">Event Name</h2>
@@ -1336,7 +1263,6 @@
                             </button>
                         </div>
 
-                        <!-- Per-event KPIs -->
                         <div class="evt-report-kpi-grid">
                             <div class="evt-kpi">
                                 <i class="fa-solid fa-users"></i>
@@ -1375,7 +1301,6 @@
                             </div>
                         </div>
 
-                        <!-- Per-event chart tabs -->
                         <div class="ana-chart-panel evt-report-chart-panel">
                             <div class="ana-tab-bar">
                                 <button class="ana-tab active" data-ana-evt-tab="revenue-tier">Revenue by Tier</button>
@@ -1396,7 +1321,6 @@
 
                 </div>
 
-                <!-- ======== PANEL: MARKET INSIGHTS ======== -->
                 <div class="ana-main-panel" id="ana-panel-market-insights">
 
                     <div class="ana-event-report-header" style="margin-bottom:1.5rem;">
@@ -1427,14 +1351,12 @@
 
                 </div>
 
-                <!-- ======== PANEL: VENDORS ======== -->
                 <div class="ana-main-panel" id="ana-panel-vendors">
 
                     <div class="ana-event-report-header" style="margin-bottom:1.5rem;">
                         <h3><i class="fa-solid fa-store"></i> Vendor Analytics</h3>
                     </div>
 
-                    <!-- Vendor KPI row -->
                     <div class="ana-kpi-grid" style="margin-bottom:1.5rem;">
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-store"></i>
@@ -1463,7 +1385,6 @@
                         </div>
                     </div>
 
-                    <!-- Highlight cards -->
                     <div class="ana-highlight-grid" style="margin-bottom:1.5rem;">
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-trophy"></i></div>
@@ -1495,7 +1416,6 @@
                         </div>
                     </div>
 
-                    <!-- Vendor chart tabs -->
                     <div class="ana-chart-panel">
                         <div class="ana-tab-bar">
                             <button class="ana-tab active" data-ana-vnd-tab="category-dist">Category Distribution</button>
@@ -1515,8 +1435,7 @@
                                     </div>
                                 </div>
                                 <div id="vnd-all-vendors-list" class="att-loyalty-list">
-                                    <!-- Populated via JS -->
-                                </div>
+                                    </div>
                             </div>
                         </div>
                     </div>
@@ -1532,96 +1451,74 @@
             </div>
         </section>
 
-        <!-- VIEW: PROFILE -->
         <section id="view-profile" class="content-section">
             <div style="max-width: 700px; margin: 0 auto;">
                 <div
                     style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e8e8e8;">
-                    <!-- Profile Header -->
-                    <div
-                        style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
-                        <div id="org-profile-avatar"
-                            style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;"
-                            onclick="document.getElementById('org-pfp-upload').click()" title="Click to change photo">
-                            <span id="org-profile-avatar-text">{{ request.user.first_name|make_list|first }}{{ request.user.last_name|make_list|first }}</span>
-                            <img id="org-profile-avatar-img"
-                                style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: none;"
-                                alt="Profile">
-                            <div
-                                style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 4px; text-align: center;">
-                                <i class="fa-solid fa-camera"></i>
-                            </div>
-                        </div>
-                        <input type="file" id="org-pfp-upload" accept="image/*" style="display: none;">
-                        <h3 id="org-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.get_full_name|default:request.user.username }}</h3>
-                        <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Event Organizer</p>
-                    </div>
+                    
+                    <form id="org-profile-form" method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
+                            <div id="org-profile-avatar"
+                                style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;"
+                                onclick="document.getElementById('org-pfp-upload').click()" title="Click to change photo">
+                                
+                                {% if request.user.profile_picture %}
+                                    <img id="org-profile-avatar-img" src="{{ request.user.profile_picture.url }}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;" alt="Profile">
+                                    <span id="org-profile-avatar-text" style="display: none;">{{ request.user.first_name|make_list|first }}{{ request.user.last_name|make_list|first }}</span>
+                                {% else %}
+                                    <span id="org-profile-avatar-text">{{ request.user.first_name|make_list|first }}{{ request.user.last_name|make_list|first }}</span>
+                                    <img id="org-profile-avatar-img" style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: none;" alt="Profile">
+                                {% endif %}
 
-                    <!-- Profile Form -->
-                    <div style="padding: 2rem;">
-                        <form id="org-profile-form">
+                                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 4px; text-align: center;">
+                                    <i class="fa-solid fa-camera"></i>
+                                </div>
+                            </div>
+                            <input type="file" id="org-pfp-upload" name="profile_picture" accept="image/*" style="display: none;">
+                            <h3 id="org-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.get_full_name|default:request.user.username }}</h3>
+                            <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Event Organizer</p>
+                        </div>
+
+                        <div style="padding: 2rem;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                <div>
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First
-                                        Name</label>
-                                    <input type="text" id="org-profile-firstname" value="{{ request.user.first_name }}" required
-                                        style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                        onfocus="this.style.borderColor='#004e92'"
-                                        onblur="this.style.borderColor='#e0e0e0'">
-                                </div>
-                                <div>
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last
-                                        Name</label>
-                                    <input type="text" id="org-profile-lastname" value="{{ request.user.last_name }}" required
-                                        style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
-                                        onfocus="this.style.borderColor='#004e92'"
-                                        onblur="this.style.borderColor='#e0e0e0'">
+                                <div style="grid-column: 1 / -1;">
+                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Username</label>
+                                    <input type="text" name="username" value="{{ user.username }}" required style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none;">
                                 </div>
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label
-                                    style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Organization
-                                    Name</label>
-                                <input type="text" id="org-profile-orgname" value="{{ request.user.organizer_profile.organization_name }}" required
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Organization Name</label>
+                                <input type="text" id="org-profile-orgname" name="organization_name" value="{{ request.user.organizer_profile.organization_name }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label
-                                    style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email
-                                    Address</label>
-                                <input type="email" id="org-profile-email" value="{{ request.user.email }}" required
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email Address</label>
+                                <input type="email" id="org-profile-email" name="email" value="{{ request.user.email }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label
-                                    style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
-                                    Number</label>
-                                <input type="tel" id="org-profile-phone" value="{{ request.user.phone_number }}" required
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone Number</label>
+                                <input type="tel" id="org-profile-phone" name="phone_number" value="{{ request.user.phone_number }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
                             </div>
-                            <div
-                                style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                                 <div>
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Password</label>
-                                    <input type="password" id="org-profile-password" value="********"
+                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Password</label>
+                                    <input type="password" id="org-profile-password" name="password" placeholder="Leave blank to keep current"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
                                 </div>
                                 <div>
-                                    <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm
-                                        Password</label>
-                                    <input type="password" id="org-profile-password-confirm" value="********"
+                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm Password</label>
+                                    <input type="password" id="org-profile-password-confirm" name="password_confirm" placeholder="Leave blank to keep current"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
@@ -1631,21 +1528,19 @@
                                 style="width: 100%; padding: 12px; font-size: 1rem;">
                                 <i class="fa-solid fa-floppy-disk"></i> Save Changes
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </section>
 
     </main>
 
-    <!-- MODAL: REJECTION REASON -->
     <div id="rejection-modal" class="modal-overlay"
         style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
         <div class="modal"
             style="background: white; padding: 0; border-radius: 16px; width: 90%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); overflow: hidden; animation: modalSlideIn 0.3s ease;">
 
-            <!-- Modal Header with Icon -->
             <div style="background: linear-gradient(135deg, #ff6b6b, #c62828); padding: 2rem; text-align: center;">
                 <div
                     style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
@@ -1656,7 +1551,6 @@
                     the vendor</p>
             </div>
 
-            <!-- Modal Body -->
             <div style="padding: 2rem;">
                 <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
                     <i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i>
@@ -1670,7 +1564,6 @@
                     <i class="fa-solid fa-info-circle"></i> The vendor will see this message.
                 </p>
 
-                <!-- Action Buttons -->
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                     <button class="btn btn-outline" onclick="closeRejectionModal()" style="flex: 1; padding: 0.8rem;">
                         Cancel
@@ -1711,6 +1604,165 @@
     <script src="{% static 'js/app.js' %}"></script>
     <script src="{% static 'js/organizer-logic.js' %}"></script>
     <script src="{% static 'js/organizer-analytics.js' %}"></script>
-</body>
 
+    <script>
+        // --- Profile Picture Preview ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const pfpUpload = document.getElementById('org-pfp-upload');
+            if (pfpUpload) {
+                pfpUpload.addEventListener('change', function(event) {
+                    const input = event.target;
+                    // FIX: access the first file in the FileList
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const imgElement = document.getElementById('org-profile-avatar-img');
+                            const textElement = document.getElementById('org-profile-avatar-text');
+                            if (imgElement) {
+                                imgElement.src = e.target.result;
+                                imgElement.style.display = 'block';
+                            }
+                            if (textElement) {
+                                textElement.style.display = 'none';
+                            }
+                        }
+                        // FIX: pass the actual file object
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                });
+            }
+        });
+
+        // --- Chat Notification Badges ---
+        // Intercept data fetches to ensure we have the messages array accessible for real unread count
+        const originalFetch = window.fetch;
+        window.eventiaApiData = { messages: [] };
+
+        window.fetch = async function(...args) {
+            const response = await originalFetch.apply(this, args);
+            // FIX: securely check args[0]
+            const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url ? args[0].url : '');
+            if (url && url.includes('/api/organizer/data/')) {
+                const clone = response.clone();
+                clone.json().then(data => {
+                    window.eventiaApiData = data;
+                    setTimeout(patchChatBadges, 100);
+                }).catch(e => console.error(e));
+            }
+            return response;
+        };
+
+        // Tracker persists in local storage
+        let chatReadTracker = JSON.parse(localStorage.getItem('eventia_chat_read_tracker_v3')) || {};
+        function saveChatTracker() {
+            localStorage.setItem('eventia_chat_read_tracker_v3', JSON.stringify(chatReadTracker));
+        }
+
+        function patchChatBadges() {
+            const convContainer = document.getElementById('em-vendor-conversations');
+            if (!convContainer) return;
+            
+            const items = convContainer.querySelectorAll('.em-conversation-item');
+            items.forEach(item => {
+                const onclickAttr = item.getAttribute('onclick');
+                if (onclickAttr) {
+                    const match = onclickAttr.match(/openVendorChat\(['"]([^'"]+)['"],\s*['"]([^'"]+)['"]\)/);
+                    if (match) {
+                        // FIX: Use proper match indexing
+                        const eId = match[1];
+                        const vId = match[2];
+                        const trackKey = `${eId}_${vId}`;
+                        const lastReadTime = chatReadTracker[trackKey] || null;
+                        
+                        let unreadCount = 0;
+                        const msgs = (window.eventiaApiData.messages || []).filter(m => String(m.eventId) === String(eId) && String(m.vendorId) === String(vId));
+                        
+                        // Calculate new unread messages
+                        if (lastReadTime) {
+                            unreadCount = msgs.filter(m => m.sender === 'vendor' && new Date(m.timestamp) > new Date(lastReadTime)).length;
+                        } else {
+                            unreadCount = msgs.filter(m => m.sender === 'vendor').length;
+                        }
+
+                        // Patch the DOM dynamically
+                        let countBadge = item.querySelector('.em-conv-count');
+                        if (unreadCount > 0) {
+                            if (!countBadge) {
+                                countBadge = document.createElement('span');
+                                countBadge.className = 'em-conv-count';
+                                countBadge.style.cssText = 'width: 20px; height: 20px; border-radius: 50%; background: #1565c0; color: white; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-left: 8px;';
+                                const metaContainer = item.querySelector('.em-conv-meta');
+                                if (metaContainer) metaContainer.appendChild(countBadge);
+                            }
+                            countBadge.textContent = unreadCount;
+                            countBadge.style.display = 'flex';
+                        } else {
+                            if (countBadge) countBadge.style.display = 'none';
+                        }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Background Poller: Frequently fetch data to ensure badges appear without refreshing page
+            setInterval(() => {
+                originalFetch('/api/organizer/data/', { credentials: 'same-origin' })
+                    .then(r => r.json())
+                    .then(data => {
+                        window.eventiaApiData = data;
+                        patchChatBadges();
+                    })
+                    .catch(e => console.error("Poll Error:", e));
+            }, 3000);
+
+            // Wait for external JS to attach global window functions
+            setTimeout(() => {
+                // Wrap the original function to save read state
+                const originalOpenVendorChat = window.openVendorChat;
+                if (originalOpenVendorChat) {
+                    window.openVendorChat = function(eventId, vendorId) {
+                        window._currentChatEventId = eventId;
+                        window._currentChatVendorId = vendorId;
+                        
+                        const trackKey = `${eventId}_${vendorId}`;
+                        chatReadTracker[trackKey] = new Date().toISOString();
+                        saveChatTracker();
+
+                        originalOpenVendorChat(eventId, vendorId);
+                        patchChatBadges(); 
+                    };
+                }
+
+                // Wrap the close function to ensure accuracy when exiting
+                const originalCloseVendorChat = window.closeVendorChat;
+                if (originalCloseVendorChat) {
+                    window.closeVendorChat = function() {
+                        // Update read tracker when closing to mark anything read while open
+                        if (window._currentChatEventId && window._currentChatVendorId) {
+                            const trackKey = `${window._currentChatEventId}_${window._currentChatVendorId}`;
+                            chatReadTracker[trackKey] = new Date().toISOString();
+                            saveChatTracker();
+                        }
+
+                        originalCloseVendorChat();
+                        patchChatBadges();
+                    };
+                }
+
+                // Add a mutation observer so re-renders of the list are instantly patched
+                // CRITICAL FIX: Disconnecting the observer while patching prevents the infinite loop crash
+                const convContainer = document.getElementById('em-vendor-conversations');
+                if (convContainer) {
+                    const observer = new MutationObserver((mutations) => {
+                        observer.disconnect();
+                        patchChatBadges();
+                        observer.observe(convContainer, { childList: true, subtree: true });
+                    });
+                    observer.observe(convContainer, { childList: true, subtree: true });
+                }
+            }, 1000); 
+        });
+    </script>
+</body>
 </html>
