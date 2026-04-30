@@ -150,8 +150,9 @@
         var existing = document.getElementById('scega-detail-modal');
         if (existing) existing.remove();
 
+        var sarIcon = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar_symbol.svg" class="sar-icon" alt="SAR" style="height:1em;vertical-align:middle;">';
         var priceDisplay = evt.price && parseFloat(evt.price) > 0
-            ? evt.price + ' SAR'
+            ? evt.price + ' ' + sarIcon
             : 'Free Event';
 
         var modal = document.createElement('div');

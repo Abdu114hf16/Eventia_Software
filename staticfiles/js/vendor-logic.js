@@ -3,7 +3,8 @@
  * All data comes from /api/vendor/data/ — zero localStorage usage.
  */
 
-const SAR_ICON = '<img src="assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
+const SAR_ICON = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
+const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar_white.svg" class="sar-icon" alt="SAR">';
 
 function initVendorDashboard() {
     console.log("Initializing Vendor Dashboard...");

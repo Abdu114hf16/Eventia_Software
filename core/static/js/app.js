@@ -14,8 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Role Management (Login & Signup) ---
-    // FIXED: Added name="..." attributes to all inputs so Django can read the data!
-    // --- Role Management (Login & Signup) ---
     const roleFields = {
         organizer: `
             <input type="hidden" name="role" value="ORGANIZER">
@@ -279,6 +277,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btnSpan) btnSpan.textContent = role.charAt(0).toUpperCase() + role.slice(1);
             }
 
+            // Sync the active role with our new hidden input field for the backend to verify
+            if (targetForm === 'login') {
+                const loginRoleInput = document.getElementById('login-role-input');
+                if (loginRoleInput) {
+                    loginRoleInput.value = role;
+                }
+            }
+
             if (targetForm === 'signup' && signupDynamicContainer) {
                 updateSignupFields(role);
             }
@@ -353,11 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
-    // FIXED: Form Submit Logic
-    // Login form simply submits to Django normally now. The preventDefault mock is gone.
     const loginForm = document.getElementById('login-form');
-    // We do NOT add a submit event listener to loginForm, so it naturally POSTs.
 
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
@@ -368,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let isValid = true;
 
-            // Email Validation
             if (emailInput) {
                 const email = emailInput.value;
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -381,7 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Password Validation
             if (passwordInput && confirmInput) {
                 function checkStrength(password) {
                     let errors = [];
@@ -413,11 +413,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // ONLY prevent submission if there are validation errors!
             if (!isValid) {
                 e.preventDefault();
             }
-            // If isValid is true, we do nothing and let the browser POST data to Django naturally!
         });
     }
 
