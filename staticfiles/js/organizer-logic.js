@@ -415,8 +415,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // --- API DATA ACCESS ---
+        // Use server-injected data immediately so first render is never blank.
+        // The async initData() will re-fetch and overwrite with fresh data.
         let API_DATA = {
-            events: [], vendors: [], outgoingRequests: [], incomingRequests: [],
+            events: (window.__PRELOADED_EVENTS__ && Array.isArray(window.__PRELOADED_EVENTS__))
+                        ? window.__PRELOADED_EVENTS__ : [],
+            vendors: [], outgoingRequests: [], incomingRequests: [],
             eventVendors: [], messages: [], broadcasts: []
         };
 
@@ -2290,4 +2294,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 });
-

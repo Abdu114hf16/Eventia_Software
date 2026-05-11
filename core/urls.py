@@ -70,6 +70,10 @@ urlpatterns = [
     path('api/update_vendor_status/', views.api_update_vendor_status, name='api_update_vendor_status'),
     path('api/request_vendor_update/', views.api_request_vendor_update, name='api_request_vendor_update'),
     path('api/send_broadcast/', views.api_send_broadcast, name='api_send_broadcast'),
+
+    # NEW: Gemini AI Assistant API Endpoint
+    path('api/ai-assistant/', views.ai_assistant_chat, name='ai_assistant_chat'),
+
 ]
 
 # this to serve media files during development

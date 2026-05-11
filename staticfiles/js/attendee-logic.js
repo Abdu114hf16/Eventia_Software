@@ -23,8 +23,10 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
             const response = await fetch('/api/attendee/data/', { credentials: 'same-origin' });
             if (!response.ok) throw new Error('HTTP ' + response.status);
             API_DATA = await response.json();
+            return true;  // signal success so callers can safely prune stale IDs
         } catch (error) {
             console.error("API Error:", error);
+            return false;
         }
     }
 
@@ -969,7 +971,13 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
     // --- BROADCAST NOTIFICATIONS (from database, read status in memory) ---
     // ==========================================================================
 
-    let readNotifIds = [];
+    // Persist read state across page refreshes via localStorage
+    const NOTIF_STORAGE_KEY = 'attendee_read_notif_ids';
+    let readNotifIds = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
+
+    function saveReadNotifIds() {
+        try { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(readNotifIds)); } catch (e) {}
+    }
 
     function renderNotifBadge() {
         const badge = document.getElementById('notif-badge');
@@ -1054,6 +1062,7 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
     window.markNotifRead = function (notifId) {
         if (!readNotifIds.includes(String(notifId))) {
             readNotifIds.push(String(notifId));
+            saveReadNotifIds();
         }
         renderNotifBadge();
         renderNotifList();
@@ -1064,15 +1073,30 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         broadcasts.forEach(b => {
             if (!readNotifIds.includes(String(b.id))) readNotifIds.push(String(b.id));
         });
+        saveReadNotifIds();
         renderNotifBadge();
         renderNotifList();
     };
 
+    // Expose the live events array to the shared AI assistant module.
+    window.AI_GET_EVENTS = function () { return getEvents(); };
+
     // --- INIT: fetch from database then render ---
-    initData().then(() => {
+    initData().then((apiOk) => {
+        // Only prune stale IDs when API succeeded — avoids wiping localStorage on network errors
+        if (apiOk) {
+            const liveBroadcastIds = (API_DATA.broadcasts || []).map(b => String(b.id));
+            const before = readNotifIds.length;
+            readNotifIds = readNotifIds.filter(id => liveBroadcastIds.includes(id));
+            if (readNotifIds.length !== before) saveReadNotifIds();
+        }
+
         loadProfile();
         renderAll();
         renderNotifBadge();
+        if (window.AIAssistant && typeof window.AIAssistant.init === 'function') {
+            window.AIAssistant.init();
+        }
     });
 
 })();

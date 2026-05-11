@@ -1068,11 +1068,17 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         renderNotifList();
     };
 
+    // Expose the live events array to the shared AI assistant module.
+    window.AI_GET_EVENTS = function () { return getEvents(); };
+
     // --- INIT: fetch from database then render ---
     initData().then(() => {
         loadProfile();
         renderAll();
         renderNotifBadge();
+        if (window.AIAssistant && typeof window.AIAssistant.init === 'function') {
+            window.AIAssistant.init();
+        }
     });
 
 })();

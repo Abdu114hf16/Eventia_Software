@@ -15,7 +15,7 @@
     <nav class="navbar">
         <div class="container nav-container">
             <a href="{% url 'dashboard' %}" class="logo" id="nav-logo">
-                <img src="{% static 'assets/logo_fixed.png' %}" alt="Eventia Logo" class="logo-img">
+                <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
             </a>
             <div class="nav-links">
                 <a href="{% url 'dashboard' %}" class="btn-text">Home</a>
@@ -44,9 +44,9 @@
 
             <form id="login-form" method="POST">
                 {% csrf_token %}
-                
+
                 <input type="hidden" name="login_role" id="login-role-input" value="organizer">
-                
+
                 <div class="input-group">
                     <label for="login-email">Email Address</label>
                     <input type="text" name="username" id="login-email" placeholder="email@example.com" required>
@@ -129,9 +129,9 @@
 
             <form id="login-form" method="POST">
                 {% csrf_token %}
-                
+
                 <input type="hidden" name="login_role" id="login-role-input" value="organizer">
-                
+
                 <div class="input-group">
                     <label for="login-email">Email Address</label>
                     <input type="text" name="username" id="login-email" placeholder="email@example.com" required>

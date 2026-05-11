@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/attendee.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/ai-assistant.css' %}?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -168,7 +169,24 @@
                     <button class="btn btn-primary search-btn" id="landing-search-btn">
                         <i class="fa-solid fa-search"></i> Search
                     </button>
+                    <div class="ai-sparkle-wrapper" id="ai-sparkle-wrapper">
+                        <button type="button" class="ai-search-sparkle-btn" id="ai-search-sparkle-btn"
+                            aria-label="AI Assistant — find your perfect event">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span class="ai-sparkle-btn-label">AI Assistant</span>
+                            <span class="ai-sparkle-tooltip">Let AI find your event</span>
+                        </button>
+                        <div class="ai-sparkle-nudge" id="ai-sparkle-nudge">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Not sure what to attend? Let AI help you!
+                            <button type="button" class="ai-nudge-close" id="ai-nudge-close" aria-label="Dismiss">&times;</button>
+                        </div>
+                    </div>
                 </div>
+                <p class="ai-search-hint">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    Can't find what you're looking for? Try our <button type="button" class="ai-hint-link" id="ai-hint-link">AI Assistant</button> — describe what you're in the mood for and let it find the perfect event for you.
+                </p>
                 <div class="category-pills-row" id="landing-category-pills">
                     <button class="cat-pill active" data-category="all">
                         <i class="fa-solid fa-fire"></i> All Events
@@ -218,6 +236,77 @@
             </div>
         </section>
 
+        <div class="ai-assistant" id="ai-assistant" data-state="collapsed" hidden></div>
+
+        <div class="ai-panel-overlay" id="ai-panel-overlay" hidden>
+            <div class="ai-panel-backdrop" id="ai-panel-backdrop" aria-hidden="true"></div>
+            <div class="ai-panel" id="ai-panel" role="dialog" aria-label="Eventia AI assistant" aria-modal="true">
+                <div class="ai-panel-header">
+                    <div class="ai-panel-identity">
+                        <div class="ai-avatar" aria-hidden="true">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div class="ai-panel-identity-text">
+                            <div class="ai-panel-name">Eventia AI <span class="ai-panel-badge">Assistant</span></div>
+                            <div class="ai-panel-status">
+                                Your event discovery guide
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-panel-actions">
+                        <button type="button" class="ai-icon-btn" id="ai-history-btn" title="Past conversations" aria-label="Past conversations">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </button>
+                        <button type="button" class="ai-icon-btn" id="ai-reset-btn" title="New conversation" aria-label="New conversation">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" class="ai-icon-btn" id="ai-close-btn" title="Close assistant" aria-label="Close assistant">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="ai-panel-messages" id="ai-messages" aria-live="polite" aria-relevant="additions">
+                    <div class="ai-welcome" id="ai-welcome">
+                        <h3 class="ai-welcome-title">Hi, I'm the <span class="ai-welcome-title-accent">Eventia AI Assistant</span></h3>
+                        <p class="ai-welcome-subtitle">
+                            Tell me about your interests and I'll find the best events for you.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="ai-history-view" id="ai-history-view" hidden>
+                    <div class="ai-history-header">
+                        <div class="ai-history-title-wrap">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <h4>Past conversations</h4>
+                        </div>
+                        <button type="button" class="ai-history-clear" id="ai-history-clear-btn">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Clear all</span>
+                        </button>
+                    </div>
+                    <div class="ai-history-list" id="ai-history-list">
+                    </div>
+                </div>
+
+                <div class="ai-panel-chips" id="ai-suggested-chips">
+                </div>
+
+                <form class="ai-panel-input" id="ai-input-form" autocomplete="off">
+                    <div class="ai-input-wrapper">
+                        <i class="fa-solid fa-wand-magic-sparkles ai-input-icon"></i>
+                        <input type="text" id="ai-input" class="ai-input"
+                            placeholder="Tell me what you're interested in..."
+                            aria-label="Ask the Eventia AI about events">
+                    </div>
+                    <button type="submit" class="ai-send-btn" id="ai-send-btn" aria-label="Send message">
+                        <i class="fa-solid fa-arrow-up"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <section class="landing-events">
             <div class="container">
                 <div class="section-heading">
@@ -231,8 +320,9 @@
                     <div class="lp-event-card reveal-on-scroll revealed" data-category="{{ event.category }}"
                         data-location="{{ event.location|lower }}" data-title="{{ event.title|lower }}"
                         data-desc="{{ event.description|lower }}">
+                        
                         <div class="lp-card-image" style="
-                                {% if event.banner %}background: url('{{ event.banner.url }}') center/cover no-repeat;
+                                {% if event.banner and event.banner.url %}background: url('{{ event.banner.url }}') center/cover no-repeat;
                                 {% elif event.category == 'Conference' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
                                 {% elif event.category == 'Exhibition' %}background: linear-gradient(135deg, #8E2DE2, #4A00E0);
                                 {% elif event.category == 'Entertainment' %}background: linear-gradient(135deg, #eb3349, #f45c43);
@@ -247,20 +337,20 @@
                                 {% elif event.category == 'Shopping' %}background: linear-gradient(135deg, #f953c6, #b91d73);
                                 {% else %}background: linear-gradient(135deg, #667eea, #764ba2);{% endif %}
                             ">
-                            {% if not event.banner %}
-                            {% if event.category == 'Conference' %}<i class="fa-solid fa-microphone"></i>
-                            {% elif event.category == 'Exhibition' %}<i class="fa-solid fa-store"></i>
-                            {% elif event.category == 'Entertainment' %}<i class="fa-solid fa-masks-theater"></i>
-                            {% elif event.category == 'Workshop' %}<i class="fa-solid fa-screwdriver-wrench"></i>
-                            {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
-                            {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
-                            {% elif event.category == 'Food & Culture' %}<i class="fa-solid fa-utensils"></i>
-                            {% elif event.category == 'Technology' %}<i class="fa-solid fa-laptop-code"></i>
-                            {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
-                            {% elif event.category == 'Culture' %}<i class="fa-solid fa-landmark"></i>
-                            {% elif event.category == 'Family' %}<i class="fa-solid fa-children"></i>
-                            {% elif event.category == 'Shopping' %}<i class="fa-solid fa-bag-shopping"></i>
-                            {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
+                            {% if not event.banner or not event.banner.url %}
+                                {% if event.category == 'Conference' %}<i class="fa-solid fa-microphone"></i>
+                                {% elif event.category == 'Exhibition' %}<i class="fa-solid fa-store"></i>
+                                {% elif event.category == 'Entertainment' %}<i class="fa-solid fa-masks-theater"></i>
+                                {% elif event.category == 'Workshop' %}<i class="fa-solid fa-screwdriver-wrench"></i>
+                                {% elif event.category == 'Sports' %}<i class="fa-solid fa-futbol"></i>
+                                {% elif event.category == 'Business' %}<i class="fa-solid fa-briefcase"></i>
+                                {% elif event.category == 'Food & Culture' %}<i class="fa-solid fa-utensils"></i>
+                                {% elif event.category == 'Technology' %}<i class="fa-solid fa-laptop-code"></i>
+                                {% elif event.category == 'Education' %}<i class="fa-solid fa-graduation-cap"></i>
+                                {% elif event.category == 'Culture' %}<i class="fa-solid fa-landmark"></i>
+                                {% elif event.category == 'Family' %}<i class="fa-solid fa-children"></i>
+                                {% elif event.category == 'Shopping' %}<i class="fa-solid fa-bag-shopping"></i>
+                                {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
                             {% endif %}
 
                             <div class="lp-card-badge">{{ event.category|default:'Event' }}</div>
@@ -776,8 +866,31 @@
         }
     </script>
 
+<script type="application/json" id="ai-events-data">
+[{% for event in events %}{"id":"{{ event.id|escapejs }}","title":"{{ event.title|escapejs }}","category":"{{ event.category|default_if_none:''|escapejs }}","date":"{% if event.date %}{{ event.date|date:'Y-m-d' }}{% endif %}","location":"{{ event.location|default_if_none:''|escapejs }}","description":"{{ event.description|default_if_none:''|escapejs }}","price":{% if event.ticket_price %}{{ event.ticket_price|stringformat:'f' }}{% else %}0{% endif %},"banner":"{% if event.banner and event.banner.url %}{{ event.banner.url|escapejs }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}]
+</script>
+
+<script>
+    // Make events available to the AI assistant for card rendering
+    (function () {
+        var dataEl = document.getElementById('ai-events-data');
+        var events = [];
+        try { events = JSON.parse((dataEl && dataEl.textContent) || '[]'); } catch (e) { events = []; }
+        window.AI_GET_EVENTS = function () { return events; };
+
+        // Allow AI event cards to open the event detail modal (if you have one)
+        // or navigate to the event page.
+        window.viewEventDetails = window.viewEventDetails || function (id) {
+            // If you have a modal trigger for events on this page, fire it here.
+            // Otherwise this falls back to navigating to the event page:
+            window.location.href = "{% url 'event_details' 0 %}".replace(/0\/?$/, id + '/');
+        };
+    })();
+</script>
+
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="{% static 'js/attendee-logic.js' %}?v=6"></script>
+    <script src="{% static 'js/attendee-logic.js' %}?v=9"></script>
+    <script src="{% static 'js/ai-assistant.js' %}?v=2"></script>
 
 </body>
 

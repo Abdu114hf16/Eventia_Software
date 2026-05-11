@@ -127,3 +127,6 @@ MEDIA_URL = '/media/'
 
 # The absolute filesystem path to the directory that will hold user-uploaded files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Gemini AI Key
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
