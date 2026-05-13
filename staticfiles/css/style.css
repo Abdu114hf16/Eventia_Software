@@ -821,6 +821,42 @@ body {
     flex: 1.5;
 }
 
+/* --- Login / Signup Alert Banners (Django messages) --- */
+.form-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.85rem 1.1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin-bottom: 1.2rem;
+    line-height: 1.4;
+    animation: slideUp 0.3s ease;
+}
+
+.form-alert i {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.form-alert-error {
+    background: #fff0f0;
+    border: 1px solid #fca5a5;
+    color: #c0392b;
+}
+
+.form-alert-error span,
+.form-alert-error i {
+    color: #c0392b;
+}
+
+.form-alert-warning {
+    background: #fff8e1;
+    border: 1px solid #ffe082;
+    color: #92400e;
+}
+
 /* --- Form Validation --- */
 .error-message {
     color: red;
