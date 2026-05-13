@@ -25,19 +25,7 @@
             <a href="{% url 'attendee_dashboard' %}" class="logo" id="nav-logo">
                 <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
             </a>
-            <!-- Mobile hamburger toggle -->
-            <button class="att-mobile-toggle" id="att-mobile-toggle" aria-label="Open menu">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-
-            <div class="nav-links att-nav-links-wrapper" id="att-nav-links">
-                <!-- Close button (visible only in mobile drawer) -->
-                <div class="att-drawer-header">
-                    <span class="att-drawer-brand">EVENTIA</span>
-                    <button class="att-drawer-close" id="att-drawer-close" aria-label="Close menu">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+            <div class="nav-links" style="display: flex; align-items: center; gap: 0.75rem;">
                 <a href="#" class="btn btn-outline btn-sm att-nav-link active" data-view="home"
                     style="border-radius: 20px; font-size: 0.85rem;">
                     <i class="fa-solid fa-compass"></i> Browse
@@ -54,12 +42,15 @@
                     style="border-radius: 20px; font-size: 0.85rem;">
                     <i class="fa-solid fa-user"></i> Profile
                 </a>
-                <!-- Notification Bell -->
-                <div id="notif-bell-wrapper" class="notif-bell-wrapper">
-                    <button id="notif-bell-btn" class="notif-bell-btn" onclick="switchAttendeeViewPublic('notifications')"
-                        title="Notifications">
+                <div id="notif-bell-wrapper" style="position: relative;">
+                    <button id="notif-bell-btn" onclick="switchAttendeeViewPublic('notifications')"
+                        title="Notifications"
+                        style="position:relative;background:transparent;border:2px solid rgba(255,255,255,0.6);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:1rem;transition:all 0.2s;"
+                        onmouseenter="this.style.background='rgba(255,255,255,0.15)'"
+                        onmouseleave="this.style.background='transparent'">
                         <i class="fa-solid fa-bell"></i>
-                        <span id="notif-badge" class="notif-badge">0</span>
+                        <span id="notif-badge"
+                            style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid white;">0</span>
                     </button>
                 </div>
                 <a href="{% url 'logout' %}" class="btn btn-primary btn-sm"
@@ -69,8 +60,6 @@
             </div>
         </div>
     </nav>
-    <!-- Mobile menu backdrop -->
-    <div class="att-mobile-backdrop" id="att-mobile-backdrop"></div>
 
     <div id="view-notifications" class="attendee-view" style="display:none;">
 
