@@ -275,8 +275,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const formContainer = document.getElementById(`${targetForm}-form-container`);
             if (formContainer) {
+                // Update the submit button label
                 const btnSpan = formContainer.querySelector('.current-role-text');
                 if (btnSpan) btnSpan.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+
+                // Keep the hidden login_role input in sync so Django enforces the correct role
+                // Use both the scoped querySelector AND the global getElementById as a fallback
+                if (targetForm === 'login') {
+                    const roleInput = formContainer.querySelector('#login-role-input')
+                                   || document.getElementById('login-role-input');
+                    if (roleInput) roleInput.value = role;
+                }
             }
 
             if (targetForm === 'signup' && signupDynamicContainer) {
@@ -354,10 +363,73 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // FIXED: Form Submit Logic
-    // Login form simply submits to Django normally now. The preventDefault mock is gone.
+    // --- Login Form Client-Side Validation ---
+    // Handles 3 cases before POSTing to Django:
+    //   1. Both fields empty
+    //   2. Only username filled (password missing)
+    //   3. Only password filled (username missing)
+    // Note: username format is NOT validated here — both organizers and vendors
+    // use plain usernames. Wrong credentials / wrong role tab → Django handles it.
     const loginForm = document.getElementById('login-form');
-    // We do NOT add a submit event listener to loginForm, so it naturally POSTs.
+
+    if (loginForm) {
+        const usernameInput = loginForm.querySelector('#login-email');
+        const passwordInput = loginForm.querySelector('#login-password');
+        const usernameError = loginForm.querySelector('#login-username-error');
+        const passwordError = loginForm.querySelector('#login-password-error');
+
+        function clearLoginError(input, errorEl) {
+            if (!input || !errorEl) return;
+            input.classList.remove('input-error');
+            errorEl.classList.remove('visible');
+        }
+
+        function showLoginError(input, errorEl, msg) {
+            if (!input || !errorEl) return;
+            errorEl.textContent = msg;
+            errorEl.classList.add('visible');
+            input.classList.add('input-error');
+        }
+
+        // Clear errors on user input
+        if (usernameInput) {
+            usernameInput.addEventListener('input', () => clearLoginError(usernameInput, usernameError));
+        }
+        if (passwordInput) {
+            passwordInput.addEventListener('input', () => clearLoginError(passwordInput, passwordError));
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            const username = usernameInput ? usernameInput.value.trim() : '';
+            const password = passwordInput ? passwordInput.value : '';
+            let isValid = true;
+
+            // Reset errors first
+            clearLoginError(usernameInput, usernameError);
+            clearLoginError(passwordInput, passwordError);
+
+            // Username: only check it's not empty — both organizers and vendors log in
+            // with their plain username (not email or phone), so no format check here.
+            if (!username) {
+                showLoginError(usernameInput, usernameError, 'Please enter your username.');
+                isValid = false;
+            }
+
+            // Password: must not be empty
+            if (!password) {
+                showLoginError(passwordInput, passwordError, 'Please enter your password.');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                // Scroll to first visible error
+                const firstError = loginForm.querySelector('.input-error');
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            // If both fields are filled → submit; Django validates credentials and role
+        });
+    }
 
     if (signupForm) {
         signupForm.addEventListener('submit', (e) => {
