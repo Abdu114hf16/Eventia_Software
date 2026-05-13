@@ -909,6 +909,13 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (viewName === 'notifications') renderNotifList();
+
+        const _navPanel = document.getElementById('att-nav-links');
+        const _backdrop = document.getElementById('att-mobile-backdrop');
+        if (_navPanel) _navPanel.classList.remove('open');
+        if (_backdrop) _backdrop.classList.remove('active');
+        document.body.style.overflow = '';
 
         if (scrollTo) {
             setTimeout(() => {
@@ -916,6 +923,36 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
                 if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
+    }
+
+    // --- MOBILE MENU TOGGLE ---
+    const mobileToggle = document.getElementById('att-mobile-toggle');
+    const navLinksPanel = document.getElementById('att-nav-links');
+    const mobileBackdrop = document.getElementById('att-mobile-backdrop');
+
+    function openMobileMenu() {
+        if (navLinksPanel) navLinksPanel.classList.add('open');
+        if (mobileBackdrop) mobileBackdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileMenu() {
+        if (navLinksPanel) navLinksPanel.classList.remove('open');
+        if (mobileBackdrop) mobileBackdrop.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', () => {
+            if (navLinksPanel && navLinksPanel.classList.contains('open')) closeMobileMenu();
+            else openMobileMenu();
+        });
+    }
+    if (mobileBackdrop) {
+        mobileBackdrop.addEventListener('click', closeMobileMenu);
+    }
+    const drawerClose = document.getElementById('att-drawer-close');
+    if (drawerClose) {
+        drawerClose.addEventListener('click', closeMobileMenu);
     }
 
     // Nav link click handlers
