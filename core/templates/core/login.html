@@ -9,6 +9,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .form-alert-error {
+            background: #fff0f0 !important;
+            border: 1px solid #fca5a5 !important;
+            color: #c0392b !important;
+            border-radius: 9px;
+            padding: 3px;
+            margin: 3px ;
+        }
+        .form-alert-error span,
+        .form-alert-error i {
+            color: #c0392b !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -35,15 +49,26 @@
                 <p>Login as an Attendee</p>
             </div>
 
-            <form id="login-form" method="POST">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="form-alert form-alert-{% if 'error' in message.tags %}error{% else %}warning{% endif %}">
+                        <i class="fa-solid fa-{% if 'error' in message.tags %}circle-exclamation{% else %}triangle-exclamation{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form id="login-form" method="POST" novalidate>
                 {% csrf_token %}
                 <div class="input-group">
-                    <label for="login-email">Email Address or Phone Number</label>
-                    <input type="text" name="username" id="login-email" placeholder="" required>
+                    <label for="login-email">Username</label>
+                    <input type="text" name="username" id="login-email" placeholder="" autocomplete="username">
+                    <div class="error-message" id="login-username-error">Please enter your username.</div>
                 </div>
                 <div class="input-group">
                     <label for="login-password">Password</label>
-                    <input type="password" name="password" id="login-password" placeholder="••••••••" required>
+                    <input type="password" name="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+                    <div class="error-message" id="login-password-error">Please enter your password.</div>
                 </div>
 
                 <div class="form-actions">
