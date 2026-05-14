@@ -50,6 +50,13 @@
     flex-shrink: 0;
 }
 
+/* Nudge extends below the search bar; raise the bar above sibling rows (e.g. category pills)
+   so the dismiss control stays clickable. Add .search-bar-wrapper--ai-sparkle on the bar in markup. */
+.search-bar-wrapper.search-bar-wrapper--ai-sparkle {
+    position: relative;
+    z-index: 2;
+}
+
 .ai-search-sparkle-btn {
     border-radius: 12px;
     padding: 14px 24px;
@@ -85,6 +92,17 @@
 
 .ai-search-sparkle-btn:hover::before {
     left: 100%;
+}
+
+html[dir="rtl"] .ai-search-sparkle-btn::before {
+    left: auto;
+    right: -100%;
+    transition: right 0.5s ease;
+}
+
+html[dir="rtl"] .ai-search-sparkle-btn:hover::before {
+    left: auto;
+    right: 100%;
 }
 
 .ai-search-sparkle-btn:hover {
@@ -179,6 +197,7 @@
     position: absolute;
     top: 4px;
     right: 6px;
+    z-index: 1;
     width: 22px;
     height: 22px;
     border: none;
