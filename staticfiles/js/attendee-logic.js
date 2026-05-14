@@ -23,10 +23,8 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
             const response = await fetch('/api/attendee/data/', { credentials: 'same-origin' });
             if (!response.ok) throw new Error('HTTP ' + response.status);
             API_DATA = await response.json();
-            return true;  // signal success so callers can safely prune stale IDs
         } catch (error) {
             console.error("API Error:", error);
-            return false;
         }
     }
 
@@ -99,7 +97,7 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         const modal = document.createElement('div');
         modal.id = 'event-detail-modal';
         modal.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px);" onclick="if(event.target === this) this.parentElement.remove()">
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px);" onclick="if(event.target === this) this.parentElement.remove()">
                 <div style="background: white; border-radius: 16px; width: 90%; max-width: 520px; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
                     <div style="background: linear-gradient(135deg, #3C50C8, #004e92); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
                         <h2 style="margin: 0; font-size: 1.2rem; font-weight: 600;"><i class="fa-solid fa-file-lines" style="margin-right: 8px;"></i>Event Details</h2>
@@ -170,7 +168,7 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         const modal = document.createElement('div');
         modal.id = 'register-modal';
         modal.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);" onclick="if(event.target === this) document.getElementById('register-modal').remove()">
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 3000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);" onclick="if(event.target === this) document.getElementById('register-modal').remove()">
                 <div style="background: white; border-radius: 20px; width: 92%; max-width: 500px; overflow: hidden; box-shadow: 0 24px 70px rgba(0,0,0,0.35); animation: modalSlideIn 0.3s ease;">
 
                     <!-- STEP INDICATOR -->
@@ -447,6 +445,10 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         document.querySelectorAll('.nav-links .att-nav-link').forEach(link => link.classList.remove('active'));
         const activeLink = document.querySelector(`.nav-links .att-nav-link[data-view="${view}"]`);
         if (activeLink) activeLink.classList.add('active');
+        // Scroll to top and reset navbar colour (same behaviour as switchAttendeeView)
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const _nav = document.getElementById('landing-navbar');
+        if (_nav) _nav.classList.remove('nav-scrolled');
         renderAll();
         if (view === 'notifications') renderNotifList();
     };
@@ -718,7 +720,7 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         const modal = document.createElement('div');
         modal.id = 'feedback-modal';
         modal.innerHTML = `
-            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px);" onclick="if(event.target === this) this.parentElement.remove()">
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(3px);" onclick="if(event.target === this) this.parentElement.remove()">
                 <div style="background: white; border-radius: 16px; width: 90%; max-width: 480px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease;">
                     <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center;">
                         <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
@@ -809,7 +811,7 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         const modal = document.createElement('div');
         modal.id = 'withdraw-modal';
         modal.innerHTML = `
-            <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(3px);" onclick="if(event.target===this)document.getElementById('withdraw-modal').remove()">
+            <div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:3000;display:flex;justify-content:center;align-items:center;backdrop-filter:blur(3px);" onclick="if(event.target===this)document.getElementById('withdraw-modal').remove()">
                 <div style="background:white;border-radius:16px;width:90%;max-width:440px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:modalSlideIn 0.3s ease;">
                     <div style="background:linear-gradient(135deg,#c62828,#ef5350);padding:1.75rem 2rem;text-align:center;">
                         <div style="width:60px;height:60px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 0.75rem;">
@@ -911,6 +913,15 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
         }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        const _navEl = document.getElementById('landing-navbar');
+        if (_navEl) _navEl.classList.remove('nav-scrolled');
+        if (viewName === 'notifications') renderNotifList();
+
+        const _navPanel = document.getElementById('att-nav-links');
+        const _backdrop = document.getElementById('att-mobile-backdrop');
+        if (_navPanel) _navPanel.classList.remove('open');
+        if (_backdrop) _backdrop.classList.remove('active');
+        document.body.style.overflow = '';
 
         if (scrollTo) {
             setTimeout(() => {
@@ -918,6 +929,36 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
                 if (scrollTarget) scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
         }
+    }
+
+    // --- MOBILE MENU TOGGLE ---
+    const mobileToggle = document.getElementById('att-mobile-toggle');
+    const navLinksPanel = document.getElementById('att-nav-links');
+    const mobileBackdrop = document.getElementById('att-mobile-backdrop');
+
+    function openMobileMenu() {
+        if (navLinksPanel) navLinksPanel.classList.add('open');
+        if (mobileBackdrop) mobileBackdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeMobileMenu() {
+        if (navLinksPanel) navLinksPanel.classList.remove('open');
+        if (mobileBackdrop) mobileBackdrop.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', () => {
+            if (navLinksPanel && navLinksPanel.classList.contains('open')) closeMobileMenu();
+            else openMobileMenu();
+        });
+    }
+    if (mobileBackdrop) {
+        mobileBackdrop.addEventListener('click', closeMobileMenu);
+    }
+    const drawerClose = document.getElementById('att-drawer-close');
+    if (drawerClose) {
+        drawerClose.addEventListener('click', closeMobileMenu);
     }
 
     // Nav link click handlers
@@ -971,12 +1012,15 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
     // --- BROADCAST NOTIFICATIONS (from database, read status in memory) ---
     // ==========================================================================
 
-    // Persist read state across page refreshes via localStorage
-    const NOTIF_STORAGE_KEY = 'attendee_read_notif_ids';
-    let readNotifIds = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
+    // Persist read state across page refreshes using localStorage
+    let readNotifIds = [];
+    try {
+        const _stored = localStorage.getItem('eventia_readNotifIds');
+        if (_stored) readNotifIds = JSON.parse(_stored);
+    } catch (e) { readNotifIds = []; }
 
     function saveReadNotifIds() {
-        try { localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(readNotifIds)); } catch (e) {}
+        try { localStorage.setItem('eventia_readNotifIds', JSON.stringify(readNotifIds)); } catch (e) {}
     }
 
     function renderNotifBadge() {
@@ -1082,15 +1126,7 @@ const SAR_WHITE = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar
     window.AI_GET_EVENTS = function () { return getEvents(); };
 
     // --- INIT: fetch from database then render ---
-    initData().then((apiOk) => {
-        // Only prune stale IDs when API succeeded — avoids wiping localStorage on network errors
-        if (apiOk) {
-            const liveBroadcastIds = (API_DATA.broadcasts || []).map(b => String(b.id));
-            const before = readNotifIds.length;
-            readNotifIds = readNotifIds.filter(id => liveBroadcastIds.includes(id));
-            if (readNotifIds.length !== before) saveReadNotifIds();
-        }
-
+    initData().then(() => {
         loadProfile();
         renderAll();
         renderNotifBadge();
