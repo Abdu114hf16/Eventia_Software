@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eventia | Events Management Platform</title>
     <meta name="description"
@@ -11,9 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="{% static 'css/style2.css' %}">
-    <link rel="stylesheet" href="{% static 'css/ai-assistant.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/ai-assistant.css' %}?v=5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap"
         rel="stylesheet">
     <style>
         @keyframes modalSlideIn {
@@ -41,12 +42,6 @@
         }
 
         .att-nav-link.active {
-            background: #004e92 !important;
-            color: white !important;
-            border-color: #004e92 !important;
-        }
-
-        .cat-pill:hover {
             background: #004e92 !important;
             color: white !important;
             border-color: #004e92 !important;
@@ -83,6 +78,10 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             min-height: 100vh;
+        }
+
+        html[lang="ar"] body {
+            font-family: 'Tajawal', 'Inter', sans-serif;
         }
 
         .container {
@@ -158,6 +157,18 @@
 
         .btn-primary:hover::before {
             left: 100%;
+        }
+
+        /* Light sweep: LTR left→right, RTL right→left */
+        html[dir="rtl"] .btn-primary::before {
+            left: auto;
+            right: -100%;
+            transition: right 0.5s ease;
+        }
+
+        html[dir="rtl"] .btn-primary:hover::before {
+            left: auto;
+            right: 100%;
         }
 
         .btn-primary:hover {
@@ -585,10 +596,31 @@
             font-size: 1.05rem;
         }
 
-        .hero-cta {
+        /* DOM order: span then icon. direction:ltr isolates flex from document RTL (otherwise row order still looks [icon][text]). */
+        .hero-landing .hero-cta {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            direction: ltr;
+            flex-direction: row-reverse;
+        }
+
+        html[dir="rtl"] .hero-landing .hero-cta {
+            flex-direction: row;
+        }
+
+        /* Join CTA: logical forward arrow for LTR vs RTL */
+        .hero-cta-outline .hero-cta-arrow-rtl {
+            display: none;
+        }
+
+        html[dir="rtl"] .hero-cta-outline .hero-cta-arrow-ltr {
+            display: none;
+        }
+
+        html[dir="rtl"] .hero-cta-outline .hero-cta-arrow-rtl {
+            display: inline-block;
         }
 
         /* Hero "Explore Events" — soft tint, clearly clickable but not overpowering */
@@ -820,11 +852,12 @@
         }
 
         /* Category Pills */
+        /* overflow-x: auto implies vertical clipping — translateY on pills needs inset space */
         .category-pills-row {
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 4px;
+            padding: 10px 4px 18px;
             scrollbar-width: none;
         }
 
@@ -841,20 +874,56 @@
             font-family: 'Inter', sans-serif;
             cursor: pointer;
             white-space: nowrap;
-            transition: all 0.25s ease;
+            transition: all 0.3s ease;
             background: white;
             color: var(--text-muted);
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            /* overflow:hidden lets flex min-width collapse to 0 — pills shrink & clip labels */
+            flex-shrink: 0;
+            min-width: max-content;
         }
 
+        /* Same shimmer treatment as .btn-primary */
+        .cat-pill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .cat-pill:hover::before {
+            left: 100%;
+        }
+
+        html[dir="rtl"] .cat-pill::before {
+            left: auto;
+            right: -100%;
+            transition: right 0.5s ease;
+        }
+
+        html[dir="rtl"] .cat-pill:hover::before {
+            left: auto;
+            right: 100%;
+        }
+
+        /* Match .btn-primary:hover (Sign up, Search, View details, etc.) */
         .cat-pill:hover {
-            background: var(--primary-color) !important;
+            background: linear-gradient(135deg, #004e92, #000428) !important;
             color: white !important;
-            border-color: var(--primary-color) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 78, 146, 0.25);
+            border-color: transparent !important;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 78, 146, 0.35);
         }
 
         .cat-pill.active {
@@ -973,6 +1042,13 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
+        html[dir="rtl"] .lp-card-badge {
+            left: auto;
+            right: 16px;
+            text-transform: none;
+            letter-spacing: normal;
+        }
+
         .lp-card-price {
             position: absolute;
             bottom: 16px;
@@ -984,6 +1060,11 @@
             border-radius: 8px;
             font-size: 0.82rem;
             font-weight: 700;
+        }
+
+        html[dir="rtl"] .lp-card-price {
+            left: auto;
+            right: 16px;
         }
 
         .lp-card-save {
@@ -1689,12 +1770,13 @@
             </a>
             <div class="nav-links">
                 {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn btn-primary">Dashboard</a>
-                <a href="{% url 'logout' %}" class="btn btn-outline">Logout</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary" data-i18n="landing.nav.dashboard">Dashboard</a>
+                <a href="{% url 'logout' %}" class="btn btn-outline" data-i18n="landing.nav.logout">Logout</a>
                 {% else %}
-                <a href="{% url 'login_attendee' %}" class="btn btn-outline" id="nav-login-btn">Log In</a>
-                <a href="{% url 'signup_attendee' %}" class="btn btn-primary" id="nav-signup-btn">Sign Up</a>
+                <a href="{% url 'login_attendee' %}" class="btn btn-outline" id="nav-login-btn" data-i18n="nav.login">Log In</a>
+                <a href="{% url 'signup_attendee' %}" class="btn btn-primary" id="nav-signup-btn" data-i18n="nav.signup">Sign Up</a>
                 {% endif %}
+                <button type="button" id="lang-switch" class="btn-text" data-i18n-aria-label="lang.switch.aria" aria-label="Switch to English">EN</button>
             </div>
         </div>
     </nav>
@@ -1721,21 +1803,24 @@
 
         <div class="hero-content">
 
-            <h1 class="hero-title">
+            <h1 class="hero-title" data-i18n-html="hero.title">
                 Discover & Manage
                 <span class="hero-title-gradient">Exceptional Events</span>
             </h1>
             <div class="hero-tagline">
                 <div class="hero-tagline-line"></div>
-                <p>Find events. Book tickets. Enjoy the experience.</p>
+                <p data-i18n="hero.tagline">Find events. Book tickets. Enjoy the experience.</p>
                 <div class="hero-tagline-line"></div>
             </div>
             <div class="hero-buttons">
                 <a href="#events-section" class="btn btn-primary btn-lg hero-cta">
-                    <i class="fa-solid fa-compass"></i> Explore Events
+                    <span data-i18n="hero.explore">Explore Events</span>
+                    <i class="fa-solid fa-compass" aria-hidden="true"></i>
                 </a>
                 <a href="{% url 'signup_attendee' %}" class="btn btn-outline btn-lg hero-cta hero-cta-outline">
-                    <i class="fa-solid fa-arrow-right"></i> Join Now
+                    <span data-i18n="hero.join">Join Now</span>
+                    <i class="fa-solid fa-arrow-right hero-cta-arrow-ltr" aria-hidden="true"></i>
+                    <i class="fa-solid fa-arrow-left hero-cta-arrow-rtl" aria-hidden="true"></i>
                 </a>
             </div>
 
@@ -1752,85 +1837,88 @@
 
     <section class="search-section" id="events-section">
         <div class="container">
-            <div class="search-bar-wrapper">
+            <div class="search-bar-wrapper search-bar-wrapper--ai-sparkle">
                 <div class="search-input-group">
                     <i class="fa-solid fa-search search-icon"></i>
-                    <input type="text" id="landing-search" placeholder="Search for events, workshops, conferences..."
+                    <input type="text" id="landing-search" data-i18n-placeholder="search.placeholder"
+                        placeholder="Search for events, workshops, conferences..."
                         class="search-input">
                 </div>
                 <select id="landing-location-filter" class="search-select">
-                    <option value="all">All Cities</option>
-                    <option value="riyadh">Riyadh</option>
-                    <option value="jeddah">Jeddah</option>
-                    <option value="dhahran">Dhahran</option>
-                    <option value="kaust">KAUST</option>
-                    <option value="kfupm">KFUPM</option>
+                    <option value="all" data-i18n="search.allCities">All Cities</option>
+                    <option value="riyadh" data-i18n="city.riyadh">Riyadh</option>
+                    <option value="jeddah" data-i18n="city.jeddah">Jeddah</option>
+                    <option value="dhahran" data-i18n="city.dhahran">Dhahran</option>
+                    <option value="kaust" data-i18n="city.kaust">KAUST</option>
+                    <option value="kfupm" data-i18n="city.kfupm">KFUPM</option>
                 </select>
                 <button class="btn btn-primary search-btn" id="landing-search-btn">
-                    <i class="fa-solid fa-search"></i> Search
+                    <i class="fa-solid fa-search"></i> <span data-i18n="search.button">Search</span>
                 </button>
                 <div class="ai-sparkle-wrapper" id="ai-sparkle-wrapper">
                     <button type="button" class="ai-search-sparkle-btn" id="ai-search-sparkle-btn"
+                        data-i18n-aria-label="att.ai.aria"
                         aria-label="AI Assistant — find your perfect event">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span class="ai-sparkle-btn-label">AI Assistant</span>
-                        <span class="ai-sparkle-tooltip">Let AI find your event</span>
+                        <span class="ai-sparkle-btn-label" data-i18n="att.ai.label">AI Assistant</span>
+                        <span class="ai-sparkle-tooltip" data-i18n="att.ai.tooltip">Let AI find your event</span>
                     </button>
                     <div class="ai-sparkle-nudge" id="ai-sparkle-nudge">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        Not sure what to attend? Let AI help you!
-                        <button type="button" class="ai-nudge-close" id="ai-nudge-close" aria-label="Dismiss">&times;</button>
+                        <span data-i18n="att.ai.nudge">Not sure what to attend? Let AI help you!</span>
+                        <button type="button" class="ai-nudge-close" id="ai-nudge-close"
+                            data-i18n-aria-label="ai.nudge.close" aria-label="Dismiss">&times;</button>
                     </div>
                 </div>
             </div>
             <p class="ai-search-hint">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
-                Can't find what you're looking for? Try our <button type="button" class="ai-hint-link" id="ai-hint-link">AI Assistant</button> — describe what you're in the mood for and let it find the perfect event for you.
+                <span data-i18n="att.ai.hint.before">Can't find what you're looking for? Try our </span><button type="button" class="ai-hint-link" id="ai-hint-link"><span data-i18n="att.ai.label">AI Assistant</span></button><span data-i18n="att.ai.hint.after"> — describe what you're in the mood for and let it find the perfect event for you.</span>
             </p>
             <div class="category-pills-row" id="landing-category-pills">
                 <button class="cat-pill active" data-category="all">
-                    <i class="fa-solid fa-fire"></i> All Events
+                    <i class="fa-solid fa-fire"></i> <span data-i18n="cat.all">All Events</span>
                 </button>
                 <button class="cat-pill" data-category="Conference">
-                    <i class="fa-solid fa-microphone"></i> Conference
+                    <i class="fa-solid fa-microphone"></i> <span data-i18n="cat.conference">Conference</span>
                 </button>
                 <button class="cat-pill" data-category="Exhibition">
-                    <i class="fa-solid fa-store"></i> Exhibition
+                    <i class="fa-solid fa-store"></i> <span data-i18n="cat.exhibition">Exhibition</span>
                 </button>
                 <button class="cat-pill" data-category="Entertainment">
-                    <i class="fa-solid fa-masks-theater"></i> Entertainment
+                    <i class="fa-solid fa-masks-theater"></i> <span data-i18n="cat.entertainment">Entertainment</span>
                 </button>
                 <button class="cat-pill" data-category="Workshop">
-                    <i class="fa-solid fa-screwdriver-wrench"></i> Workshop
+                    <i class="fa-solid fa-screwdriver-wrench"></i> <span data-i18n="cat.workshop">Workshop</span>
                 </button>
                 <button class="cat-pill" data-category="Sports">
-                    <i class="fa-solid fa-futbol"></i> Sports
+                    <i class="fa-solid fa-futbol"></i> <span data-i18n="cat.sports">Sports</span>
                 </button>
                 <button class="cat-pill" data-category="Business">
-                    <i class="fa-solid fa-briefcase"></i> Business
+                    <i class="fa-solid fa-briefcase"></i> <span data-i18n="cat.business">Business</span>
                 </button>
                 <button class="cat-pill" data-category="Food & Culture">
-                    <i class="fa-solid fa-utensils"></i> Food & Culture
+                    <i class="fa-solid fa-utensils"></i> <span data-i18n="cat.foodCulture">Food & Culture</span>
                 </button>
                 <button class="cat-pill" data-category="Technology">
-                    <i class="fa-solid fa-laptop-code"></i> Technology
+                    <i class="fa-solid fa-laptop-code"></i> <span data-i18n="cat.technology">Technology</span>
                 </button>
                 <button class="cat-pill" data-category="Education">
-                    <i class="fa-solid fa-graduation-cap"></i> Education
+                    <i class="fa-solid fa-graduation-cap"></i> <span data-i18n="cat.education">Education</span>
                 </button>
                 <button class="cat-pill" data-category="Culture">
-                    <i class="fa-solid fa-landmark"></i> Culture
+                    <i class="fa-solid fa-landmark"></i> <span data-i18n="cat.culture">Culture</span>
                 </button>
                 <button class="cat-pill" data-category="Family">
-                    <i class="fa-solid fa-children"></i> Family
+                    <i class="fa-solid fa-children"></i> <span data-i18n="cat.family">Family</span>
                 </button>
                 <button class="cat-pill" data-category="Shopping">
-                    <i class="fa-solid fa-bag-shopping"></i> Shopping
+                    <i class="fa-solid fa-bag-shopping"></i> <span data-i18n="cat.shopping">Shopping</span>
                 </button>
             </div>
             <div id="reset-filters-wrapper" style="display:none;margin-top:10px;">
                 <button class="btn btn-sm" id="reset-filters-btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:50px;padding:8px 20px;font-weight:600;font-size:0.85rem;cursor:pointer;">
-                    <i class="fa-solid fa-xmark"></i> Reset Filters
+                    <i class="fa-solid fa-xmark"></i> <span data-i18n="landing.resetFilters">Reset Filters</span>
                 </button>
             </div>
         </div>
@@ -1840,27 +1928,31 @@
 
     <div class="ai-panel-overlay" id="ai-panel-overlay" hidden>
         <div class="ai-panel-backdrop" id="ai-panel-backdrop" aria-hidden="true"></div>
-        <div class="ai-panel" id="ai-panel" role="dialog" aria-label="Eventia AI assistant" aria-modal="true">
+        <div class="ai-panel" id="ai-panel" role="dialog" data-i18n-aria-label="att.aiPanel.aria"
+            aria-label="Eventia AI assistant" aria-modal="true">
             <div class="ai-panel-header">
                 <div class="ai-panel-identity">
                     <div class="ai-avatar" aria-hidden="true">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                     </div>
                     <div class="ai-panel-identity-text">
-                        <div class="ai-panel-name">Eventia AI <span class="ai-panel-badge">Assistant</span></div>
-                        <div class="ai-panel-status">
+                        <div class="ai-panel-name"><span data-i18n="ai.assistant.title">Eventia AI</span> <span class="ai-panel-badge" data-i18n="att.aiPanel.badge">Assistant</span></div>
+                        <div class="ai-panel-status" data-i18n="att.aiPanel.status">
                             Your event discovery guide
                         </div>
                     </div>
                 </div>
                 <div class="ai-panel-actions">
-                    <button type="button" class="ai-icon-btn" id="ai-history-btn" title="Past conversations" aria-label="Past conversations">
+                    <button type="button" class="ai-icon-btn" id="ai-history-btn" data-i18n-title="ai.history.title"
+                        data-i18n-aria-label="ai.history.title" title="Past conversations" aria-label="Past conversations">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </button>
-                    <button type="button" class="ai-icon-btn" id="ai-reset-btn" title="New conversation" aria-label="New conversation">
+                    <button type="button" class="ai-icon-btn" id="ai-reset-btn" data-i18n-title="ai.btn.reset"
+                        data-i18n-aria-label="ai.btn.reset" title="New conversation" aria-label="New conversation">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
-                    <button type="button" class="ai-icon-btn" id="ai-close-btn" title="Close assistant" aria-label="Close assistant">
+                    <button type="button" class="ai-icon-btn" id="ai-close-btn" data-i18n-title="att.aiPanel.close"
+                        data-i18n-aria-label="att.aiPanel.close" title="Close assistant" aria-label="Close assistant">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1868,8 +1960,8 @@
 
             <div class="ai-panel-messages" id="ai-messages" aria-live="polite" aria-relevant="additions">
                 <div class="ai-welcome" id="ai-welcome">
-                    <h3 class="ai-welcome-title">Hi, I'm the <span class="ai-welcome-title-accent">Eventia AI Assistant</span></h3>
-                    <p class="ai-welcome-subtitle">
+                    <h3 class="ai-welcome-title"><span data-i18n="att.aiPanel.welcome">Hi, I'm the </span><span class="ai-welcome-title-accent" data-i18n="att.aiPanel.welcomeAccent">Eventia AI Assistant</span></h3>
+                    <p class="ai-welcome-subtitle" data-i18n="att.aiPanel.welcomeSubtitle">
                         Tell me about your interests and I'll find the best events for you.
                     </p>
                 </div>
@@ -1879,11 +1971,11 @@
                 <div class="ai-history-header">
                     <div class="ai-history-title-wrap">
                         <i class="fa-solid fa-clock-rotate-left"></i>
-                        <h4>Past conversations</h4>
+                        <h4 data-i18n="ai.history.title">Past conversations</h4>
                     </div>
                     <button type="button" class="ai-history-clear" id="ai-history-clear-btn">
                         <i class="fa-solid fa-trash-can"></i>
-                        <span>Clear all</span>
+                        <span data-i18n="ai.history.clearAll">Clear all</span>
                     </button>
                 </div>
                 <div class="ai-history-list" id="ai-history-list">
@@ -1897,10 +1989,12 @@
                 <div class="ai-input-wrapper">
                     <i class="fa-solid fa-wand-magic-sparkles ai-input-icon"></i>
                     <input type="text" id="ai-input" class="ai-input"
+                        data-i18n-placeholder="att.aiPanel.inputPlaceholder"
                         placeholder="Tell me what you're interested in..."
+                        data-i18n-aria-label="att.aiPanel.inputAria"
                         aria-label="Ask the Eventia AI about events">
                 </div>
-                <button type="submit" class="ai-send-btn" id="ai-send-btn" aria-label="Send message">
+                <button type="submit" class="ai-send-btn" id="ai-send-btn" data-i18n-aria-label="att.aiPanel.sendAria" aria-label="Send message">
                     <i class="fa-solid fa-arrow-up"></i>
                 </button>
             </form>
@@ -1910,15 +2004,15 @@
     <section class="landing-events">
         <div class="container">
             <div class="section-heading">
-                <h2><i class="fa-solid fa-sparkles"></i> Upcoming Events</h2>
-                <p class="section-desc">Don't miss out on these exciting upcoming events across Saudi Arabia</p>
+                <h2><i class="fa-solid fa-sparkles"></i> <span data-i18n="events.upcoming">Upcoming Events</span></h2>
+                <p class="section-desc" data-i18n="events.subtitle">Don't miss out on these exciting upcoming events across Saudi Arabia</p>
             </div>
             <div class="landing-events-grid" id="landing-events-grid">
 
                 {% if events %}
                 {% for event in events %}
                 <div class="lp-event-card" data-category="{{ event.category }}" data-title="{{ event.title|lower }}" data-location="{{ event.location|lower }}" data-description="{{ event.description|lower|truncatechars:150 }}">
-                    
+
                     <div class="lp-card-image" style="
                             {% if event.banner and event.banner.url %}
                                 background: url('{{ event.banner.url }}') center/cover no-repeat;
@@ -1955,21 +2049,33 @@
                             {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
                         {% endif %}
 
-                        <div class="lp-card-badge">{{ event.category }}</div>
+                        <div class="lp-card-badge"
+                            {% if event.category == 'Conference' %}data-i18n="cat.conference"
+                            {% elif event.category == 'Exhibition' %}data-i18n="cat.exhibition"
+                            {% elif event.category == 'Entertainment' %}data-i18n="cat.entertainment"
+                            {% elif event.category == 'Workshop' %}data-i18n="cat.workshop"
+                            {% elif event.category == 'Sports' %}data-i18n="cat.sports"
+                            {% elif event.category == 'Business' %}data-i18n="cat.business"
+                            {% elif event.category == 'Food & Culture' %}data-i18n="cat.foodCulture"
+                            {% elif event.category == 'Technology' %}data-i18n="cat.technology"
+                            {% elif event.category == 'Education' %}data-i18n="cat.education"
+                            {% elif event.category == 'Culture' %}data-i18n="cat.culture"
+                            {% elif event.category == 'Family' %}data-i18n="cat.family"
+                            {% elif event.category == 'Shopping' %}data-i18n="cat.shopping"
+                            {% endif %}>{{ event.category }}</div>
                         <div class="lp-card-price">
-                            {% if event.ticket_price > 0 %}From {{ event.ticket_price }} <img src="{% static 'assets/sar_white.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% else %}Free{% endif %}
+                            {% if event.ticket_price > 0 %}<span data-i18n="landing.price.from">From</span> {{ event.ticket_price }} <img src="{% static 'assets/sar_white.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% else %}<span data-i18n="common.free">Free</span>{% endif %}
                         </div>
                     </div>
                     <div class="lp-card-body">
                         <h3 class="lp-card-title">{{ event.title }}</h3>
                         <div class="lp-card-meta">
-                            <span><i class="fa-regular fa-calendar"></i> {{ event.date|date:"M d, Y" }}</span>
+                            <span><i class="fa-regular fa-calendar"></i> {% if event.date %}<span class="lp-card-date" data-date="{{ event.date|date:'Y-m-d' }}">{{ event.date|date:"M d, Y" }}</span>{% endif %}</span>
                             <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
                         </div>
                         <p class="lp-card-desc">{{ event.description|truncatechars:80 }}</p>
                         <div class="lp-card-footer">
-                            <a href="{% url 'event_details' event.id %}" class="btn btn-primary btn-sm lp-view-btn">View
-                                Details</a>
+                            <a href="{% url 'event_details' event.id %}" class="btn btn-primary btn-sm lp-view-btn"><span data-i18n="common.viewDetails">View Details</span></a>
                         </div>
                     </div>
                 </div>
@@ -1978,7 +2084,7 @@
                 <div class="no-events-state" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                     <i class="fa-regular fa-calendar-xmark"
                         style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                    <p style="color: #64748b;">No events found. Check back later!</p>
+                    <p style="color: #64748b;" data-i18n="landing.noEventsEmpty">No events found. Check back later!</p>
                 </div>
                 {% endif %}
 
@@ -1986,7 +2092,7 @@
 
             <div class="load-more-wrapper">
                 <button class="btn btn-outline btn-lg" id="load-more-events">
-                    <i class="fa-solid fa-arrow-down"></i> Load More Events
+                    <i class="fa-solid fa-arrow-down"></i> <span data-i18n="events.loadMore">Load More Events</span>
                 </button>
             </div>
         </div>
@@ -1995,40 +2101,38 @@
     <section class="how-it-works" id="how-it-works">
         <div class="container">
             <div class="section-heading">
-                <h2><i class="fa-solid fa-lightbulb"></i> Get Started in 3 Steps</h2>
-                <p class="section-desc">From browsing to attending — it's that easy</p>
+                <h2><i class="fa-solid fa-lightbulb"></i> <span data-i18n="hiw.title">Get Started in 3 Steps</span></h2>
+                <p class="section-desc" data-i18n="hiw.desc">From browsing to attending — it's that easy</p>
             </div>
             <div class="hiw-grid">
                 <div class="hiw-card">
                     <div class="hiw-step">1</div>
                     <div class="hiw-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-                    <h3>Discover</h3>
-                    <p>Browse hundreds of events across Saudi Arabia — from tech summits to art exhibitions and beyond.
+                    <h3 data-i18n="hiw.step1.title">Discover</h3>
+                    <p data-i18n="hiw.step1.desc">Browse hundreds of events across Saudi Arabia — from tech summits to art exhibitions and beyond.
                     </p>
                 </div>
                 <div class="hiw-connector"><i class="fa-solid fa-chevron-right"></i></div>
                 <div class="hiw-card">
                     <div class="hiw-step">2</div>
                     <div class="hiw-icon hiw-icon-teal"><i class="fa-solid fa-ticket"></i></div>
-                    <h3>Register</h3>
-                    <p>Choose your ticket tier, secure your spot, and get instant confirmation delivered to your inbox.
+                    <h3 data-i18n="hiw.step2.title">Register</h3>
+                    <p data-i18n="hiw.step2.desc">Choose your ticket tier, secure your spot, and get instant confirmation delivered to your inbox.
                     </p>
                 </div>
                 <div class="hiw-connector"><i class="fa-solid fa-chevron-right"></i></div>
                 <div class="hiw-card">
                     <div class="hiw-step">3</div>
                     <div class="hiw-icon hiw-icon-purple"><i class="fa-solid fa-people-group"></i></div>
-                    <h3>Attend</h3>
-                    <p>Show up, enjoy the event, network with like-minded people, and create memorable experiences.</p>
+                    <h3 data-i18n="hiw.step3.title">Attend</h3>
+                    <p data-i18n="hiw.step3.desc">Show up, enjoy the event, network with like-minded people, and create memorable experiences.</p>
                 </div>
             </div>
             <div class="hiw-cta">
-                <p>Ready to discover your next event?</p>
+                <p data-i18n="hiw.cta.q">Ready to discover your next event?</p>
                 <a href="{% url 'signup_attendee' %}" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i>
-                    Create Free
-                    Account</a>
-                <span class="hiw-cta-note">Already have an account? <a href="{% url 'login_attendee' %}">Log
-                        in</a></span>
+                    <span data-i18n="hiw.cta.btn">Create Free Account</span></a>
+                <span class="hiw-cta-note"><span data-i18n="hiw.cta.haveAccount">Already have an account?</span> <a href="{% url 'login_attendee' %}" data-i18n="hiw.cta.login">Log in</a></span>
             </div>
         </div>
     </section>
@@ -2039,17 +2143,16 @@
         <div class="container">
             <div class="cta-card">
                 <div class="cta-content">
-                    <h2>Ready to Create Your Own Event?</h2>
-                    <p>Join hundreds of organizers who trust Eventia to manage everything from small meetups to
+                    <h2 data-i18n="cta.title">Ready to Create Your Own Event?</h2>
+                    <p data-i18n="cta.desc">Join hundreds of organizers who trust Eventia to manage everything from small meetups to
                         large-scale conferences.</p>
                     <div class="cta-buttons">
                         <a href="{% url 'signup_business' %}" class="btn btn-primary btn-lg"><i
                                 class="fa-solid fa-rocket"></i>
-                            Start
-                            Organizing</a>
+                            <span data-i18n="cta.organizerBtn">Start Organizing</span></a>
                         <a href="{% url 'signup_business' %}" class="btn btn-outline btn-lg"
                             style="border-color: rgba(255,255,255,0.3); color: white;"><i class="fa-solid fa-store"></i>
-                            Become a Vendor</a>
+                            <span data-i18n="cta.vendorBtn">Become a Vendor</span></a>
                     </div>
                 </div>
                 <div class="cta-decoration">
@@ -2066,35 +2169,36 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="footer-logo">
-                    <p>Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees
+                    <p data-i18n="footer.brandDesc">Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees
                         for exceptional experiences.</p>
 
                 </div>
                 <div class="footer-links-col">
-                    <h4>Platform</h4>
-                    <a href="#events-section">Browse Events</a>
-                    <a href="{% url 'signup_attendee' %}">Create Account</a>
-                    <a href="{% url 'login_business' %}">For Organizers</a>
-                    <a href="{% url 'login_business' %}">For Vendors</a>
+                    <h4 data-i18n="footer.platform">Platform</h4>
+                    <a href="#events-section" data-i18n="footer.browseEvents">Browse Events</a>
+                    <a href="{% url 'signup_attendee' %}" data-i18n="footer.createAccount">Create Account</a>
+                    <a href="{% url 'login_business' %}" data-i18n="footer.forOrganizers">For Organizers</a>
+                    <a href="{% url 'login_business' %}" data-i18n="footer.forVendors">For Vendors</a>
                 </div>
 
                 <div class="footer-links-col">
-                    <h4>Cities</h4>
-                    <a href="#">Riyadh</a>
-                    <a href="#">Jeddah</a>
-                    <a href="#">Dhahran</a>
-                    <a href="#">KAUST</a>
+                    <h4 data-i18n="footer.cities">Cities</h4>
+                    <a href="#" data-i18n="city.riyadh">Riyadh</a>
+                    <a href="#" data-i18n="city.jeddah">Jeddah</a>
+                    <a href="#" data-i18n="city.dhahran">Dhahran</a>
+                    <a href="#" data-i18n="city.kaust">KAUST</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Eventia. All rights reserved.</p>
-                <p>Made with <i class="fa-solid fa-heart" style="color: #00a650;"></i> in Saudi Arabia
+                <p data-i18n="footer.copyright">&copy; 2026 Eventia. All rights reserved.</p>
+                <p><span data-i18n="footer.madeWith">Made with</span> <i class="fa-solid fa-heart" style="color: #00a650;"></i> <span data-i18n="footer.inSaudi">in Saudi Arabia</span>
                 </p>
             </div>
         </div>
     </footer>
 
-    <script src="{% static 'js/app.js' %}?v=3"></script>
+    <script src="{% static 'js/app-ar.js' %}?v=4"></script>
+
     <script>
     (function () {
         var EVENTS_PER_PAGE = 6;
@@ -2108,6 +2212,13 @@
         var resetWrapper = document.getElementById('reset-filters-wrapper');
         var noEventsEl = document.querySelector('.no-events-state');
         var pills = document.querySelectorAll('.cat-pill:not(.cat-pill-reset)');
+
+        function landingT(key, fallback) {
+            var lang = (window.getLang && window.getLang()) || 'en';
+            var dict = (window.I18N && window.I18N[lang]) || {};
+            var v = dict[key];
+            return (v != null && v !== '') ? v : fallback;
+        }
 
         // --- Smart Search: tokenize query, match if ALL tokens found in combined text ---
         function matchesSearch(card, tokens) {
@@ -2193,7 +2304,7 @@
                     noEventsEl.className = 'no-events-state';
                     noEventsEl.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 3rem;';
                     noEventsEl.innerHTML = '<i class="fa-regular fa-calendar-xmark" style="font-size:3rem;color:#ddd;margin-bottom:1rem;display:block;"></i>' +
-                        '<p style="color:#64748b;">No events match your search. Try different keywords.</p>';
+                        '<p style="color:#64748b;">' + landingT('landing.noSearchResults', 'No events match your search. Try different keywords.') + '</p>';
                     document.getElementById('landing-events-grid').appendChild(noEventsEl);
                 }
                 noEventsEl.style.display = '';
@@ -2271,6 +2382,30 @@
 
         // --- Initial render: show first batch ---
         applyFilters();
+
+        var langSwitchBtn = document.getElementById('lang-switch');
+        if (langSwitchBtn) {
+            langSwitchBtn.addEventListener('click', function () {
+                var cur = (window.getLang && window.getLang()) || 'ar';
+                if (cur === 'ar') {
+                    // Switch back to English → go to English landing page
+                    localStorage.setItem('eventia_lang', 'en');
+                    window.location.href = "{% url 'landing_page' %}";
+                } else {
+                    // Already on English side, switch to Arabic
+                    if (window.applyLang) window.applyLang('ar');
+                    // Update no-results message if visible
+                    setTimeout(function () {
+                        if (noEventsEl && noEventsEl.style.display !== 'none') {
+                            var msgP = noEventsEl.querySelector('p');
+                            if (msgP && !msgP.hasAttribute('data-i18n')) {
+                                msgP.textContent = landingT('landing.noSearchResults', 'No events match your search. Try different keywords.');
+                            }
+                        }
+                    }, 0);
+                }
+            });
+        }
 
         // --- Smooth scroll for nav links ---
         document.querySelectorAll('.nav-scroll-link').forEach(function (link) {
