@@ -5,74 +5,1162 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.title }} | Eventia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body style="background: #f8f9fa;">
 
-    <nav class="navbar" style="background: white; padding: 1rem 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
-        <div class="logo">
-            <a href="{% url 'home' %}" style="text-decoration: none; font-weight: 700; font-size: 1.5rem; color: #004e92;">EVENTIA</a>
-        </div>
-        <div>
+    <style>
+        /* ============================================================
+           RESET & BASE
+        ============================================================ */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary:       #004e92;
+            --primary-dark:  #003d73;
+            --primary-light: #1a6db5;
+            --accent:        #4dabf7;
+            --surface:       #ffffff;
+            --bg:            #f0f4f8;
+            --border:        #e2e8f0;
+            --text:          #1e293b;
+            --text-muted:    #64748b;
+            --success:       #10b981;
+            --warning:       #f59e0b;
+            --danger:        #ef4444;
+            --radius-card:   20px;
+            --shadow-card:   0 8px 32px rgba(0,78,146,0.10);
+            --shadow-hover:  0 16px 48px rgba(0,78,146,0.16);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ============================================================
+           NAVBAR
+        ============================================================ */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2.5rem;
+            height: 84px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 20px rgba(0,78,146,0.06);
+            transition: box-shadow 0.3s;
+        }
+
+        .navbar-logo a { display: flex; align-items: center; }
+        .logo-img { height: 46px; width: auto; display: block; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.55rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,78,146,0.25);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,78,146,0.35);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .nav-buttons { display: flex; align-items: center; gap: 0.5rem; }
+
+        /* SAR icon inline */
+        .sar-icon { height: 0.9em; vertical-align: middle; display: inline-block; }
+        .sar-icon-lg { height: 1.1em; vertical-align: middle; display: inline-block; }
+
+        /* ============================================================
+           HERO HEADER
+        ============================================================ */
+        .event-hero {
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .event-hero-bg {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #000428 0%, #004e92 40%, #1565c0 70%, #0d47a1 100%);
+            background-size: 300% 300%;
+            animation: heroGradient 18s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes heroGradient {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Geometric decoration */
+        .hero-deco {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .hero-deco::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(77,171,247,0.18), transparent 65%);
+            top: -120px;
+            right: -80px;
+        }
+
+        .hero-deco::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(108,92,231,0.15), transparent 65%);
+            bottom: -60px;
+            left: 8%;
+        }
+
+        /* Banner image overlay */
+        .hero-banner-img {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+            opacity: 0.22;
+        }
+
+        .event-hero-content {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 4rem 2.5rem;
+            color: white;
+        }
+
+        .event-category-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 1rem;
+        }
+
+        .event-hero-title {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            line-height: 1.15;
+            margin-bottom: 0.75rem;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+        }
+
+        .event-hero-location {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.75);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        /* Status badge */
+        .event-status-badge {
+            position: absolute;
+            top: 2rem;
+            right: 4rem;
+            z-index: 3;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            backdrop-filter: blur(12px);
+        }
+
+        .status-approved  { background: rgba(16,185,129,0.25); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.4); }
+        .status-pending   { background: rgba(245,158,11,0.25); color: #fcd34d; border: 1px solid rgba(245,158,11,0.4); }
+        .status-rejected  { background: rgba(239,68,68,0.25);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.4);  }
+
+        /* ============================================================
+           MAIN LAYOUT
+        ============================================================ */
+        .page-main {
+            max-width: 1060px;
+            margin: -30px auto 5rem;
+            padding: 0 1.5rem;
+        }
+
+        /* ============================================================
+           QUICK STATS STRIP
+        ============================================================ */
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            background: white;
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            margin-bottom: 1.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .stat-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 1rem;
+            gap: 0.4rem;
+            border-right: 1px solid var(--border);
+            transition: background 0.2s;
+            text-align: center;
+        }
+        .stat-cell:last-child { border-right: none; }
+        .stat-cell:hover { background: #f8faff; }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0,78,146,0.10), rgba(77,171,247,0.15));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        /* ============================================================
+           CONTENT GRID
+        ============================================================ */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.75rem;
+            align-items: start;
+        }
+
+        /* ============================================================
+           CARDS
+        ============================================================ */
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: box-shadow 0.3s;
+        }
+        .card:hover { box-shadow: var(--shadow-hover); }
+
+        .card-header {
+            padding: 1.25rem 1.75rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .card-header-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0,78,146,0.12), rgba(77,171,247,0.18));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .card-header h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .card-body { padding: 1.75rem; }
+
+        /* ============================================================
+           ABOUT / DESCRIPTION
+        ============================================================ */
+        .about-text {
+            font-size: 1rem;
+            line-height: 1.85;
+            color: #475569;
+        }
+
+        /* ============================================================
+           DETAILS LIST
+        ============================================================ */
+        .detail-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-row:last-child { border-bottom: none; }
+
+        .detail-row-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0,78,146,0.10), rgba(77,171,247,0.14));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: var(--primary);
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .detail-row-content { flex: 1; }
+
+        .detail-row-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 2px;
+        }
+
+        .detail-row-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Capacity bar */
+        .capacity-bar-wrap {
+            margin-top: 0.5rem;
+        }
+
+        .capacity-bar-track {
+            height: 6px;
+            background: var(--border);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .capacity-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: 99px;
+            transition: width 1s ease;
+        }
+
+        .capacity-meta {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           POLICY BADGES
+        ============================================================ */
+        .policy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: rgba(0,78,146,0.08);
+            color: var(--primary);
+            border: 1px solid rgba(0,78,146,0.15);
+        }
+
+        .policy-none {
+            background: rgba(100,116,139,0.08);
+            color: var(--text-muted);
+            border-color: var(--border);
+        }
+
+        /* ============================================================
+           REGISTER CARD (sidebar)
+        ============================================================ */
+        .register-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .price-display {
+            text-align: center;
+            padding: 1.5rem 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.25rem;
+        }
+
+        .price-label-small {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .price-amount {
+            font-size: 2.4rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .price-free {
+            background: linear-gradient(135deg, var(--success), #34d399);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .price-currency {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            align-self: flex-start;
+            padding-top: 0.5rem;
+        }
+
+        .btn-register {
+            width: 100%;
+            justify-content: center;
+            padding: 0.9rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 14px;
+            margin-bottom: 0.75rem;
+        }
+
+        .register-hint {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* Info rows inside register card */
+        .reg-info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        .reg-info-row:last-of-type { border-bottom: none; }
+
+        .reg-info-label {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .reg-info-value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ============================================================
+           AGE RESTRICTION CHIP
+        ============================================================ */
+        .age-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .age-restricted { background: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid rgba(239,68,68,0.2); }
+        .age-open       { background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+
+        /* ============================================================
+           ORGANIZED BY CARD
+        ============================================================ */
+        .organizer-block {
+            display: flex;
+            align-items: center;
+            gap: 1.1rem;
+            padding: 0.25rem 0;
+        }
+
+        .organizer-avatar {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            color: white;
+            font-weight: 800;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(0,78,146,0.22);
+            overflow: hidden;
+        }
+
+        .organizer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .organizer-info { flex: 1; min-width: 0; }
+
+        .organizer-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .organizer-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .organizer-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(0,78,146,0.10), rgba(77,171,247,0.14));
+            color: var(--primary);
+            border: 1px solid rgba(0,78,146,0.15);
+            margin-top: 0.5rem;
+            letter-spacing: 0.3px;
+        }
+
+        /* ============================================================
+           VENDORS SECTION
+        ============================================================ */
+        .vendors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .vendor-card {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            background: #f8faff;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .vendor-card:hover {
+            background: white;
+            border-color: rgba(0,78,146,0.2);
+            box-shadow: 0 4px 18px rgba(0,78,146,0.09);
+            transform: translateY(-2px);
+        }
+
+        .vendor-card-top {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .vendor-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0,78,146,0.12), rgba(77,171,247,0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: var(--primary);
+            font-weight: 800;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .vendor-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vendor-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vendor-org {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vendor-service-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: rgba(0,78,146,0.07);
+            color: var(--primary);
+            border: 1px solid rgba(0,78,146,0.12);
+            align-self: flex-start;
+            margin-top: 2px;
+        }
+
+        .vendors-empty {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .vendors-empty i {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            opacity: 0.4;
+        }
+
+        .vendors-count-pill {
+            margin-left: auto;
+            background: linear-gradient(135deg, rgba(0,78,146,0.10), rgba(77,171,247,0.15));
+            color: var(--primary);
+            font-size: 0.73rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0,78,146,0.12);
+        }
+
+        /* ============================================================
+           PAGE ENTER ANIMATIONS
+        ============================================================ */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(24px);
+            animation: fadeUp 0.55s ease forwards;
+        }
+        .fade-up.d1 { animation-delay: 0.05s; }
+        .fade-up.d2 { animation-delay: 0.15s; }
+        .fade-up.d3 { animation-delay: 0.25s; }
+        .fade-up.d4 { animation-delay: 0.32s; }
+        .fade-up.d5 { animation-delay: 0.40s; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================================
+           RESPONSIVE
+        ============================================================ */
+        @media (max-width: 900px) {
+            .content-grid { grid-template-columns: 1fr; }
+            .sidebar-col { order: -1; }
+            .stats-strip { grid-template-columns: repeat(2, 1fr); }
+            .stat-cell:nth-child(2) { border-right: none; }
+            .stat-cell:nth-child(3) { border-top: 1px solid var(--border); }
+            .stat-cell:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+        }
+
+        @media (max-width: 640px) {
+            .event-hero-content { padding: 2rem 1.5rem 2rem; }
+            .event-status-badge { top: 1.25rem; right: 1.5rem; font-size: 0.7rem; }
+            .page-main { margin-top: -20px; }
+            .stats-strip { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================
+         NAVBAR
+    ============================================================ -->
+    <nav class="navbar">
+        <span class="navbar-logo">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
+            </a>
+        </span>
+        <div class="nav-buttons">
             {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}" class="btn btn-primary">Dashboard</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                </a>
             {% else %}
-                <a href="{% url 'login' %}" class="btn btn-outline">Log In</a>
+                <a href="{% url 'login' %}" class="btn btn-outline">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In
+                </a>
+                <a href="{% url 'signup_attendee' %}" class="btn btn-primary" id="nav-signup-btn">
+                    <i class="fa-solid fa-user-plus"></i> Sign Up
+                </a>
             {% endif %}
         </div>
     </nav>
 
-    <header style="background: linear-gradient(135deg, #004e92, #000428); color: white; padding: 4rem 2rem; text-align: center;">
-        <span style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">{{ event.category }}</span>
-        <h1 style="font-size: 3rem; margin: 1rem 0;">{{ event.title }}</h1>
-        <p style="font-size: 1.2rem; opacity: 0.9;"><i class="fa-solid fa-location-dot"></i> {{ event.location }}</p>
-    </header>
+    <!-- ============================================================
+         HERO HEADER
+    ============================================================ -->
+    <header class="event-hero">
+        <div class="event-hero-bg"></div>
+        <div class="hero-deco"></div>
 
-    <main style="max-width: 900px; margin: -50px auto 4rem; padding: 0 1rem;">
-        <div style="background: white; border-radius: 16px; padding: 2.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        {% if event.banner %}
+            <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="hero-banner-img">
+        {% endif %}
 
-            <div style="display: flex; gap: 2rem; margin-bottom: 2rem; border-bottom: 1px solid #eee; padding-bottom: 2rem;">
-                <div style="flex: 1; text-align: center; border-right: 1px solid #eee;">
-                    <i class="fa-regular fa-calendar" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
-                    <h3 style="margin: 0;">{{ event.date }}</h3>
-                    <p style="color: #666; margin: 0;">Date</p>
+        <div class="event-hero-content">
+            <div class="event-category-pill">
+                <i class="fa-solid fa-tag"></i>
+                {{ event.category }}
+            </div>
+            <h1 class="event-hero-title">{{ event.title }}</h1>
+            <p class="event-hero-location">
+                <i class="fa-solid fa-location-dot"></i>
+                {{ event.location }}
+            </p>
+        </div>
+    </header> <br>
+
+    <!-- ============================================================
+         MAIN
+    ============================================================ -->
+    <main class="page-main">
+
+        <!-- Quick stats strip -->
+        <div class="stats-strip fade-up d1">
+            <div class="stat-cell">
+                <div class="stat-icon"><i class="fa-regular fa-calendar"></i></div>
+                <span class="stat-value">{{ event.date }}</span>
+                <span class="stat-label">Date</span>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
+                <span class="stat-value">{{ event.time }}</span>
+                <span class="stat-label">Time</span>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                <span class="stat-value">{{ event.capacity }}</span>
+                <span class="stat-label">Capacity</span>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-icon"><i class="fa-solid fa-ticket"></i></div>
+                <span class="stat-value">
+                    {% if event.ticket_price == 0 %}Free{% else %}<img src="{% static 'assets/sar_symbol.svg' %}" class="sar-icon" alt="SAR"> {{ event.ticket_price }}{% endif %}
+                </span>
+                <span class="stat-label">Ticket</span>
+            </div>
+        </div>
+
+        <!-- Content grid -->
+        <div class="content-grid">
+
+            <!-- LEFT COLUMN -->
+            <div class="main-col">
+
+                <!-- About This Event -->
+                <div class="card fade-up d2" style="margin-bottom: 1.75rem;">
+                    <div class="card-header">
+                        <div class="card-header-icon"><i class="fa-solid fa-circle-info"></i></div>
+                        <h2>About This Event</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="about-text">{{ event.description }}</p>
+                    </div>
                 </div>
-                <div style="flex: 1; text-align: center; border-right: 1px solid #eee;">
-                    <i class="fa-regular fa-clock" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
-                    <h3 style="margin: 0;">{{ event.time }}</h3>
-                    <p style="color: #666; margin: 0;">Time</p>
+
+                <!-- Event Details -->
+                <div class="card fade-up d3">
+                    <div class="card-header">
+                        <div class="card-header-icon"><i class="fa-solid fa-list-check"></i></div>
+                        <h2>Event Details</h2>
+                    </div>
+                    <div class="card-body" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
+                        <div class="detail-list">
+
+                            <!-- Location -->
+                            <div class="detail-row">
+                                <div class="detail-row-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="detail-row-content">
+                                    <div class="detail-row-label">Location</div>
+                                    <div class="detail-row-value">{{ event.location }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Date & Time -->
+                            <div class="detail-row">
+                                <div class="detail-row-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                                <div class="detail-row-content">
+                                    <div class="detail-row-label">Date & Time</div>
+                                    <div class="detail-row-value">{{ event.date }} &mdash; {{ event.time }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="detail-row">
+                                <div class="detail-row-icon"><i class="fa-solid fa-shapes"></i></div>
+                                <div class="detail-row-content">
+                                    <div class="detail-row-label">Category</div>
+                                    <div class="detail-row-value">{{ event.category }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Capacity -->
+                            <div class="detail-row">
+                                <div class="detail-row-icon"><i class="fa-solid fa-users"></i></div>
+                                <div class="detail-row-content">
+                                    <div class="detail-row-label">Capacity</div>
+                                    <div class="detail-row-value">{{ event.capacity }} attendees</div>
+                                    <div class="capacity-bar-wrap">
+                                        <div class="capacity-bar-track">
+                                            <div class="capacity-bar-fill" id="capacityBar" style="width: 0%"></div>
+                                        </div>
+                                        <div class="capacity-meta" id="capacityMeta"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div> <br> <br>
+
+                <!-- ── Event Vendors ───────────────────────────────── -->
+                <div class="card fade-up d5" style="margin-bottom: 1.75rem;">
+                    <div class="card-header">
+                        <div class="card-header-icon"><i class="fa-solid fa-handshake"></i></div>
+                        <h2>Event Vendors</h2>
+                        <span class="vendors-count-pill" id="vendorCountPill"></span>
+                    </div>
+                    <div class="card-body">
+
+                        {% for req in event.requests.all %}
+                            {% if req.status == 'APPROVED' %}
+                                {% if forloop.first %}<div class="vendors-grid" id="vendorsGrid">{% endif %}
+                                <div class="vendor-card">
+                                    <div class="vendor-card-top">
+                                        <div class="vendor-avatar">
+                                            {% if req.vendor.user.profile_picture %}
+                                                <img src="{{ req.vendor.user.profile_picture.url }}" alt="{{ req.vendor.user.get_full_name }}">
+                                            {% else %}
+                                                {{ req.vendor.user.get_full_name|first|upper|default:req.vendor.user.username|first|upper }}
+                                            {% endif %}
+                                        </div>
+                                        <div style="min-width:0;">
+                                            <div class="vendor-name">{{ req.vendor.user.get_full_name|default:req.vendor.user.username }}</div>
+                                            {% if req.vendor.organization_name %}
+                                                <div class="vendor-org">{{ req.vendor.organization_name }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <span class="vendor-service-chip">
+                                        <i class="fa-solid fa-tag" style="font-size:0.65rem;"></i>
+                                        {{ req.vendor.service_type }}
+                                    </span>
+                                </div>
+                                {% if forloop.last %}</div>{% endif %}
+                            {% endif %}
+                        {% endfor %}
+
+                        <div class="vendors-empty" id="vendorsEmpty" style="display:none;">
+                            <i class="fa-solid fa-store-slash"></i>
+                            No vendors have been confirmed for this event yet.
+                        </div>
+
+                    </div>
                 </div>
-                <div style="flex: 1; text-align: center;">
-                    <i class="fa-solid fa-ticket" style="font-size: 1.5rem; color: #004e92; margin-bottom: 0.5rem;"></i>
-                    <h3 style="margin: 0;">{% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} <img src="{% static 'assets/sar_symbol.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% endif %}</h3>
-                    <p style="color: #666; margin: 0;">Price</p>
-                </div>
+
             </div>
 
-            <h2 style="margin-bottom: 1rem;">About This Event</h2>
-            <p style="line-height: 1.8; color: #444; font-size: 1.05rem; margin-bottom: 2rem;">{{ event.description }}</p>
+            <!-- RIGHT SIDEBAR -->
+            <div class="sidebar-col">
 
-            <div style="background: #f0f7ff; padding: 1.5rem; border-radius: 12px; border: 1px solid #cce5ff;">
-                <h3 style="margin-top: 0; color: #004e92;">Ready to attend?</h3>
-                {% if user.is_authenticated %}
-                    {% if user.role == 'ATTENDEE' %}
-                        <form method="POST" action="{% url 'attendee_register' event.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">Register Now</button>
-                        </form>
-                    {% else %}
-                         <p>Please log in as an Attendee to register.</p>
-                         <a href="{% url 'logout' %}" class="btn btn-outline">Log Out & Switch Account</a>
-                    {% endif %}
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-primary" style="width: 100%; text-align: center; display: block; padding: 1rem;">Log In to Register</a>
-                {% endif %}
+                <!-- Register / CTA Card -->
+                <div class="card register-card fade-up d4">
+                    <div class="price-display">
+                        <p class="price-label-small">Ticket Price</p>
+                        <div class="price-amount">
+                            {% if event.ticket_price == 0 %}
+                                <span class="price-free">Free</span>
+                            {% else %}
+                                <img src="{% static 'assets/sar_symbol.svg' %}" class="sar-icon-lg" alt="SAR" style="align-self:center; margin-top:2px;">
+                                <span>{{ event.ticket_price }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="register-card card-body">
+
+                        {% if user.is_authenticated %}
+                            {% if user.role == 'ATTENDEE' %}
+                                <form method="POST" action="{% url 'attendee_register' event.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary btn-register">
+                                        <i class="fa-solid fa-bolt"></i> Register Now
+                                    </button>
+                                </form>
+                                <p class="register-hint">
+                                    <i class="fa-solid fa-lock" style="color:#10b981;"></i>
+                                    Secure registration
+                                </p>
+                            {% else %}
+                                <a href="{% url 'logout' %}" class="btn btn-outline btn-register" style="margin-bottom: 0.75rem;">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Switch Account
+                                </a>
+                                <p class="register-hint">Log in as an Attendee to register</p>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-register">
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In to Register
+                            </a>
+                            <p class="register-hint">
+                                <i class="fa-solid fa-lock" style="color:#10b981;"></i>
+                                Free & secure to sign up
+                            </p>
+                        {% endif %}
+
+                        <!-- Quick info rows -->
+                        <div style="margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                            <div class="reg-info-row">
+                                <span class="reg-info-label"><i class="fa-regular fa-calendar"></i> Date</span>
+                                <span class="reg-info-value">{{ event.date }}</span>
+                            </div>
+                            <div class="reg-info-row">
+                                <span class="reg-info-label"><i class="fa-regular fa-clock"></i> Time</span>
+                                <span class="reg-info-value">{{ event.time }}</span>
+                            </div>
+                            <div class="reg-info-row">
+                                <span class="reg-info-label"><i class="fa-solid fa-location-dot"></i> Venue</span>
+                                <span class="reg-info-value" style="text-align:right; max-width: 55%;">{{ event.location }}</span>
+                            </div>
+                            <div class="reg-info-row">
+                                <span class="reg-info-label"><i class="fa-solid fa-users"></i> Capacity</span>
+                                <span class="reg-info-value">{{ event.capacity }}</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ── Organized By ────────────────────────────────── -->
+                <div class="card fade-up d5" style="margin-top: 1.75rem;">
+                    <div class="card-header">
+                        <div class="card-header-icon"><i class="fa-solid fa-building"></i></div>
+                        <h2>Organized By</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="organizer-block">
+                            <div class="organizer-avatar">
+                                {% if event.organizer.user.profile_picture %}
+                                    <img src="{{ event.organizer.user.profile_picture.url }}" alt="{{ event.organizer.organization_name }}">
+                                {% else %}
+                                    {{ event.organizer.organization_name|first|upper }}
+                                {% endif %}
+                            </div>
+                            <div class="organizer-info">
+                                <div class="organizer-name">{{ event.organizer.organization_name }}</div>
+                                <div class="organizer-sub">
+                                    <i class="fa-solid fa-user" style="font-size:0.7rem;"></i>
+                                    {{ event.organizer.user.get_full_name|default:event.organizer.user.username }}
+                                </div>
+                                <div class="organizer-badge">
+                                    <i class="fa-solid fa-circle-check"></i> Verified Organizer
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-
         </div>
     </main>
+
+    <!-- ============================================================
+         INLINE JAVASCRIPT
+    ============================================================ -->
+    <script>
+        /* Expose Django STATIC_URL to JS (matches the pattern from the project) */
+        window.STATIC_URL = "{% static '' %}";
+
+        const SAR_ICON  = '<img src="' + window.STATIC_URL + 'assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
+        const SAR_WHITE = '<img src="' + window.STATIC_URL + 'assets/sar_white.svg" class="sar-icon" alt="SAR">';
+
+        /* ── Capacity bar: animate on page load ─────────────────── */
+        (function () {
+            const capacity = {{ event.capacity }};
+            const tickets  = {{ event.tickets.count }};   /* registered attendees */
+            const bar      = document.getElementById('capacityBar');
+            const meta     = document.getElementById('capacityMeta');
+
+            if (!bar) return;
+
+            const pct = capacity > 0 ? Math.min(Math.round((tickets / capacity) * 100), 100) : 0;
+            const remaining = Math.max(capacity - tickets, 0);
+
+            /* Animate fill after short delay for visual flair */
+            setTimeout(function () { bar.style.width = pct + '%'; }, 300);
+
+            /* Colour-code bar fill by fill level */
+            if (pct >= 90) {
+                bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+            } else if (pct >= 65) {
+                bar.style.background = 'linear-gradient(90deg, #f59e0b, #fcd34d)';
+            }
+
+            /* Meta text */
+            if (meta) {
+                if (pct === 100) {
+                    meta.textContent = 'Fully booked';
+                    meta.style.color  = '#dc2626';
+                } else {
+                    meta.textContent = remaining + ' spot' + (remaining === 1 ? '' : 's') + ' remaining (' + pct + '% filled)';
+                }
+            }
+        })();
+
+        /* ── Vendor section: count pill + empty-state guard ─────── */
+        (function () {
+            var grid   = document.getElementById('vendorsGrid');
+            var empty  = document.getElementById('vendorsEmpty');
+            var pill   = document.getElementById('vendorCountPill');
+
+            var count = grid ? grid.querySelectorAll('.vendor-card').length : 0;
+
+            if (count === 0) {
+                if (empty)  empty.style.display  = 'block';
+                if (grid)   grid.style.display    = 'none';
+                if (pill)   pill.innerHTML = '<i class="fa-solid fa-store" style="font-size:.65rem;"></i> 0 vendors';
+            } else {
+                if (empty)  empty.style.display   = 'none';
+                if (pill)   pill.innerHTML = '<i class="fa-solid fa-store" style="font-size:.65rem;"></i>&nbsp;' + count + ' vendor' + (count === 1 ? '' : 's');
+            }
+        })();
+
+        /* ── Navbar shadow on scroll ─────────────────────────────── */
+        (function () {
+            var nav = document.querySelector('.navbar');
+            window.addEventListener('scroll', function () {
+                nav.style.boxShadow = window.scrollY > 10
+                    ? '0 4px 30px rgba(0,78,146,0.12)'
+                    : '0 2px 20px rgba(0,78,146,0.06)';
+            }, { passive: true });
+        })();
+    </script>
 
 </body>
 </html>
