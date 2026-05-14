@@ -3843,3 +3843,13 @@ body {
         max-width: 100%;
     }
 }
+
+html[dir="rtl"] .btn-primary::before {
+    left: auto;
+    right: -100%;
+    transition: right 0.5s ease;
+}
+html[dir="rtl"] .btn-primary:hover::before {
+    left: auto;
+    right: 100%;
+}
