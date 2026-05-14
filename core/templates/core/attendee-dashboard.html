@@ -42,15 +42,12 @@
                     style="border-radius: 20px; font-size: 0.85rem;">
                     <i class="fa-solid fa-user"></i> Profile
                 </a>
-                <div id="notif-bell-wrapper" style="position: relative;">
-                    <button id="notif-bell-btn" onclick="switchAttendeeViewPublic('notifications')"
-                        title="Notifications"
-                        style="position:relative;background:transparent;border:2px solid rgba(255,255,255,0.6);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:white;font-size:1rem;transition:all 0.2s;"
-                        onmouseenter="this.style.background='rgba(255,255,255,0.15)'"
-                        onmouseleave="this.style.background='transparent'">
+                <div id="notif-bell-wrapper" class="notif-bell-wrapper">
+                    <button id="notif-bell-btn" class="notif-bell-btn"
+                        onclick="switchAttendeeViewPublic('notifications')"
+                        title="Notifications">
                         <i class="fa-solid fa-bell"></i>
-                        <span id="notif-badge"
-                            style="position:absolute;top:-4px;right:-4px;background:#ef4444;color:white;border-radius:50%;width:18px;height:18px;font-size:0.65rem;font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid white;">0</span>
+                        <span id="notif-badge" class="notif-badge">0</span>
                     </button>
                 </div>
                 <a href="{% url 'logout' %}" class="btn btn-primary btn-sm"
@@ -320,7 +317,7 @@
                     <div class="lp-event-card reveal-on-scroll revealed" data-category="{{ event.category }}"
                         data-location="{{ event.location|lower }}" data-title="{{ event.title|lower }}"
                         data-desc="{{ event.description|lower }}">
-                        
+
                         <div class="lp-card-image" style="
                                 {% if event.banner and event.banner.url %}background: url('{{ event.banner.url }}') center/cover no-repeat;
                                 {% elif event.category == 'Conference' %}background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
@@ -889,8 +886,10 @@
 </script>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="{% static 'js/attendee-logic.js' %}?v=9"></script>
-    <script src="{% static 'js/ai-assistant.js' %}?v=2"></script>
+    <script src="{% static 'js/attendee-logic.js' %}?v=10"></script>
+    <script src="{% static 'js/ai-assistant.js' %}?v=3"></script>
+
+
 
 </body>
 
