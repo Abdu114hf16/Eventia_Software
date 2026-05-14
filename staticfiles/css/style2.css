@@ -113,6 +113,17 @@ body {
     left: 100%;
 }
 
+html[dir="rtl"] .btn-primary::before {
+    left: auto;
+    right: -100%;
+    transition: right 0.5s ease;
+}
+
+html[dir="rtl"] .btn-primary:hover::before {
+    left: auto;
+    right: 100%;
+}
+
 .btn-primary:hover {
     background: linear-gradient(135deg, #004e92, #000428);
     transform: translateY(-3px);
@@ -3077,10 +3088,18 @@ body {
     font-size: 1.05rem;
 }
 
-.hero-cta {
+/* DOM: span then icon. direction:ltr isolates flex from document RTL so row/row-reverse map to screen LTR positions. */
+.hero-landing .hero-cta {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    direction: ltr;
+    flex-direction: row-reverse;
+}
+
+html[dir="rtl"] .hero-landing .hero-cta {
+    flex-direction: row;
 }
 
 /* Hero "Explore Events" — soft tint, clearly clickable but not overpowering */
