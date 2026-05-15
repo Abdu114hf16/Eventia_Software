@@ -3,9 +3,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+        (function () {
+            try {
+                var l = localStorage.getItem('eventia_lang') || 'en';
+                document.documentElement.setAttribute('lang', l);
+                document.documentElement.setAttribute('dir', l === 'ar' ? 'rtl' : 'ltr');
+            } catch (e) { /* ignore */ }
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.title }} | Eventia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -34,12 +43,24 @@
 
         html { scroll-behavior: smooth; }
 
-        body {
+        body.ed-body {
             font-family: 'Inter', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
+        }
+
+        html[lang="ar"] body.ed-body {
+            font-family: 'Tajawal', 'Inter', sans-serif;
+        }
+        html[lang="ar"] body.ed-body .navbar,
+        html[lang="ar"] body.ed-body .navbar a {
+            font-family: inherit;
+        }
+        html[lang="ar"] .event-category-pill {
+            text-transform: none;
+            letter-spacing: normal;
         }
 
         a { text-decoration: none; color: inherit; }
@@ -215,11 +236,32 @@
             font-weight: 500;
         }
 
+        /*
+          Arabic / RTL: hero title + location use dir="auto" so English stays LTR,
+          which left-aligns those blocks by default. Align the stack to inline-start
+          (right edge) and end-align text; flex-end places the location row on the right.
+        */
+        html[dir="rtl"] .event-hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        html[dir="rtl"] .event-hero-title {
+            width: 100%;
+            box-sizing: border-box;
+            text-align: end;
+        }
+        html[dir="rtl"] .event-hero-location {
+            width: 100%;
+            box-sizing: border-box;
+            justify-content: flex-end;
+        }
+
         /* Status badge */
         .event-status-badge {
             position: absolute;
             top: 2rem;
-            right: 4rem;
+            inset-inline-end: 4rem;
             z-index: 3;
             display: inline-flex;
             align-items: center;
@@ -268,11 +310,11 @@
             justify-content: center;
             padding: 1.5rem 1rem;
             gap: 0.4rem;
-            border-right: 1px solid var(--border);
+            border-inline-end: 1px solid var(--border);
             transition: background 0.2s;
             text-align: center;
         }
-        .stat-cell:last-child { border-right: none; }
+        .stat-cell:last-child { border-inline-end: none; }
         .stat-cell:hover { background: #f8faff; }
 
         .stat-icon {
@@ -308,9 +350,33 @@
         ============================================================ */
         .content-grid {
             display: grid;
-            grid-template-columns: 1fr 340px;
+            grid-template-columns: minmax(0, 1fr) 340px;
+            grid-template-areas: "main sidebar";
             gap: 1.75rem;
             align-items: start;
+            width: 100%;
+        }
+
+        .main-col {
+            grid-area: main;
+            min-width: 0;
+        }
+
+        .sidebar-col {
+            grid-area: sidebar;
+            min-width: 0;
+        }
+
+        /* Arabic: ticket/organizer on the left, event cards on the right */
+        html[dir="rtl"] .content-grid {
+            direction: ltr;
+            grid-template-columns: 340px minmax(0, 1fr);
+            grid-template-areas: "sidebar main";
+        }
+
+        html[dir="rtl"] .main-col,
+        html[dir="rtl"] .sidebar-col {
+            direction: rtl;
         }
 
         /* ============================================================
@@ -363,6 +429,9 @@
             line-height: 1.85;
             color: #475569;
         }
+        html[dir="rtl"] .about-text {
+            text-align: start;
+        }
 
         /* ============================================================
            DETAILS LIST
@@ -396,7 +465,10 @@
             margin-top: 1px;
         }
 
-        .detail-row-content { flex: 1; }
+        .detail-row-content { flex: 1; min-width: 0; }
+        html[dir="rtl"] .detail-row-content {
+            text-align: start;
+        }
 
         .detail-row-label {
             font-size: 0.72rem;
@@ -437,6 +509,9 @@
             color: var(--text-muted);
             margin-top: 0.3rem;
             font-weight: 500;
+        }
+        html[dir="rtl"] .capacity-meta {
+            text-align: start;
         }
 
         /* ============================================================
@@ -551,6 +626,11 @@
             font-weight: 600;
             color: var(--text);
         }
+        .reg-info-venue {
+            max-width: 55%;
+            text-align: start;
+            min-width: 0;
+        }
 
         /* ============================================================
            AGE RESTRICTION CHIP
@@ -624,16 +704,26 @@
         .organizer-badge {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 0.73rem;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.78rem;
             font-weight: 700;
+            line-height: 1.35;
             background: linear-gradient(135deg, rgba(0,78,146,0.10), rgba(77,171,247,0.14));
             color: var(--primary);
             border: 1px solid rgba(0,78,146,0.15);
             margin-top: 0.5rem;
-            letter-spacing: 0.3px;
+            letter-spacing: normal;
+            width: fit-content;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .organizer-badge > i {
+            flex-shrink: 0;
+            font-size: 0.85em;
         }
 
         /* ============================================================
@@ -719,7 +809,7 @@
             background: rgba(0,78,146,0.07);
             color: var(--primary);
             border: 1px solid rgba(0,78,146,0.12);
-            align-self: flex-start;
+            align-self: start;
             margin-top: 2px;
         }
 
@@ -738,7 +828,7 @@
         }
 
         .vendors-count-pill {
-            margin-left: auto;
+            margin-inline-start: auto;
             background: linear-gradient(135deg, rgba(0,78,146,0.10), rgba(77,171,247,0.15));
             color: var(--primary);
             font-size: 0.73rem;
@@ -770,23 +860,103 @@
            RESPONSIVE
         ============================================================ */
         @media (max-width: 900px) {
-            .content-grid { grid-template-columns: 1fr; }
-            .sidebar-col { order: -1; }
+            .page-main {
+                max-width: 760px;
+            }
+
+            .content-grid {
+                grid-template-columns: minmax(0, 1fr) 280px;
+                grid-template-areas: "main sidebar";
+            }
+
+            html[dir="rtl"] .content-grid {
+                grid-template-columns: 280px minmax(0, 1fr);
+                grid-template-areas: "sidebar main";
+            }
+
             .stats-strip { grid-template-columns: repeat(2, 1fr); }
-            .stat-cell:nth-child(2) { border-right: none; }
+            .stat-cell:nth-child(2) { border-inline-end: none; }
             .stat-cell:nth-child(3) { border-top: 1px solid var(--border); }
-            .stat-cell:nth-child(4) { border-top: 1px solid var(--border); border-right: none; }
+            .stat-cell:nth-child(4) { border-top: 1px solid var(--border); border-inline-end: none; }
         }
 
         @media (max-width: 640px) {
+            .content-grid,
+            html[dir="rtl"] .content-grid {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "sidebar"
+                    "main";
+            }
+
             .event-hero-content { padding: 2rem 1.5rem 2rem; }
-            .event-status-badge { top: 1.25rem; right: 1.5rem; font-size: 0.7rem; }
+            .event-status-badge { top: 1.25rem; inset-inline-end: 1.5rem; font-size: 0.7rem; }
             .page-main { margin-top: -20px; }
             .stats-strip { grid-template-columns: 1fr 1fr; }
         }
+
+        /* ============================================================
+           LANGUAGE FLAG SWITCHER  (single-toggle)
+        ============================================================ */
+        .lang-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            padding: 5px 13px 5px 9px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,78,146,0.08);
+            transition: box-shadow 0.25s, border-color 0.25s, background 0.25s;
+            flex-shrink: 0;
+            margin-inline-start: 0.35rem;
+            font-family: inherit;
+        }
+        .lang-toggle-btn:hover {
+            box-shadow: 0 4px 20px rgba(0,78,146,0.16);
+            border-color: rgba(0,78,146,0.28);
+            background: #f5f9ff;
+        }
+        .lang-toggle-flag-img {
+            width: 22px;
+            height: 15px;
+            border-radius: 3px;
+            object-fit: cover;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+        }
+        .lang-toggle-code {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        .lang-toggle-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            white-space: nowrap;
+            line-height: 1;
+        }
+        /* thin divider between code and label */
+        .lang-toggle-divider {
+            width: 1px;
+            height: 14px;
+            background: var(--border);
+            flex-shrink: 0;
+        }
+        @media (max-width: 480px) {
+            .lang-toggle-label { display: none; }
+            .lang-toggle-divider { display: none; }
+            .lang-toggle-btn { padding: 5px 10px; }
+        }
     </style>
 </head>
-<body>
+<body class="ed-body">
 
     <!-- ============================================================
          NAVBAR
@@ -798,18 +968,30 @@
             </a>
         </span>
         <div class="nav-buttons">
+            
+
             {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}" class="btn btn-primary">
-                    <i class="fa-solid fa-gauge-high"></i> Dashboard
+                    <i class="fa-solid fa-gauge-high"></i> <span data-i18n="landing.nav.dashboard">Dashboard</span>
                 </a>
             {% else %}
                 <a href="{% url 'login' %}" class="btn btn-outline">
-                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i> <span data-i18n="nav.login">Log In</span>
                 </a>
                 <a href="{% url 'signup_attendee' %}" class="btn btn-primary" id="nav-signup-btn">
-                    <i class="fa-solid fa-user-plus"></i> Sign Up
+                    <i class="fa-solid fa-user-plus"></i> <span data-i18n="nav.signup">Sign Up</span>
                 </a>
             {% endif %}
+            
+            <!-- Language Switcher (single toggle) -->
+            <button id="lang-switch" class="lang-toggle-btn" aria-label="Switch language" title="Switch language / تغيير اللغة"
+                data-flag-sa="{% static 'assets/sa.svg' %}"
+                data-flag-gb="{% static 'assets/gb.svg' %}">
+                <img id="lang-toggle-flag" class="lang-toggle-flag-img" src="{% static 'assets/sa.svg' %}" alt="SA">
+                <span class="lang-toggle-code" id="lang-toggle-code">AR</span>
+                <span class="lang-toggle-divider"></span>
+                <span class="lang-toggle-label" id="lang-toggle-label">العربية</span>
+            </button>
         </div>
     </nav>
 
@@ -827,10 +1009,10 @@
         <div class="event-hero-content">
             <div class="event-category-pill">
                 <i class="fa-solid fa-tag"></i>
-                {{ event.category }}
+                <span id="ed-event-category" data-ed-category="{{ event.category|default_if_none:''|escape }}">{{ event.category }}</span>
             </div>
-            <h1 class="event-hero-title">{{ event.title }}</h1>
-            <p class="event-hero-location">
+            <h1 class="event-hero-title" dir="auto">{{ event.title }}</h1>
+            <p class="event-hero-location" dir="auto">
                 <i class="fa-solid fa-location-dot"></i>
                 {{ event.location }}
             </p>
@@ -846,25 +1028,25 @@
         <div class="stats-strip fade-up d1">
             <div class="stat-cell">
                 <div class="stat-icon"><i class="fa-regular fa-calendar"></i></div>
-                <span class="stat-value">{{ event.date }}</span>
-                <span class="stat-label">Date</span>
+                <span class="stat-value" id="ed-event-date-val" data-iso-date="{{ event.date|date:'Y-m-d' }}" dir="ltr">{{ event.date }}</span>
+                <span class="stat-label" data-i18n="common.date">Date</span>
             </div>
             <div class="stat-cell">
                 <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
-                <span class="stat-value">{{ event.time }}</span>
-                <span class="stat-label">Time</span>
+                <span class="stat-value" id="ed-event-time-val" data-iso-time="{{ event.time|time:'H:i:s' }}" dir="ltr">{{ event.time }}</span>
+                <span class="stat-label" data-i18n="common.time">Time</span>
             </div>
             <div class="stat-cell">
                 <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                 <span class="stat-value">{{ event.capacity }}</span>
-                <span class="stat-label">Capacity</span>
+                <span class="stat-label" data-i18n="event.details.capacityStat">Capacity</span>
             </div>
             <div class="stat-cell">
                 <div class="stat-icon"><i class="fa-solid fa-ticket"></i></div>
                 <span class="stat-value">
-                    {% if event.ticket_price == 0 %}Free{% else %}<img src="{% static 'assets/sar_symbol.svg' %}" class="sar-icon" alt="SAR"> {{ event.ticket_price }}{% endif %}
+                    {% if event.ticket_price == 0 %}<span data-i18n="common.free">Free</span>{% else %}<img src="{% static 'assets/sar_symbol.svg' %}" class="sar-icon" alt="SAR"> {{ event.ticket_price }}{% endif %}
                 </span>
-                <span class="stat-label">Ticket</span>
+                <span class="stat-label" data-i18n="event.details.ticketStat">Ticket</span>
             </div>
         </div>
 
@@ -878,7 +1060,7 @@
                 <div class="card fade-up d2" style="margin-bottom: 1.75rem;">
                     <div class="card-header">
                         <div class="card-header-icon"><i class="fa-solid fa-circle-info"></i></div>
-                        <h2>About This Event</h2>
+                        <h2 data-i18n="event.details.aboutTitle">About This Event</h2>
                     </div>
                     <div class="card-body">
                         <p class="about-text">{{ event.description }}</p>
@@ -889,7 +1071,7 @@
                 <div class="card fade-up d3">
                     <div class="card-header">
                         <div class="card-header-icon"><i class="fa-solid fa-list-check"></i></div>
-                        <h2>Event Details</h2>
+                        <h2 data-i18n="common.eventDetails">Event Details</h2>
                     </div>
                     <div class="card-body" style="padding-top: 0.25rem; padding-bottom: 0.25rem;">
                         <div class="detail-list">
@@ -898,7 +1080,7 @@
                             <div class="detail-row">
                                 <div class="detail-row-icon"><i class="fa-solid fa-location-dot"></i></div>
                                 <div class="detail-row-content">
-                                    <div class="detail-row-label">Location</div>
+                                    <div class="detail-row-label" data-i18n="common.location">Location</div>
                                     <div class="detail-row-value">{{ event.location }}</div>
                                 </div>
                             </div>
@@ -907,8 +1089,8 @@
                             <div class="detail-row">
                                 <div class="detail-row-icon"><i class="fa-solid fa-calendar-days"></i></div>
                                 <div class="detail-row-content">
-                                    <div class="detail-row-label">Date & Time</div>
-                                    <div class="detail-row-value">{{ event.date }} &mdash; {{ event.time }}</div>
+                                    <div class="detail-row-label" data-i18n="event.details.dateTimeRow">Date & Time</div>
+                                    <div class="detail-row-value" id="ed-event-datetime-row">{{ event.date }} &mdash; {{ event.time }}</div>
                                 </div>
                             </div>
 
@@ -916,8 +1098,8 @@
                             <div class="detail-row">
                                 <div class="detail-row-icon"><i class="fa-solid fa-shapes"></i></div>
                                 <div class="detail-row-content">
-                                    <div class="detail-row-label">Category</div>
-                                    <div class="detail-row-value">{{ event.category }}</div>
+                                    <div class="detail-row-label" data-i18n="common.category">Category</div>
+                                    <div class="detail-row-value"><span data-ed-category="{{ event.category|default_if_none:''|escape }}">{{ event.category }}</span></div>
                                 </div>
                             </div>
 
@@ -925,8 +1107,8 @@
                             <div class="detail-row">
                                 <div class="detail-row-icon"><i class="fa-solid fa-users"></i></div>
                                 <div class="detail-row-content">
-                                    <div class="detail-row-label">Capacity</div>
-                                    <div class="detail-row-value">{{ event.capacity }} attendees</div>
+                                    <div class="detail-row-label" data-i18n="event.details.capacityStat">Capacity</div>
+                                    <div class="detail-row-value">{{ event.capacity }} <span data-i18n="event.details.capacitySuffix">attendees</span></div>
                                     <div class="capacity-bar-wrap">
                                         <div class="capacity-bar-track">
                                             <div class="capacity-bar-fill" id="capacityBar" style="width: 0%"></div>
@@ -944,42 +1126,42 @@
                 <div class="card fade-up d5" style="margin-bottom: 1.75rem;">
                     <div class="card-header">
                         <div class="card-header-icon"><i class="fa-solid fa-handshake"></i></div>
-                        <h2>Event Vendors</h2>
+                        <h2 data-i18n="event.details.eventVendors">Event Vendors</h2>
                         <span class="vendors-count-pill" id="vendorCountPill"></span>
                     </div>
                     <div class="card-body">
 
-                        {% for req in event.requests.all %}
-                            {% if req.status == 'APPROVED' %}
-                                {% if forloop.first %}<div class="vendors-grid" id="vendorsGrid">{% endif %}
-                                <div class="vendor-card">
-                                    <div class="vendor-card-top">
-                                        <div class="vendor-avatar">
-                                            {% if req.vendor.user.profile_picture %}
-                                                <img src="{{ req.vendor.user.profile_picture.url }}" alt="{{ req.vendor.user.get_full_name }}">
-                                            {% else %}
-                                                {{ req.vendor.user.get_full_name|first|upper|default:req.vendor.user.username|first|upper }}
-                                            {% endif %}
+                        <div class="vendors-grid" id="vendorsGrid">
+                            {% for req in event.requests.all %}
+                                {% if req.status == 'APPROVED' %}
+                                    <div class="vendor-card">
+                                        <div class="vendor-card-top">
+                                            <div class="vendor-avatar">
+                                                {% if req.vendor.user.profile_picture %}
+                                                    <img src="{{ req.vendor.user.profile_picture.url }}" alt="{{ req.vendor.user.get_full_name }}">
+                                                {% else %}
+                                                    {{ req.vendor.user.get_full_name|first|upper|default:req.vendor.user.username|first|upper }}
+                                                {% endif %}
+                                            </div>
+                                            <div style="min-width:0;">
+                                                <div class="vendor-name">{{ req.vendor.user.get_full_name|default:req.vendor.user.username }}</div>
+                                                {% if req.vendor.organization_name %}
+                                                    <div class="vendor-org">{{ req.vendor.organization_name }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
-                                        <div style="min-width:0;">
-                                            <div class="vendor-name">{{ req.vendor.user.get_full_name|default:req.vendor.user.username }}</div>
-                                            {% if req.vendor.organization_name %}
-                                                <div class="vendor-org">{{ req.vendor.organization_name }}</div>
-                                            {% endif %}
-                                        </div>
+                                        <span class="vendor-service-chip">
+                                            <i class="fa-solid fa-tag" style="font-size:0.65rem;"></i>
+                                            {{ req.vendor.service_type }}
+                                        </span>
                                     </div>
-                                    <span class="vendor-service-chip">
-                                        <i class="fa-solid fa-tag" style="font-size:0.65rem;"></i>
-                                        {{ req.vendor.service_type }}
-                                    </span>
-                                </div>
-                                {% if forloop.last %}</div>{% endif %}
-                            {% endif %}
-                        {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
 
                         <div class="vendors-empty" id="vendorsEmpty" style="display:none;">
                             <i class="fa-solid fa-store-slash"></i>
-                            No vendors have been confirmed for this event yet.
+                            <span data-i18n="event.details.noVendorsYet">No vendors have been confirmed for this event yet.</span>
                         </div>
 
                     </div>
@@ -993,10 +1175,10 @@
                 <!-- Register / CTA Card -->
                 <div class="card register-card fade-up d4">
                     <div class="price-display">
-                        <p class="price-label-small">Ticket Price</p>
+                        <p class="price-label-small" data-i18n="att.reg.ticketPrice">Ticket Price</p>
                         <div class="price-amount">
                             {% if event.ticket_price == 0 %}
-                                <span class="price-free">Free</span>
+                                <span class="price-free" data-i18n="common.free">Free</span>
                             {% else %}
                                 <img src="{% static 'assets/sar_symbol.svg' %}" class="sar-icon-lg" alt="SAR" style="align-self:center; margin-top:2px;">
                                 <span>{{ event.ticket_price }}</span>
@@ -1011,45 +1193,45 @@
                                 <form method="POST" action="{% url 'attendee_register' event.id %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-primary btn-register">
-                                        <i class="fa-solid fa-bolt"></i> Register Now
+                                        <i class="fa-solid fa-bolt"></i> <span data-i18n="att.details.registerNow">Register Now</span>
                                     </button>
                                 </form>
                                 <p class="register-hint">
                                     <i class="fa-solid fa-lock" style="color:#10b981;"></i>
-                                    Secure registration
+                                    <span data-i18n="event.details.secureRegistration">Secure registration</span>
                                 </p>
                             {% else %}
                                 <a href="{% url 'logout' %}" class="btn btn-outline btn-register" style="margin-bottom: 0.75rem;">
-                                    <i class="fa-solid fa-right-from-bracket"></i> Switch Account
+                                    <i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="event.details.switchAccountShort">Switch Account</span>
                                 </a>
-                                <p class="register-hint">Log in as an Attendee to register</p>
+                                <p class="register-hint" data-i18n="event.details.loginAsAttendee">Log in as an Attendee to register</p>
                             {% endif %}
                         {% else %}
                             <a href="{% url 'login' %}" class="btn btn-primary btn-register">
-                                <i class="fa-solid fa-arrow-right-to-bracket"></i> Log In to Register
+                                <i class="fa-solid fa-arrow-right-to-bracket"></i> <span data-i18n="event.details.loginToRegister">Log In to Register</span>
                             </a>
                             <p class="register-hint">
                                 <i class="fa-solid fa-lock" style="color:#10b981;"></i>
-                                Free & secure to sign up
+                                <span data-i18n="event.details.freeSecureSignup">Free & secure to sign up</span>
                             </p>
                         {% endif %}
 
                         <!-- Quick info rows -->
                         <div style="margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 1rem;">
                             <div class="reg-info-row">
-                                <span class="reg-info-label"><i class="fa-regular fa-calendar"></i> Date</span>
-                                <span class="reg-info-value">{{ event.date }}</span>
+                                <span class="reg-info-label"><i class="fa-regular fa-calendar"></i> <span data-i18n="common.date">Date</span></span>
+                                <span class="reg-info-value ed-local-date" dir="ltr">{{ event.date }}</span>
                             </div>
                             <div class="reg-info-row">
-                                <span class="reg-info-label"><i class="fa-regular fa-clock"></i> Time</span>
-                                <span class="reg-info-value">{{ event.time }}</span>
+                                <span class="reg-info-label"><i class="fa-regular fa-clock"></i> <span data-i18n="common.time">Time</span></span>
+                                <span class="reg-info-value ed-local-time" dir="ltr">{{ event.time }}</span>
                             </div>
                             <div class="reg-info-row">
-                                <span class="reg-info-label"><i class="fa-solid fa-location-dot"></i> Venue</span>
-                                <span class="reg-info-value" style="text-align:right; max-width: 55%;">{{ event.location }}</span>
+                                <span class="reg-info-label"><i class="fa-solid fa-location-dot"></i> <span data-i18n="common.venue">Venue</span></span>
+                                <span class="reg-info-value reg-info-venue">{{ event.location }}</span>
                             </div>
                             <div class="reg-info-row">
-                                <span class="reg-info-label"><i class="fa-solid fa-users"></i> Capacity</span>
+                                <span class="reg-info-label"><i class="fa-solid fa-users"></i> <span data-i18n="event.details.capacityStat">Capacity</span></span>
                                 <span class="reg-info-value">{{ event.capacity }}</span>
                             </div>
                         </div>
@@ -1061,7 +1243,7 @@
                 <div class="card fade-up d5" style="margin-top: 1.75rem;">
                     <div class="card-header">
                         <div class="card-header-icon"><i class="fa-solid fa-building"></i></div>
-                        <h2>Organized By</h2>
+                        <h2 data-i18n="event.details.organizedBy">Organized By</h2>
                     </div>
                     <div class="card-body">
                         <div class="organizer-block">
@@ -1079,7 +1261,7 @@
                                     {{ event.organizer.user.get_full_name|default:event.organizer.user.username }}
                                 </div>
                                 <div class="organizer-badge">
-                                    <i class="fa-solid fa-circle-check"></i> Verified Organizer
+                                    <i class="fa-solid fa-circle-check"></i> <span data-i18n="event.details.verifiedOrganizer">Verified Organizer</span>
                                 </div>
                             </div>
                         </div>
@@ -1093,61 +1275,230 @@
     <!-- ============================================================
          INLINE JAVASCRIPT
     ============================================================ -->
+    <script src="{% static 'js/app-ar.js' %}?v=4"></script>
     <script>
         /* Expose Django STATIC_URL to JS (matches the pattern from the project) */
         window.STATIC_URL = "{% static '' %}";
 
-        const SAR_ICON  = '<img src="' + window.STATIC_URL + 'assets/sar_symbol.svg" class="sar-icon" alt="SAR">';
-        const SAR_WHITE = '<img src="' + window.STATIC_URL + 'assets/sar_white.svg" class="sar-icon" alt="SAR">';
-
-        /* ── Capacity bar: animate on page load ─────────────────── */
+        /* ── Capacity bar: animate fill only (labels via localizeEventDetailsPage) ─ */
         (function () {
             const capacity = {{ event.capacity }};
-            const tickets  = {{ event.tickets.count }};   /* registered attendees */
+            const tickets  = {{ event.tickets.count }};
             const bar      = document.getElementById('capacityBar');
-            const meta     = document.getElementById('capacityMeta');
 
             if (!bar) return;
 
             const pct = capacity > 0 ? Math.min(Math.round((tickets / capacity) * 100), 100) : 0;
-            const remaining = Math.max(capacity - tickets, 0);
 
-            /* Animate fill after short delay for visual flair */
             setTimeout(function () { bar.style.width = pct + '%'; }, 300);
 
-            /* Colour-code bar fill by fill level */
             if (pct >= 90) {
                 bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
             } else if (pct >= 65) {
                 bar.style.background = 'linear-gradient(90deg, #f59e0b, #fcd34d)';
             }
-
-            /* Meta text */
-            if (meta) {
-                if (pct === 100) {
-                    meta.textContent = 'Fully booked';
-                    meta.style.color  = '#dc2626';
-                } else {
-                    meta.textContent = remaining + ' spot' + (remaining === 1 ? '' : 's') + ' remaining (' + pct + '% filled)';
-                }
-            }
         })();
 
-        /* ── Vendor section: count pill + empty-state guard ─────── */
+        /* ── Lang toggle: update button to show the OPPOSITE language ─ */
+        (function () {
+            function syncLangToggle() {
+                var lang    = document.documentElement.getAttribute('lang') || 'en';
+                var flagEl  = document.getElementById('lang-toggle-flag');
+                var codeEl  = document.getElementById('lang-toggle-code');
+                var labelEl = document.getElementById('lang-toggle-label');
+                if (!flagEl) return;
+                if (lang === 'ar') {
+                    flagEl.src          = "{% static 'assets/gb.svg' %}";
+                    flagEl.alt          = 'GB';
+                    codeEl.textContent  = 'EN';
+                    labelEl.textContent = 'English';
+                } else {
+                    flagEl.src          = "{% static 'assets/sa.svg' %}";
+                    flagEl.alt          = 'SA';
+                    codeEl.textContent  = 'AR';
+                    labelEl.textContent = 'العربية';
+                }
+            }
+            syncLangToggle();
+            var obs = new MutationObserver(syncLangToggle);
+            obs.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+        })();
+
+        /** Date/time + category + dynamic strings; app.js applyLang() invokes this. */
+        window.localizeEventDetailsPage = function (lang) {
+            const dict = window.I18N && window.I18N[lang];
+            const isAr = lang === 'ar';
+
+            
+            var _o = '{' + '{', _c = '}' + '}';
+            var _fb = {};
+            _fb['event.details.fullyBooked']     = isAr ? 'مكتمل العدد' : 'Fully booked';
+            _fb['event.details.spotsRemainOne']  = isAr ? 'متبقٍ مكان واحد (' + _o + 'pct' + _c + '% ممتلئ)' : '1 spot remaining (' + _o + 'pct' + _c + '% filled)';
+            _fb['event.details.spotsRemainMany'] = isAr ? 'متبقٍ ' + _o + 'n' + _c + ' أماكن (' + _o + 'pct' + _c + '% ممتلئ)' : _o + 'n' + _c + ' spots remaining (' + _o + 'pct' + _c + '% filled)';
+            _fb['event.details.vendorCountZero'] = isAr ? '0 مزودين' : '0 vendors';
+            _fb['event.details.vendorCountOne']  = isAr ? '1 مزود' : '1 vendor';
+            _fb['event.details.vendorCountMany'] = isAr ? _o + 'n' + _c + ' مزودين' : _o + 'n' + _c + ' vendors';
+
+            function tKey(key) {
+                if (dict && dict[key] != null) return dict[key];
+                return _fb[key] != null ? _fb[key] : key;
+            }
+            /* Build "{{" without writing "{"+"{" in the file — Django would parse it as a template tag. */
+            function ph(str, map) {
+                let s = String(str);
+                var open = '{' + '{';
+                var close = '}' + '}';
+                Object.keys(map).forEach(function (k) {
+                    s = s.split(open + k + close).join(String(map[k]));
+                });
+                return s;
+            }
+
+            function translateCategory(category) {
+                const map = {
+                    Tech: 'cat.tech',
+                    Art: 'cat.art',
+                    Business: 'cat.business',
+                    Music: 'cat.music',
+                    Education: 'cat.education',
+                    Sports: 'cat.sports',
+                    Other: 'cat.other',
+                    Conference: 'cat.conference',
+                    Exhibition: 'cat.exhibition',
+                    Entertainment: 'cat.entertainment',
+                    Workshop: 'cat.workshop',
+                    'Food & Culture': 'cat.foodCulture',
+                    Technology: 'cat.technology',
+                    Culture: 'cat.culture',
+                    Family: 'cat.family',
+                    Shopping: 'cat.shopping',
+                };
+                return tKey(map[category] || 'cat.other');
+            }
+
+            const dateEl = document.getElementById('ed-event-date-val');
+            const timeEl = document.getElementById('ed-event-time-val');
+            let dateStr = null;
+            let timeStr = null;
+
+            if (dateEl && timeEl) {
+                const isoD = dateEl.getAttribute('data-iso-date');
+                const isoT = timeEl.getAttribute('data-iso-time');
+                if (isoD && isoT) {
+                    const ymd = isoD.split('-');
+                    const year = parseInt(ymd[0], 10);
+                    const month = parseInt(ymd[1], 10);
+                    const day = parseInt(ymd[2], 10);
+                    const tm = isoT.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+                    if (tm) {
+                        const hh = parseInt(tm[1], 10);
+                        const min = parseInt(tm[2], 10);
+                        const locale = isAr ? 'ar-u-nu-latn' : 'en-US';
+                        dateEl.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+                        timeEl.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+                        try {
+                            const dateTs = new Date(year, month - 1, day);
+                            const timeTs = new Date(2000, 0, 1, hh, min);
+                            if (!isNaN(dateTs.getTime()) && !isNaN(timeTs.getTime())) {
+                                if (isAr) {
+                                    /* Year month day, Arabic month name, Western digits, e.g. 2026 يونيو 16 */
+                                    const arFmt = new Intl.DateTimeFormat(locale, {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                    });
+                                    const partsObj = {};
+                                    arFmt.formatToParts(dateTs).forEach(function (p) {
+                                        if (p.type !== 'literal') {
+                                            partsObj[p.type] = String(p.value).trim();
+                                        }
+                                    });
+                                    dateStr = [partsObj.year, partsObj.month, partsObj.day].filter(Boolean).join(' ');
+                                } else {
+                                    dateStr = dateTs.toLocaleDateString(locale, { month: 'long', day: 'numeric', year: 'numeric' });
+                                }
+                                timeStr = timeTs.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: true });
+                                dateEl.textContent = dateStr;
+                                timeEl.textContent = timeStr;
+                            }
+                        } catch (e) { /* keep server-rendered */ }
+                    }
+                }
+            }
+
+            if (dateStr != null) {
+                document.querySelectorAll('.ed-local-date').forEach(function (el) {
+                    el.textContent = dateStr;
+                    el.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+                });
+            }
+            if (timeStr != null) {
+                document.querySelectorAll('.ed-local-time').forEach(function (el) {
+                    el.textContent = timeStr;
+                    el.setAttribute('dir', isAr ? 'rtl' : 'ltr');
+                });
+            }
+
+            const dtRow = document.getElementById('ed-event-datetime-row');
+            if (dtRow && dateStr != null && timeStr != null) {
+                dtRow.textContent = dateStr + ' — ' + timeStr;
+            }
+
+            document.querySelectorAll('[data-ed-category]').forEach(function (el) {
+                const cat = el.getAttribute('data-ed-category');
+                if (cat === null || cat === '') return;
+                el.textContent = translateCategory(cat);
+            });
+
+            /* Capacity meta */
+            const capacity = {{ event.capacity }};
+            const tickets = {{ event.tickets.count }};
+            const meta = document.getElementById('capacityMeta');
+            if (meta) {
+                const pct = capacity > 0 ? Math.min(Math.round((tickets / capacity) * 100), 100) : 0;
+                const remaining = Math.max(capacity - tickets, 0);
+                if (pct === 100) {
+                    meta.textContent = tKey('event.details.fullyBooked');
+                    meta.style.color = '#dc2626';
+                } else {
+                    meta.style.color = '';
+                    if (remaining === 1) {
+                        meta.textContent = ph(tKey('event.details.spotsRemainOne'), { pct: pct });
+                    } else {
+                        meta.textContent = ph(tKey('event.details.spotsRemainMany'), { n: remaining, pct: pct });
+                    }
+                }
+            }
+
+            /* Vendor count pill */
+            const grid = document.getElementById('vendorsGrid');
+            const pill = document.getElementById('vendorCountPill');
+            if (pill) {
+                const count = grid ? grid.querySelectorAll('.vendor-card').length : 0;
+                const icon = '<i class="fa-solid fa-store" style="font-size:.65rem;"></i>';
+                if (count === 0) {
+                    pill.innerHTML = icon + ' ' + tKey('event.details.vendorCountZero');
+                } else if (count === 1) {
+                    pill.innerHTML = icon + '&nbsp;' + tKey('event.details.vendorCountOne');
+                } else {
+                    pill.innerHTML = icon + '&nbsp;' + ph(tKey('event.details.vendorCountMany'), { n: count });
+                }
+            }
+        };
+
+        /* ── Vendor section: empty-state vs grid visibility (pill text from localize) ─ */
         (function () {
             var grid   = document.getElementById('vendorsGrid');
             var empty  = document.getElementById('vendorsEmpty');
-            var pill   = document.getElementById('vendorCountPill');
 
             var count = grid ? grid.querySelectorAll('.vendor-card').length : 0;
 
             if (count === 0) {
                 if (empty)  empty.style.display  = 'block';
                 if (grid)   grid.style.display    = 'none';
-                if (pill)   pill.innerHTML = '<i class="fa-solid fa-store" style="font-size:.65rem;"></i> 0 vendors';
             } else {
                 if (empty)  empty.style.display   = 'none';
-                if (pill)   pill.innerHTML = '<i class="fa-solid fa-store" style="font-size:.65rem;"></i>&nbsp;' + count + ' vendor' + (count === 1 ? '' : 's');
+                if (grid)   grid.style.display    = '';
             }
         })();
 
