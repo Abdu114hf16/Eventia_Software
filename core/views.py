@@ -248,10 +248,17 @@ def signup_business(request):
 def login_business(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
+        selected_role = request.POST.get('login_role', 'organizer').strip().upper()  # 'ORGANIZER' or 'VENDOR'
         if form.is_valid():
             user = form.get_user()
             if user.role not in ['ORGANIZER', 'VENDOR']:
                 messages.error(request, "Access Denied. Attendees must use the standard login page.")
+                return render(request, 'core/login-business.html', {'form': form})
+            if user.role != selected_role:
+                role_labels = {'ORGANIZER': 'Organizer', 'VENDOR': 'Vendor'}
+                actual = role_labels.get(user.role, user.role.capitalize())
+                selected = role_labels.get(selected_role, selected_role.capitalize())
+                messages.error(request, f"This account is registered as a {actual}, not a {selected}. Please select the correct role and try again.")
                 return render(request, 'core/login-business.html', {'form': form})
             login(request, user)
             if user.role == 'ORGANIZER':
