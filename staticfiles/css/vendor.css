@@ -165,7 +165,7 @@
 
 .vendor-my-events-search-icon {
     position: absolute;
-    left: 1rem;
+    inset-inline-start: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: #64748b;
@@ -175,7 +175,9 @@
 
 .vendor-my-events-search-input {
     width: 100%;
-    padding: 12px 16px 12px 44px;
+    padding-block: 12px;
+    padding-inline-start: 44px;
+    padding-inline-end: 16px;
     border: none;
     border-radius: 12px;
     font-size: 0.95rem;
@@ -221,6 +223,64 @@
     text-align: center;
 }
 
+/* Browse Events hero title — flex + gap aligns icon with Arabic/LTR; margin-right breaks RTL */
+.vendor-browse-hero-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.vendor-browse-hero-title i {
+    opacity: 0.9;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+/* Browse Events hero search — mirrors My Events; follows RTL via logical positioning */
+.vendor-browse-search-wrap {
+    position: relative;
+}
+
+.vendor-browse-search-icon {
+    position: absolute;
+    inset-inline-start: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #64748b;
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.vendor-browse-search-input {
+    width: 100%;
+    padding-block: 12px;
+    padding-inline-start: 42px;
+    padding-inline-end: 12px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    outline: none;
+    background: white !important;
+    color: #1a1a2e;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.2s, border 0.2s;
+}
+
+.vendor-browse-search-input::placeholder {
+    color: #94a3b8;
+}
+
+.vendor-browse-search-input:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.vendor-browse-search-input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.35);
+}
+
 .vendor-my-events-list {
     display: flex;
     flex-direction: column;
@@ -262,6 +322,13 @@
     margin: 0 auto;
 }
 
+.vendor-my-events-cell-status,
+.vendor-my-events-cell-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .vendor-my-events-list .event-card-horizontal .vendor-my-events-meta {
     font-size: 0.9rem;
     color: var(--text-muted);
@@ -275,6 +342,19 @@
     margin-right: 0.35rem;
     color: var(--primary-color);
     opacity: 0.9;
+}
+
+/* Vendor dashboard: FA icon paired with locale/ambiguous strings under Arabic RTL */
+.vendor-dash-meta-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    unicode-bidi: isolate;
+}
+
+.vendor-my-events-list .event-card-horizontal .vendor-my-events-meta .vendor-dash-meta-chip i,
+.vendor-dash-meta-chip i {
+    margin: 0;
 }
 
 .vendor-my-events-withdraw {
@@ -579,9 +659,9 @@
     }
 
     .vendor-my-events-col-actions,
-    .vendor-my-events-list .event-card-horizontal > div:last-child {
+    .vendor-my-events-list .event-card-horizontal .vendor-my-events-cell-actions {
         grid-column: 1 / -1;
-        text-align: left;
+        justify-content: center;
     }
 }
 
@@ -652,17 +732,17 @@
         min-width: auto;
     }
 
-    .vendor-my-events-list .event-card-horizontal > div:last-child {
+    .vendor-my-events-list .event-card-horizontal .vendor-my-events-cell-actions {
         width: 100%;
-        text-align: left;
+        justify-content: center;
     }
 
-    .vendor-my-events-list .event-card-horizontal > div:nth-child(3) {
+    .vendor-my-events-list .event-card-horizontal .vendor-my-events-cell-status {
         width: 100%;
-        text-align: left;
+        justify-content: center;
     }
 
-    .vendor-my-events-list .event-card-horizontal > div:last-child button {
+    .vendor-my-events-list .event-card-horizontal .vendor-my-events-cell-actions button {
         width: 100%;
     }
 
@@ -706,7 +786,9 @@
 
     .vendor-my-events-search-input {
         font-size: 0.88rem;
-        padding: 10px 14px 10px 38px;
+        padding-block: 10px;
+        padding-inline-start: 38px;
+        padding-inline-end: 14px;
     }
 
     .vendor-my-events-list .event-card-horizontal {
@@ -717,7 +799,7 @@
         padding: 0.85rem 0.75rem;
     }
 
-    .vendor-my-events-list .event-card-horizontal > div:last-child button {
+    .vendor-my-events-list .event-card-horizontal .vendor-my-events-cell-actions button {
         width: 100%;
     }
 
@@ -737,4 +819,125 @@
         font-size: 0.82rem;
         margin-bottom: 1rem;
     }
+}
+
+/* Vendor overview stat cards — semantic accents; border-inline-start follows RTL (visual right in Arabic) */
+.vendor-stats-grid .stat-card:nth-child(1) {
+    border-inline-start-color: #fbc02d;
+}
+
+.vendor-stats-grid .stat-card:nth-child(3) {
+    border-inline-start-color: #4caf50;
+}
+
+.vendor-stats-grid .stat-card:nth-child(1) .stat-icon {
+    background: linear-gradient(135deg, rgba(251, 192, 45, 0.22), rgba(251, 192, 45, 0.08));
+    color: #f9a825;
+}
+
+.vendor-stats-grid .stat-card:nth-child(3) .stat-icon {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.18), rgba(76, 175, 80, 0.08));
+    color: #43a047;
+}
+/* ================================================================
+   VENDOR UNREAD MESSAGE BADGE SYSTEM
+   ================================================================ */
+
+/* Wrapper gives position:relative anchor for the corner badge */
+.manage-btn-wrap {
+    position: relative;
+    display: inline-flex;
+}
+
+/* Red circle badge — top-right corner of the Manage button */
+.manage-btn-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f44336, #c62828);
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(198, 40, 40, 0.5), 0 0 0 2px #fff;
+    z-index: 10;
+    pointer-events: none;
+    /* One-time pop-in on creation, then stays still */
+    animation: manageBadgePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+html[dir="rtl"] .manage-btn-badge {
+    right: auto;
+    left: -8px;
+}
+
+@keyframes manageBadgePop {
+    0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+    65%  { transform: scale(1.2)  rotate(4deg);  opacity: 1; }
+    100% { transform: scale(1)    rotate(0deg);  opacity: 1; }
+}
+
+/* Sidebar "My Events" nav unread badge */
+#nav-my-events-unread-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ef5350, #c62828);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-inline-start: auto;
+    box-shadow: 0 2px 8px rgba(198, 40, 40, 0.45), 0 0 0 2px rgba(255,255,255,0.3);
+    animation: navBadgePop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes navBadgePop {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Communication tab unread badge */
+#vem-comm-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #ef5350, #c62828);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-inline-start: 4px;
+    box-shadow: 0 2px 6px rgba(198, 40, 40, 0.5);
+    animation: tabBadgePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Active tab variant — white on blue */
+.em-tab.active #vem-comm-tab-badge {
+    background: linear-gradient(135deg, #fff, #ffe0e0);
+    color: #c62828;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+@keyframes tabBadgePop {
+    0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+    70%  { transform: scale(1.2) rotate(3deg);  opacity: 1; }
+    100% { transform: scale(1)   rotate(0deg);  opacity: 1; }
 }
