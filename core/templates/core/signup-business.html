@@ -6,9 +6,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Sign Up | Eventia</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .lang-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1.5px solid #dfe6e9;
+            border-radius: 50px;
+            padding: 5px 13px 5px 9px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,78,146,0.08);
+            transition: box-shadow 0.3s, border-color 0.3s, background 0.3s;
+            flex-shrink: 0;
+            font-family: inherit;
+        }
+        .lang-toggle-btn:hover {
+            box-shadow: 0 4px 20px rgba(0,78,146,0.16);
+            border-color: rgba(0,78,146,0.28);
+            background: #f5f9ff;
+        }
+        .lang-toggle-flag-img {
+            width: 22px;
+            height: 15px;
+            border-radius: 3px;
+            object-fit: cover;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+        }
+        .lang-toggle-code {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #004e92;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+        .lang-toggle-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #2d3436;
+            white-space: nowrap;
+            line-height: 1;
+        }
+        .lang-toggle-divider {
+            width: 1px;
+            height: 14px;
+            background: #dfe6e9;
+            flex-shrink: 0;
+        }
+        @media (max-width: 480px) {
+            .lang-toggle-label { display: none; }
+            .lang-toggle-divider { display: none; }
+            .lang-toggle-btn { padding: 5px 10px; }
+        }
+    </style>
 </head>
 
 <body>
@@ -19,8 +77,16 @@
                 <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
             </a>
             <div class="nav-links">
-                <a href="{% url 'dashboard' %}" class="btn-text">Home</a>
-                <a href="{% url 'login_business' %}" class="btn btn-outline">Log In</a>
+                <a href="{% url 'dashboard' %}" class="btn-text" data-i18n="nav.home">Home</a>
+                <a href="{% url 'login_business' %}" class="btn btn-outline" data-i18n="nav.login">Log In</a>
+                <button type="button" id="lang-switch" class="lang-toggle-btn" aria-label="Switch language" title="Switch language / تغيير اللغة"
+                    data-flag-sa="{% static 'assets/sa.svg' %}"
+                    data-flag-gb="{% static 'assets/gb.svg' %}">
+                    <img id="lang-toggle-flag" class="lang-toggle-flag-img" src="{% static 'assets/sa.svg' %}" alt="SA">
+                    <span class="lang-toggle-code" id="lang-toggle-code">AR</span>
+                    <span class="lang-toggle-divider"></span>
+                    <span class="lang-toggle-label" id="lang-toggle-label">العربية</span>
+                </button>
             </div>
         </div>
     </nav>
@@ -32,15 +98,30 @@
 
         <div id="signup-form-container" class="auth-form-container">
             <div class="form-header">
-                <h2>Business Account</h2>
-                <p>Register as a Vendor or Organizer</p>
+                <h2 data-i18n="biz.signupTitle">Business Account</h2>
+                <p data-i18n="biz.signupSubtitle">Register as a Vendor or Organizer</p>
             </div>
 
+            {% if messages %}
+                {% for message in messages %}
+                    {% if 'signup' in message.tags %}
+                    <div class="form-alert form-alert-{% if 'error' in message.tags %}error{% else %}warning{% endif %}">
+                        <i class="fa-solid fa-{% if 'error' in message.tags %}circle-exclamation{% else %}triangle-exclamation{% endif %}"></i>
+                        {% if 'i18n:validationFailed' in message.tags %}
+                            <span data-i18n="msg.validationFailed">Signup failed. Please check your information.</span>
+                        {% else %}
+                            <span>{{ message }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
             <div class="role-selector">
-                <label>Register as:</label>
+                <label data-i18n="biz.registerAsLabel">Register as:</label>
                 <div class="role-tabs">
-                    <div class="role-tab active" data-target="signup" data-role="organizer">Organizer</div>
-                    <div class="role-tab" data-target="signup" data-role="vendor">Vendor</div>
+                    <div class="role-tab active" data-target="signup" data-role="organizer" data-i18n="bLogin.organizer">Organizer</div>
+                    <div class="role-tab" data-target="signup" data-role="vendor" data-i18n="bLogin.vendor">Vendor</div>
                 </div>
             </div>
 
@@ -49,23 +130,23 @@
                 <div id="signup-dynamic-fields">
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">
-                    Sign Up as <span class="current-role-text">Organizer</span>
+                    <span data-i18n="biz.signUpAs">Sign Up as</span> <span class="current-role-text">Organizer</span>
                 </button>
             </form>
 
             <div class="attendee-link">
-                <p>Just want to attend events?</p>
-                <a href="{% url 'signup_attendee' %}" class="btn btn-outline btn-sm">Sign up as Attendee</a>
+                <p data-i18n="biz.attendPrompt">Just want to attend events?</p>
+                <a href="{% url 'signup_attendee' %}" class="btn btn-outline btn-sm" data-i18n="biz.attendBtn">Sign up as Attendee</a>
             </div>
 
             <div class="form-footer">
-                <p>Already have an account? <a href="{% url 'login_business' %}" id="link-to-login">Log in</a></p>
-                <a href="{% url 'dashboard' %}" class="back-to-home">Back to Home</a>
+                <p><span data-i18n="signup.haveAccount">Already have an account?</span> <a href="{% url 'login_business' %}" id="link-to-login" data-i18n="signup.login">Log in</a></p>
+                <a href="{% url 'dashboard' %}" class="back-to-home" data-i18n="common.backHome">Back to Home</a>
             </div>
         </div>
     </main>
 
-    <script src="{% static 'js/app.js' %}"></script>
+    <script src="{% static 'js/app-ar.js' %}"></script>
 </body>
 
 </html>
