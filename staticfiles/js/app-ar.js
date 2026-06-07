@@ -35,6 +35,8 @@ const I18N = {
         "cat.culture": "Culture",
         "cat.family": "Family",
         "cat.shopping": "Shopping",
+        "cat.gaming": "Gaming",
+        "cat.automotive": "Automotive",
         "events.upcoming": "Upcoming Events",
         "events.subtitle": "Don't miss out on these exciting upcoming events across Saudi Arabia",
         "events.loadMore": "Load More Events",
@@ -46,6 +48,7 @@ const I18N = {
 
         "footer.brandDesc": "Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees for exceptional experiences.",
         "footer.platform": "Platform",
+        "footer.quickLinks": "Quick Links",
         "footer.browseEvents": "Browse Events",
         "footer.createAccount": "Create Account",
         "footer.forOrganizers": "For Organizers",
@@ -74,6 +77,7 @@ const I18N = {
         "common.conferenceHall": "Conference Hall",
         "common.outdoorVenue": "Outdoor Venue",
         "common.avEquipment": "AV Equipment",
+        "common.audioLighting": "Audio & Lighting",
         "common.ledScreens": "LED Screens",
         "common.stageRigging": "Stage & Rigging",
         "common.liveStreaming": "Live Streaming",
@@ -100,6 +104,12 @@ const I18N = {
         "common.tableChair": "Table/Chair Rentals",
         "common.power": "Power Supply",
         "common.printing": "Printing",
+        "common.bookSales": "Book Sales",
+        "common.connectivityServices": "Connectivity Services",
+        "common.foodBeverages": "Food & Beverages",
+        "common.printingSignage": "Printing & Signage",
+        "common.photographyVideo": "Photography & Video",
+        "common.securityServices": "Security Services",
         "common.socialMedia": "Social Media Marketing",
         "common.influencer": "Influencer Marketing",
         "common.governmentPermits": "Government Permits",
@@ -285,23 +295,46 @@ const I18N = {
         "biz.signupSubtitle": "Register as a Vendor or Organizer",
         "biz.signUpAs": "Sign Up as",
 
+        "msg.invalidCredentials": "Invalid credentials.",
+        "msg.invalidBusinessCredentials": "Invalid business credentials.",
+        "msg.validationFailed": "Signup failed. Please check your information.",
+        "msg.loggedOutSuccessfully": "You have been successfully logged out.",
+        "msg.scegaAccessDenied": "Access Denied. SCEGA Admins only.",
+        "login.error.emptyUsername": "Please enter your username.",
+        "login.error.emptyPassword": "Please enter your password.",
+        "signup.error.strength.prefix": "Password must include: ",
+        "signup.error.atLeast8": "at least 8 characters",
+        "signup.error.uppercase": "1 uppercase letter",
+        "signup.error.lowercase": "1 lowercase letter",
+        "signup.error.number": "1 number",
+        "signup.error.special": "1 special character",
+
     // ======================
     // Organizer page
     // ======================
         "org.page.overviewTitle": "Dashboard Overview",
+        "org.page.createEventTitle": "Create New Event",
+        "org.page.eventsListTitle": "My Events",
+        "org.page.eventManageTitle": "Event Management",
+        "org.page.vendorsTitle": "Vendor Marketplace",
+        "org.page.requestsTitle": "Manage Requests",
+        "org.page.analyticsTitle": "Event Analytics",
+        "org.page.profileTitle": "My Profile",
+        "org.page.dashboardFallback": "Dashboard",
         "org.nav.overview": "Dashboard",
         "org.nav.createEvent": "Create Event",
         "org.nav.eventsList": "Events List",
         "org.nav.vendors": "Vendors",
         "org.nav.requests": "Requests",
         "org.nav.analytics": "Analytics",
-        "org.empty.noEventsFull": "No upcoming or ongoing events. Create an event and wait for SCEGA approval.",
+        "org.empty.noEventsFull": "No upcoming events yet. Create one and wait for SCEGA approval.",
         "org.nav.logout": "Logout",
 
         "org.stats.totalEvents": "Total Events",
         "org.stats.upcoming": "Upcoming",
         "org.section.recentEvents": "Recent Events",
         "org.empty.noEvents": "No events created yet.",
+        "org.events.emptyListBanner": "No events found. Create your first event!",
 
         "org.form.basicInfo": "Basic Information",
         "org.form.dateLocation": "Date & Location",
@@ -318,12 +351,18 @@ const I18N = {
         "org.form.totalEventCapacityHelp": "Maximum total number of attendees allowed for this event.",
         "org.btn.addCategory": "Add Another Category",
         "org.form.banner": "Event Banner",
-        "org.upload.hint": "Click or drag to upload",
-        "org.upload.formats": "PNG, JPG up to 5MB",
+        "org.upload.hint": "Click to upload banner",
+        "org.form.bannerRemove": "Remove banner",
+        "org.upload.fileTooLarge": "File is too large. Please choose an image under 5 MB.",
+        "org.upload.formats": "PNG, JPG, WEBP — up to 5MB",
+        "org.validation.selectEventTime": "Please select an event time.",
         "org.btn.publish": "Publish Event",
         "org.btn.create": "+ Create",
 
         "org.ph.eventTitle": "e.g. Annual Tech Summit 2026",
+        "org.ph.eventDate": "dd/mm/yyyy",
+        "org.ph.eventTime": "--:-- --",
+        "org.aria.pickTime": "Choose event time",
         "org.ph.eventCapacity": "e.g. 500",
         "org.form.venuePh": "e.g. Riyadh Front Exhibition Center, Hall A",
         "org.form.descriptionPh": "Describe your event, what attendees can expect, key highlights, speakers, etc...",
@@ -695,6 +734,7 @@ const I18N = {
 
         "org.profile.roleFull": "Event Organizer",
         "org.profile.organizationName": "Organization Name",
+        "org.profile.passwordKeepPlaceholder": "Leave blank to keep current",
         // ======================
         // Organizer logic
         // ======================
@@ -708,6 +748,17 @@ const I18N = {
             "org.toast.updated": "Event Updated Successfully!",
             "org.toast.submitted": "Event Submitted for Approval! SCEGA will review your event shortly.",
             "org.toast.ticketRequired": "At least one ticket category is required.",
+            "org.error.loadingData": "Error loading data from server.",
+            "org.error.savingEvent": "Error saving event.",
+            "org.error.deletingEvent": "Error deleting event.",
+            "org.error.sendingRequest": "Error sending request.",
+            "org.error.rejectingRequest": "Error rejecting request.",
+            "org.error.approvingRequest": "Error approving request.",
+            "org.error.updatingDescription": "Error updating description.",
+            "org.error.sendingMessage": "Error sending message.",
+            "org.error.sendingBroadcast": "Error sending broadcast.",
+            "org.error.requestingUpdate": "Error requesting update.",
+            "org.error.generic": "Error: {detail}",
 
             "org.events.noneFound": "No events found.",
 
@@ -717,8 +768,13 @@ const I18N = {
             "org.vendors.clearFilters": "Clear Filters",
 
             "org.requests.sentSuccess": "Request sent successfully!",
+            "org.requests.sentSuccessTo": "Request sent to {vendor} successfully!",
+            "org.requests.duplicate": "A request for this vendor and event already exists.",
             "org.requests.rejectedSuccess": "Request rejected.",
+            "org.requests.rejectedFrom": "Request from {vendor} rejected.",
             "org.requests.approvedSuccess": "Request approved!",
+            "org.requests.approvedFrom": "Request from {vendor} approved!",
+            "org.profile.updated": "Profile updated successfully!",
             "org.requests.requestSingular": "request",
             "org.requests.requestsPlural": "requests",
             "org.requests.unlinkedEvent": "Unlinked Event",
@@ -991,6 +1047,12 @@ const I18N = {
         "scega.nav.history": "History",
         "scega.nav.logout": "Logout",
 
+        "scega.login.pageTitle": "SCEGA Admin Login | Eventia",
+        "scega.login.portal": "SCEGA Portal",
+        "scega.login.restricted": "Restricted Access",
+        "scega.login.logIn": "Log In",
+        "scega.login.backToEventia": "Back to Eventia",
+
         "scega.page.dashboard": "Admin Dashboard",
         "scega.page.dashboardOverview": "Dashboard Overview",
         "scega.page.pendingRequests": "Pending Requests",
@@ -1175,7 +1237,8 @@ const I18N = {
             "att.reg.creditCard": "Credit Card",
             "att.reg.mada": "Mada",
             "att.reg.applePay": "Apple Pay",
-            "att.reg.cardholderName": "CARDHOLDER NAME",
+            "att.reg.cardholderName": "Name on Card",
+            "att.reg.cardholderNamePlaceholder": "Name on Card",
             "att.reg.cardNumber": "CARD NUMBER",
             "att.reg.expiryDate": "EXPIRY DATE",
             "att.reg.cvv": "CVV",
@@ -1251,17 +1314,23 @@ const I18N = {
         // Password Recovery
         // ======================
         "recovery.step1.title": "Forgot Password",
-        "recovery.step1.desc": "Enter your email or phone number to receive a recovery code.",
-        "recovery.method.placeholder": "e.g. user@eventia.com or +123456789",
+        "recovery.step1.desc": "Enter your email or username to receive a recovery code.",
+        "recovery.methodLabel": "Email Address or Username",
+        "recovery.method.placeholder": "e.g. user@eventia.com or organizer123",
         "recovery.step1.button": "Send Recovery Code",
         "recovery.rememberPassword": "Remember your password?",
+        "recovery.loading.checking": "Checking...",
+        "recovery.loading.verifying": "Verifying...",
+        "recovery.loading.saving": "Saving...",
+        "recovery.error.passwordMismatch": "Passwords do not match.",
 
         "recovery.step2.title": "Verify Code",
-        "recovery.step2.desc": "Enter the 6-digit code sent to your email/phone.",
+        "recovery.step2.desc": "Enter the 6-digit code sent to your email.",
         "recovery.codeLabel": "Verification Code",
         "recovery.step2.button": "Verify Code",
-        "recovery.noCode": "Didn't receive a code?",
-        "recovery.resend": "Resend Code",
+        "recovery.back": "Back",
+        "recovery.code.placeholder": "••••••",
+        "recovery.password.placeholder": "••••••••",
 
         "recovery.step3.title": "Reset Password",
         "recovery.step3.desc": "Create a secure new password.",
@@ -1269,7 +1338,7 @@ const I18N = {
         "recovery.step3.button": "Reset Password",
 
         "recovery.step4.title": "Password Reset!",
-        "recovery.step4.desc": "Your password has been changed successfully. You can now log in with your new password.",
+        "recovery.step4.desc": "Your password has been changed successfully. You can now log in.",
         "recovery.step4.button": "Go to Log In",
 
         // ======================
@@ -1392,7 +1461,7 @@ const I18N = {
         "city.mecca": "مكة",
         "city.alula": "العلا",
         "city.dhahran": "الظهران",
-        "city.kaust": "كاوست",
+        "city.kaust": "جامعة الملك عبدالله للعلوم والتقنية",
         "city.kfupm": "جامعة الملك فهد للبترول والمعادن",
         "search.button": "بحث",
 
@@ -1411,8 +1480,10 @@ const I18N = {
         "cat.workshop": "ورشة عمل",
         "cat.foodCulture": "طعام وثقافة",
         "cat.culture": "ثقافة",
-        "cat.family": "عائلي",
+        "cat.family": "العائلة",
         "cat.shopping": "تسوق",
+        "cat.gaming": "ألعاب إلكترونية",
+        "cat.automotive": "سيارات",
         "events.upcoming": "الفعاليات القادمة",
         "events.subtitle": "لا تفوت هذه الفعاليات القادمة المميزة في أنحاء المملكة العربية السعودية",
         "events.loadMore": "عرض المزيد من الفعاليات",
@@ -1424,6 +1495,7 @@ const I18N = {
 
         "footer.brandDesc": "المنصة الرائدة لإدارة الفعاليات في المملكة العربية السعودية، تربط بين المنظمين ومزودي الخدمات والحضور لتجارب استثنائية.",
         "footer.platform": "المنصة",
+        "footer.quickLinks": "روابط سريعة",
         "footer.browseEvents": "تصفح الفعاليات",
         "footer.createAccount": "إنشاء حساب",
         "footer.forOrganizers": "للمنظمين",
@@ -1449,10 +1521,11 @@ const I18N = {
         "common.bakeryDesserts": "مخابز وحلويات",
         "common.beverages": "مشروبات",
         "common.foodTrucks": "عربات طعام",
-        "common.venue": "قاعة / موقع",
+        "common.venue": "قاعة",
         "common.conferenceHall": "قاعة مؤتمرات",
         "common.outdoorVenue": "موقع خارجي",
         "common.avEquipment": "معدات صوت وصورة",
+        "common.audioLighting": "صوتيات وإضاءة",
         "common.ledScreens": "شاشات LED",
         "common.stageRigging": "منصات وتجهيزات",
         "common.liveStreaming": "بث مباشر",
@@ -1468,7 +1541,7 @@ const I18N = {
         "common.fireworks": "ألعاب نارية",
         "common.transportation": "نقل",
         "common.shuttle": "نقل جماعي",
-        "common.valet": "فاليه",
+        "common.valet": "صف السيارات",
         "common.vipSecurity": "أمن VIP",
         "common.medical": "خدمات طبية",
         "common.eventStaff": "طاقم فعاليات",
@@ -1479,7 +1552,13 @@ const I18N = {
         "common.tableChair": "طاولات وكراسي",
         "common.power": "كهرباء",
         "common.printing": "طباعة",
-        "common.socialMedia": "تسويق سوشيال ميديا",
+        "common.bookSales": "بيع الكتب",
+        "common.connectivityServices": "خدمات الاتصال والشبكات",
+        "common.foodBeverages": "طعام ومشروبات",
+        "common.printingSignage": "طباعة ولافتات",
+        "common.photographyVideo": "تصوير وفيديو",
+        "common.securityServices": "خدمات أمنية",
+        "common.socialMedia": "تسويق المواقع الاجتماعية",
         "common.influencer": "تسويق مؤثرين",
         "common.governmentPermits": "تصاريح حكومية",
         "common.safetyPermits": "تصاريح سلامة",
@@ -1493,7 +1572,7 @@ const I18N = {
         "common.vrAr": "تجارب VR/AR",
         "common.eco": "خدمات بيئية",
         "common.gifts": "هدايا",
-        "common.audioVisual": "سمعي وبصري",
+        "common.audioVisual": "سمعي ومرئي",
         "common.florists": "زهور",
         "common.cleaning": "تنظيف",
         "common.professionalServices": "خدمات مهنية",
@@ -1664,10 +1743,32 @@ const I18N = {
         "biz.signupSubtitle": "سجّل كمزود خدمة أو منظم",
         "biz.signUpAs": "التسجيل كـ",
 
+        "msg.invalidCredentials": "بيانات الاعتماد غير صحيحة.",
+        "msg.invalidBusinessCredentials": "بيانات الاعتماد التجارية غير صحيحة.",
+        "msg.validationFailed": "فشل التسجيل. يرجى مراجعة بياناتك.",
+        "msg.loggedOutSuccessfully": "تم تسجيل الخروج بنجاح.",
+        "msg.scegaAccessDenied": "تم رفض الوصول. مخصص لمديري الهيئة فقط.",
+        "login.error.emptyUsername": "يرجى إدخال اسم المستخدم.",
+        "login.error.emptyPassword": "يرجى إدخال كلمة المرور.",
+        "signup.error.strength.prefix": "يجب أن تحتوي كلمة المرور على: ",
+        "signup.error.atLeast8": "8 أحرف على الأقل",
+        "signup.error.uppercase": "حرف كبير واحد",
+        "signup.error.lowercase": "حرف صغير واحد",
+        "signup.error.number": "رقم واحد",
+        "signup.error.special": "رمز خاص واحد",
+
     // ======================
     // Organizer page
     // ======================
         "org.page.overviewTitle": "نظرة عامة",
+        "org.page.createEventTitle": "إنشاء فعالية جديدة",
+        "org.page.eventsListTitle": "فعالياتي",
+        "org.page.eventManageTitle": "إدارة الفعالية",
+        "org.page.vendorsTitle": "سوق مزودي الخدمات",
+        "org.page.requestsTitle": "إدارة الطلبات",
+        "org.page.analyticsTitle": "تحليلات الفعاليات",
+        "org.page.profileTitle": "ملفي الشخصي",
+        "org.page.dashboardFallback": "لوحة التحكم",
         "org.nav.overview": "لوحة التحكم",
         "org.nav.createEvent": "إنشاء فعالية",
         "org.nav.eventsList": "قائمة الفعاليات",
@@ -1681,6 +1782,7 @@ const I18N = {
         "org.stats.upcoming": "القادمة",
         "org.section.recentEvents": "أحدث الفعاليات",
         "org.empty.noEvents": "لا توجد فعاليات تم إنشاؤها بعد.",
+        "org.events.emptyListBanner": "لم يتم العثور على فعاليات. أنشئ فعاليتك الأولى!",
 
         "org.form.basicInfo": "معلومات أساسية",
         "org.form.dateLocation": "التاريخ والموقع",
@@ -1697,17 +1799,24 @@ const I18N = {
         "org.form.totalEventCapacityHelp": "الحد الأقصى لإجمالي عدد الحضور المسموح به لهذه الفعالية.",
         "org.btn.addCategory": "إضافة فئة أخرى",
         "org.form.banner": "صورة الفعالية",
-        "org.upload.hint": "انقر أو اسحب للرفع",
-        "org.upload.formats": "PNG, JPG حتى 5MB",
+        "org.upload.hint": "انقر لرفع شعار الفعالية",
+        "org.form.bannerRemove": "إزالة شعار الفعالية",
+        "org.upload.fileTooLarge": "الملف كبير جدًا. يُرجى اختيار صورة أقل من 5 م.ب.",
+        "org.upload.formats": "PNG أو JPG أو WEBP — حتى 5 م.ب.",
+        "org.validation.selectEventTime": "يرجى اختيار وقت الفعالية.",
         "org.btn.publish": "نشر الفعالية",
         "org.btn.create": "+ إنشاء",
 
         "org.ph.eventTitle": "مثال: Annual Tech Summit 2026",
+        "org.ph.eventDate": "يوم/شهر/سنة",
+        "org.ph.eventTime": "--:-- --",
+        "org.aria.pickTime": "اختيار وقت الفعالية",
         "org.ph.eventCapacity": "مثال: 500",
+        "org.ph.vendorSearch": "ابحث عن مزودي الخدمة بالاسم أو الخدمة...",
         "org.form.venuePh": "مثال: Riyadh Front Exhibition Center, Hall A",
         "org.form.descriptionPh": "صف فعاليّتك، ماذا يتوقع الحضور، أبرز النقاط، المتحدثين، إلخ...",
         "org.form.ticketDefaultName": "قياسي",
-        "org.ticket.namePh": "الاسم (مثال: عام)",
+        "org.ticket.namePh": "الاسم (مثال: General)",
         "org.ticket.pricePh": "السعر",
         "org.ticket.capacityPh": "الحد الأقصى للحضور",
         "org.scegaApproval": "موافقة الهيئه العامه للمعارض و المؤتمرات",
@@ -2073,6 +2182,7 @@ const I18N = {
 
         "org.profile.roleFull": "منظم فعاليات",
         "org.profile.organizationName": "اسم الجهة",
+        "org.profile.passwordKeepPlaceholder": "اتركه فارغًا للإبقاء على الحالية",
 
         // ======================
         // Organizer logic
@@ -2087,6 +2197,17 @@ const I18N = {
             "org.toast.updated": "تم تحديث الفعالية بنجاح",
             "org.toast.submitted": "تم إرسال الفعالية للموافقة، ستتم مراجعتها من قبل الهيئة قريبًا",
             "org.toast.ticketRequired": "يجب وجود فئة تذاكر واحدة على الأقل",
+            "org.error.loadingData": "حدث خطأ أثناء تحميل البيانات من الخادم.",
+            "org.error.savingEvent": "حدث خطأ أثناء حفظ الفعالية.",
+            "org.error.deletingEvent": "حدث خطأ أثناء حذف الفعالية.",
+            "org.error.sendingRequest": "حدث خطأ أثناء إرسال الطلب.",
+            "org.error.rejectingRequest": "حدث خطأ أثناء رفض الطلب.",
+            "org.error.approvingRequest": "حدث خطأ أثناء الموافقة على الطلب.",
+            "org.error.updatingDescription": "حدث خطأ أثناء تحديث الوصف.",
+            "org.error.sendingMessage": "حدث خطأ أثناء إرسال الرسالة.",
+            "org.error.sendingBroadcast": "حدث خطأ أثناء إرسال الإشعار.",
+            "org.error.requestingUpdate": "حدث خطأ أثناء طلب التحديث.",
+            "org.error.generic": "خطأ: {detail}",
 
             "org.events.noneFound": "لم يتم العثور على فعاليات.",
 
@@ -2097,8 +2218,13 @@ const I18N = {
             "org.vendors.clearFilters": "مسح الفلاتر",
 
             "org.requests.sentSuccess": "تم إرسال الطلب بنجاح",
+            "org.requests.sentSuccessTo": "تم إرسال الطلب إلى {vendor} بنجاح",
+            "org.requests.duplicate": "يوجد طلب مسبق لهذا المزود والفعالية.",
             "org.requests.rejectedSuccess": "تم رفض الطلب",
+            "org.requests.rejectedFrom": "تم رفض طلب {vendor}",
             "org.requests.approvedSuccess": "تمت الموافقة على الطلب",
+            "org.requests.approvedFrom": "تمت الموافقة على طلب {vendor}",
+            "org.profile.updated": "تم تحديث الملف الشخصي بنجاح",
             "org.requests.requestSingular": "طلب",
             "org.requests.requestsPlural": "طلبات",
             "org.requests.unlinkedEvent": "فعالية غير مرتبطة",
@@ -2248,7 +2374,7 @@ const I18N = {
         "vendor.status.advanceStatus": "تحديث الحالة",
 
         "vendor.cat.foodBeverage": "طعام ومشروبات",
-        "vendor.cat.healthWellness": "الصحة والعافية",
+        "vendor.cat.healthWellness": "الصحة",
         "vendor.cat.culture": "ثقافة",
         "vendor.cat.fashion": "أزياء",
         "vendor.cat.charity": "خيري",
@@ -2368,10 +2494,16 @@ const I18N = {
     // ======================
     // SCEGA dashboard
     // ======================
-        "scega.brand": "إدارة سقيّا",
+        "scega.brand": "إدارة الهيئة",
         "scega.nav.overview": "لوحة التحكم",
         "scega.nav.history": "السجل",
         "scega.nav.logout": "تسجيل الخروج",
+
+        "scega.login.pageTitle": "تسجيل دخول إدارة الهيئة العامة للمعارض والمؤتمرات | Eventia",
+        "scega.login.portal": "بوابة الهيئة العامة للمعارض والمؤتمرات",
+        "scega.login.restricted": "وصول مقيد",
+        "scega.login.logIn": "تسجيل الدخول",
+        "scega.login.backToEventia": "العودة إلى Eventia",
 
         "scega.page.dashboard": "لوحة تحكم الإدارة",
         "scega.page.dashboardOverview": "نظرة عامة على اللوحة",
@@ -2558,6 +2690,7 @@ const I18N = {
             "att.reg.mada": "مدى",
             "att.reg.applePay": "آبل باي",
             "att.reg.cardholderName": "اسم حامل البطاقة",
+            "att.reg.cardholderNamePlaceholder": "الاسم على البطاقة",
             "att.reg.cardNumber": "رقم البطاقة",
             "att.reg.expiryDate": "تاريخ الانتهاء",
             "att.reg.cvv": "رمز CVV",
@@ -2629,18 +2762,22 @@ const I18N = {
         // Password Recovery
         // ======================
         "recovery.step1.title": "استعادة كلمة المرور",
-        "recovery.step1.desc": "أدخل بريدك الإلكتروني أو رقم هاتفك لاستلام رمز الاستعادة.",
-        "recovery.method.placeholder": "مثال: user@eventia.com أو +123456789",
+        "recovery.step1.desc": "أدخل بريدك الإلكتروني أو اسم المستخدم لاستلام رمز الاستعادة.",
+        "recovery.methodLabel": "البريد الإلكتروني أو اسم المستخدم",
+        "recovery.method.placeholder": "مثال: user@eventia.com أو organizer123",
         "recovery.step1.button": "إرسال رمز الاستعادة",
         "recovery.rememberPassword": "تتذكر كلمة المرور؟",
+        "recovery.loading.checking": "جارٍ التحقق...",
+        "recovery.loading.verifying": "جارٍ التحقق من الرمز...",
+        "recovery.loading.saving": "جارٍ الحفظ...",
+        "recovery.error.passwordMismatch": "كلمتا المرور غير متطابقتين.",
 
         "recovery.step2.title": "التحقق من الرمز",
-        "recovery.step2.desc": "أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني أو هاتفك.",
+        "recovery.step2.desc": "أدخل الرمز المكوّن من 6 أرقام المرسل إلى بريدك الإلكتروني.",
         "recovery.codeLabel": "رمز التحقق",
         "recovery.code.placeholder": "••••••",
         "recovery.step2.button": "تحقق من الرمز",
-        "recovery.noCode": "لم يصلك الرمز؟",
-        "recovery.resend": "إعادة إرسال الرمز",
+        "recovery.back": "رجوع",
 
         "recovery.step3.title": "إعادة تعيين كلمة المرور",
         "recovery.step3.desc": "أنشئ كلمة مرور جديدة وآمنة.",
@@ -2649,7 +2786,7 @@ const I18N = {
         "recovery.step3.button": "إعادة تعيين كلمة المرور",
 
         "recovery.step4.title": "تمت إعادة تعيين كلمة المرور!",
-        "recovery.step4.desc": "تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.",
+        "recovery.step4.desc": "تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.",
         "recovery.step4.button": "الذهاب إلى تسجيل الدخول",
 
         // ======================
@@ -2803,16 +2940,105 @@ function translateText(lang) {
         const val = dict[key];
         if (val != null) el.setAttribute("label", val);
     });
+
+    const titleEl = document.querySelector("title[data-i18n]");
+    if (titleEl) {
+        const key = titleEl.getAttribute("data-i18n");
+        const val = dict[key];
+        if (val != null) titleEl.textContent = val;
+    }
 }
 
-/** Gregorian short dates on landing event cards (Django prints English-only). */
+/** Map backend Event.category strings to i18n keys (same as attendee-logic attendeeCategoryLabel). */
+const LANDING_EVENT_CATEGORY_KEYS = {
+    Conference: "cat.conference",
+    Technology: "cat.technology",
+    Exhibition: "cat.exhibition",
+    Entertainment: "cat.entertainment",
+    Workshop: "cat.workshop",
+    Sports: "cat.sports",
+    Business: "cat.business",
+    "Food & Culture": "cat.foodCulture",
+    Education: "cat.education",
+    Culture: "cat.culture",
+    Family: "cat.family",
+    Shopping: "cat.shopping",
+    Gaming: "cat.gaming",
+    Automotive: "cat.automotive",
+    Other: "cat.other",
+    General: "scega.common.general",
+    Event: "att.event.default",
+};
+
+const LANDING_EVENT_CATEGORY_KEYS_LC = Object.create(null);
+Object.keys(LANDING_EVENT_CATEGORY_KEYS).forEach((k) => {
+    LANDING_EVENT_CATEGORY_KEYS_LC[k.toLowerCase()] = LANDING_EVENT_CATEGORY_KEYS[k];
+});
+
+function landingEventCategoryLabel(lang, categoryRaw) {
+    const dict = I18N[lang] || I18N.en;
+    const cat = (categoryRaw || "").trim();
+    if (!cat) return dict["att.event.default"] != null ? dict["att.event.default"] : "Event";
+    const key = LANDING_EVENT_CATEGORY_KEYS[cat] || LANDING_EVENT_CATEGORY_KEYS_LC[cat.toLowerCase()];
+    if (key && dict[key]) return dict[key];
+    return cat;
+}
+
+/** SCEGA dashboard: pending queue + history category pills. */
+function localizeScegaEventCategories(lang) {
+    document.querySelectorAll(".scega-event-category[data-event-category]").forEach((el) => {
+        const raw = el.getAttribute("data-event-category") || "";
+        el.textContent = landingEventCategoryLabel(lang, raw);
+    });
+}
+
+/** SCEGA dashboard: pending queue date badges + history dates (Django HTML defaults to English). */
+function localizeScegaEventDates(lang) {
+    const locale = lang === "ar" ? "ar-SA-u-nu-latn" : "en-US";
+
+    document.querySelectorAll(".scega-date-month[data-date]").forEach((el) => {
+        const iso = el.getAttribute("data-date");
+        if (!iso) return;
+        const d = new Date(iso + "T12:00:00");
+        if (Number.isNaN(d.getTime())) return;
+        const month = d.toLocaleString(locale, { month: "short" });
+        el.textContent = lang === "ar" ? month : month.toUpperCase();
+    });
+
+    document.querySelectorAll(".scega-date-day[data-date]").forEach((el) => {
+        const iso = el.getAttribute("data-date");
+        if (!iso) return;
+        const d = new Date(iso + "T12:00:00");
+        if (Number.isNaN(d.getTime())) return;
+        el.textContent = String(d.getDate());
+    });
+
+    document.querySelectorAll(".scega-history-date[data-date]").forEach((el) => {
+        const iso = el.getAttribute("data-date");
+        if (!iso) return;
+        const d = new Date(iso + "T12:00:00");
+        if (Number.isNaN(d.getTime())) return;
+        el.textContent = d.toLocaleDateString(locale, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+        });
+    });
+}
+
+/** Gregorian dates + categories on landing event cards (Django HTML defaults to English). */
 function localizeLandingEventCards(lang) {
+    document.querySelectorAll(".lp-card-badge[data-event-category]").forEach((el) => {
+        const raw = el.getAttribute("data-event-category") || "";
+        el.textContent = landingEventCategoryLabel(lang, raw);
+    });
+
     document.querySelectorAll(".lp-card-date").forEach((el) => {
         const iso = el.getAttribute("data-date");
         if (!iso) return;
         const d = new Date(iso + "T12:00:00");
         if (Number.isNaN(d.getTime())) return;
-        const locale = lang === "ar" ? "ar-SA" : "en-US";
+        const locale = lang === "ar" ? "ar-SA-u-nu-latn" : "en-US";
         el.textContent = d.toLocaleDateString(locale, {
             year: "numeric",
             month: "short",
@@ -2833,6 +3059,15 @@ function applyLang(lang) {
     document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
 
     localizeLandingEventCards(lang);
+    localizeScegaEventCategories(lang);
+    localizeScegaEventDates(lang);
+
+    if (typeof window.refreshOrganizerEventDatePicker === "function") {
+        window.refreshOrganizerEventDatePicker();
+    }
+    if (typeof window.refreshOrganizerEventTimePicker === "function") {
+        window.refreshOrganizerEventTimePicker();
+    }
 
     const langBtn = document.getElementById("lang-switch");
     if (langBtn) {
@@ -2901,6 +3136,7 @@ function applyLang(lang) {
 
 window.getLang = getLang;
 window.applyLang = applyLang;
+window.landingEventCategoryLabel = landingEventCategoryLabel;
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -2925,7 +3161,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="hidden" name="role" value="ORGANIZER">
             <div class="input-group">
                 <label data-i18n="signup.form.username">Username</label>
-                <input type="text" name="username" placeholder="organizer123" required>
+                <input type="text" name="username" dir="ltr" placeholder="organizer123" required>
             </div>
             <div class="input-group">
                 <label data-i18n="org.profile.organizationName">Organization Name</label>
@@ -2937,7 +3173,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label data-i18n="common.emailAddress">Email Address</label>
-                <input type="email" name="email" class="signup-email" placeholder="name@company.org" required>
+                <input type="email" name="email" class="signup-email" dir="ltr" placeholder="name@company.org" required>
                 <div class="error-message email-error" data-i18n="signup.validation.invalidEmail">Please enter a valid email address</div>
             </div>
             <div class="input-group">
@@ -2958,11 +3194,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <input type="hidden" name="role" value="VENDOR">
             <div class="input-group">
                 <label data-i18n="signup.form.username">Username</label>
-                <input type="text" name="username" placeholder="vendor123" required>
+                <input type="text" name="username" dir="ltr" placeholder="vendor123" required>
             </div>
             <div class="input-group">
                 <label data-i18n="signup.form.vendorName">Vendor Name</label>
-                <input type="text" name="organization_name" placeholder="Event Services Ltd." required>
+                <input type="text" name="organization_name" dir="ltr" placeholder="Event Services Ltd." required>
             </div>
             <div class="input-group">
                 <label data-i18n="common.phoneNumber">Phone Number</label>
@@ -3030,6 +3266,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </optgroup>
                     <optgroup data-i18n-label="signup.vendor.ogMarketing" label="Marketing & Promotion">
                         <option value="Printing" data-i18n="common.printing">Printing</option>
+                        <option value="Book Sales" data-i18n="common.bookSales">Book Sales</option>
                         <option value="Social Media Marketing" data-i18n="common.socialMedia">Social Media Marketing</option>
                         <option value="Influencer Marketing" data-i18n="common.influencer">Influencer Marketing</option>
                     </optgroup>
@@ -3057,7 +3294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label data-i18n="common.emailAddress">Email Address</label>
-                <input type="email" name="email" class="signup-email" placeholder="contact@vendor.com" required>
+                <input type="email" name="email" class="signup-email" dir="ltr" placeholder="contact@vendor.com" required>
                 <div class="error-message email-error" data-i18n="signup.validation.invalidEmail">Please enter a valid email address</div>
             </div>
             <div class="input-group">
@@ -3088,11 +3325,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="input-group">
                 <label data-i18n="signup.form.username">Username</label>
-                <input type="text" name="username" placeholder="abdulrahman123" required>
+                <input type="text" name="username" dir="ltr" placeholder="abdulrahman123" required>
             </div>
             <div class="input-group">
                 <label data-i18n="common.emailAddress">Email Address</label>
-                <input type="email" name="email" class="signup-email" placeholder="name@example.com" required>
+                <input type="email" name="email" class="signup-email" dir="ltr" placeholder="name@example.com" required>
                 <div class="error-message email-error" data-i18n="signup.validation.invalidEmail">Please enter a valid email address</div>
             </div>
             <div class="input-group">
@@ -3179,7 +3416,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const formContainer = document.getElementById(`${targetForm}-form-container`);
             if (formContainer) {
                 const btnSpan = formContainer.querySelector('.current-role-text');
-                if (btnSpan) btnSpan.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+                if (btnSpan) {
+                    const lang = getLang();
+                    const roleLabels = {
+                        organizer: lang === "ar" ? "منظم" : "Organizer",
+                        vendor: lang === "ar" ? "مزود خدمة" : "Vendor",
+                    };
+                    btnSpan.textContent = roleLabels[role] ?? role.charAt(0).toUpperCase() + role.slice(1);
+                }
             }
 
             if (targetForm === 'signup' && signupDynamicContainer) {
@@ -3311,13 +3555,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Case 1 & 3: username empty
             if (!username) {
-                showLoginError(usernameInput, usernameError, 'Please enter your username.');
+                const _d = (window.I18N || {})[getLang()] || (window.I18N || {}).en || {};
+                showLoginError(usernameInput, usernameError, _d['login.error.emptyUsername'] || 'Please enter your username.');
                 isValid = false;
             }
 
             // Case 1 & 2: password empty
             if (!password) {
-                showLoginError(passwordInput, passwordError, 'Please enter your password.');
+                const _d = (window.I18N || {})[getLang()] || (window.I18N || {}).en || {};
+                showLoginError(passwordInput, passwordError, _d['login.error.emptyPassword'] || 'Please enter your password.');
                 isValid = false;
             }
 
@@ -3356,12 +3602,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Password Validation
             if (passwordInput && confirmInput) {
                 function checkStrength(password) {
+                    const _lang = getLang();
+                    const _d = (window.I18N || {})[_lang] || (window.I18N || {}).en || {};
                     let errors = [];
-                    if (password.length < 8) errors.push("At least 8 characters");
-                    if (!/[A-Z]/.test(password)) errors.push("1 uppercase letter");
-                    if (!/[a-z]/.test(password)) errors.push("1 lowercase letter");
-                    if (!/[0-9]/.test(password)) errors.push("1 number");
-                    if (!/[^A-Za-z0-9]/.test(password)) errors.push("and 1 special character");
+                    if (password.length < 8) errors.push(_d['signup.error.atLeast8'] || "at least 8 characters");
+                    if (!/[A-Z]/.test(password)) errors.push(_d['signup.error.uppercase'] || "1 uppercase letter");
+                    if (!/[a-z]/.test(password)) errors.push(_d['signup.error.lowercase'] || "1 lowercase letter");
+                    if (!/[0-9]/.test(password)) errors.push(_d['signup.error.number'] || "1 number");
+                    if (!/[^A-Za-z0-9]/.test(password)) errors.push(_d['signup.error.special'] || "1 special character");
                     return errors;
                 }
 
@@ -3372,7 +3620,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const strengthErrors = checkStrength(pwd);
                 if (strengthErrors.length > 0) {
-                    strengthError.textContent = "Password must include: " + strengthErrors.join(", ");
+                    const _lang = getLang();
+                    const _d = (window.I18N || {})[_lang] || (window.I18N || {}).en || {};
+                    const _prefix = _d['signup.error.strength.prefix'] || "Password must include: ";
+                    const _sep = _lang === 'ar' ? '، ' : ', ';
+                    strengthError.textContent = _prefix + strengthErrors.join(_sep);
                     strengthError.classList.add('visible');
                     passwordInput.classList.add('input-error');
                     isValid = false;
@@ -3394,19 +3646,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const langBtn = document.getElementById("lang-switch");
-    const isLandingPage = document.body.classList.contains("landing-body");
 
-    if (langBtn && !isLandingPage) {
+    if (langBtn) {
         langBtn.addEventListener("click", () => {
             const current = getLang();
             const newLang = current === "en" ? "ar" : "en";
             applyLang(newLang);
+
+            const noMsg = document.querySelector(".no-events-state p");
+            if (noMsg && window.I18N && !noMsg.hasAttribute("data-i18n")) {
+                const dict = window.I18N[getLang()] || {};
+                const v = dict["landing.noSearchResults"];
+                if (v != null && v !== "") noMsg.textContent = v;
+            }
 
             // 🔥 IMPORTANT: re-render attendee UI
             if (window.renderBrowseEvents) window.renderBrowseEvents();
             if (window.renderMyTickets) window.renderMyTickets();
             if (window.renderHistory) window.renderHistory();
             if (window.renderNotifList) window.renderNotifList();
+
+            // Vendor dashboard: JS-built HTML uses t(); re-run active view after lang change
+            if (typeof window.switchView === 'function') {
+                const activeSection = document.querySelector('.content-section.active');
+                if (activeSection && activeSection.id && activeSection.id.startsWith('view-')) {
+                    window.switchView(activeSection.id.slice(5));
+                }
+            }
+            if (typeof window.refreshVendorEventManageIfOpen === 'function') {
+                window.refreshVendorEventManageIfOpen();
+            }
         });
     }
 
