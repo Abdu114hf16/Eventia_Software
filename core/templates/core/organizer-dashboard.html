@@ -8,17 +8,42 @@
     <title>Organizer Dashboard | Eventia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'css/organizer.css' %}">
+    <link rel="stylesheet" href="{% static 'css/organizer.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/vendor.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
     <style>
+        /* Request page: two KPI-style tabs share one row height (border-box + grid stretch) */
+        .request-tab-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: stretch;
+        }
+        .request-tab {
+            box-sizing: border-box;
+            width: 100%;
+            align-self: stretch;
+            font-family: inherit;
+            text-align: start;
+        }
+        .request-tab-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 3px;
+        }
+
         /* Mobile overrides for inline-styled elements */
         @media (max-width: 768px) {
             /* Request tab cards: single column */
-            #view-requests > div:first-child {
+            .request-tab-cards {
                 grid-template-columns: 1fr !important;
             }
             .request-tab {
@@ -104,6 +129,316 @@
             min-height: unset;
             display: block;
         }
+
+        /* Organizer event date: one control for EN + AR (Flatpickr), with in-field calendar icon */
+        .organizer-date-input-wrap {
+            position: relative;
+            width: 100%;
+        }
+        /* Primary input is hidden when altInput is used; keep it from affecting layout/position */
+        .organizer-date-input-wrap > input#event-date:not(.organizer-event-date-alt) {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            opacity: 0;
+            pointer-events: none;
+            clip: rect(0, 0, 0, 0);
+            clip-path: inset(50%);
+            overflow: hidden;
+        }
+        /* Match .input-group input (base.css) so date field matches time field height/box */
+        .organizer-date-input-wrap .organizer-event-date-alt {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            padding-inline-end: 2.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            line-height: 1.25;
+            outline: none;
+            box-sizing: border-box;
+            background-color: #fff;
+            color: var(--text-color);
+            transition: border-color 0.2s;
+        }
+        .organizer-date-input-wrap .organizer-event-date-alt:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+        .organizer-date-input-wrap .organizer-event-date-alt::placeholder {
+            color: #000;
+            opacity: 1;
+        }
+        .organizer-date-input-wrap .organizer-event-date-alt::-webkit-input-placeholder {
+            color: #000;
+        }
+        .organizer-date-input-wrap .organizer-date-cal-icon {
+            position: absolute;
+            top: 50%;
+            inset-inline-end: 1rem;
+            transform: translateY(-50%);
+            color: #000;
+            font-size: 1rem;
+            line-height: 1;
+            z-index: 2;
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+        /* Vendor marketplace search: icon at inline-start (LTR: left, RTL: right — before typed text in Arabic) */
+        .vendor-search-wrap {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        .vendor-search-wrap .vendor-search-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            inset-inline-start: 14px;
+            color: #888;
+            pointer-events: none;
+        }
+        #vendor-search.vendor-search-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding-block: 12px;
+            padding-inline-start: 42px;
+            padding-inline-end: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Vendor marketplace location filter: chevron on inline-end (LTR right); RTL flips to physical left */
+        #vendor-location-filter {
+            padding-block: 10px;
+            padding-inline: 16px 36px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.95);
+            min-width: 130px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='%23333' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        html[dir="rtl"] #vendor-location-filter {
+            background-position: left 12px center;
+        }
+
+        /*
+         * Flatpickr is authored for LTR; page-level RTL was warping month/year + grid.
+         * Only force direction on the popup (Arabic labels still come from locale).
+         */
+        .flatpickr-calendar.eventia-organizer-fp {
+            direction: ltr;
+        }
+        /*
+         * Arabic only: [▲▼] [2026] — steppers on the left so they don’t cover the year.
+         * English uses Flatpickr default: [2026] [▲▼].
+         */
+        .flatpickr-calendar.eventia-organizer-fp--ar .flatpickr-current-month .numInputWrapper span {
+            left: 0;
+            right: auto;
+        }
+        .flatpickr-calendar.eventia-organizer-fp--ar .flatpickr-current-month input.cur-year {
+            padding: 0 0.35ch 0 17px;
+            text-align: center;
+        }
+
+        /* Organizer event time: same 12h wheel for EN + AR (localized labels & numerals), clock icon in field */
+        .organizer-time-input-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .organizer-time-input-wrap .organizer-event-time-display {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            padding-inline-end: 2.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            line-height: 1.25;
+            outline: none;
+            box-sizing: border-box;
+            background-color: #fff;
+            color: var(--text-color);
+            transition: border-color 0.2s;
+            cursor: pointer;
+            direction: ltr;
+            text-align: start;
+            unicode-bidi: plaintext;
+        }
+        /* Arabic UI: RTL text; anchor content to inline-start (= right edge of slot) like the date field */
+        html[lang="ar"] .organizer-time-input-wrap .organizer-event-time-display {
+            direction: rtl;
+            text-align: start;
+        }
+        .organizer-time-input-wrap .organizer-event-time-display:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+        .organizer-time-input-wrap .organizer-event-time-display::placeholder {
+            color: #000;
+            opacity: 1;
+        }
+        .organizer-time-input-wrap .organizer-time-clock-icon {
+            position: absolute;
+            top: 50%;
+            inset-inline-end: 1rem;
+            transform: translateY(-50%);
+            color: #000;
+            font-size: 1rem;
+            line-height: 1;
+            z-index: 2;
+            pointer-events: none;
+            cursor: pointer;
+        }
+        /* Popover stays LTR so column order matches English (hours | minutes | period) */
+        .eventia-organizer-time-popover {
+            display: none;
+            position: fixed;
+            z-index: 100002;
+            width: min(272px, calc(100vw - 24px));
+            background: #fff;
+            border: 1px solid var(--border-color, #e0e0e0);
+            border-radius: var(--radius-sm, 10px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            direction: ltr;
+        }
+        .eventia-organizer-time-popover.is-open {
+            display: block;
+        }
+        .eventia-organizer-time-popover .eventia-time-picker-shell {
+            position: relative;
+            height: 216px;
+        }
+        .eventia-organizer-time-popover .eventia-time-picker-highlight {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 40px;
+            margin-top: -1px;
+            border-top: 1px solid rgba(77, 171, 247, 0.35);
+            border-bottom: 1px solid rgba(77, 171, 247, 0.35);
+            background: rgba(77, 171, 247, 0.12);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .eventia-organizer-time-popover .eventia-time-picker-cols {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            height: 100%;
+        }
+        .eventia-organizer-time-popover .eventia-time-col {
+            flex: 1;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scroll-snap-type: y mandatory;
+            text-align: center;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-block: 88px;
+            box-sizing: border-box;
+        }
+        .eventia-organizer-time-popover .eventia-time-col::-webkit-scrollbar {
+            display: none;
+        }
+        .eventia-organizer-time-popover .eventia-time-option {
+            scroll-snap-align: center;
+            scroll-snap-stop: center;
+            height: 40px;
+            line-height: 40px;
+            font-size: 1.05rem;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            user-select: none;
+            color: #333;
+            white-space: nowrap;
+        }
+        .eventia-organizer-time-popover .eventia-time-option.is-selected {
+            font-weight: 700;
+            color: var(--primary-color, #004e92);
+        }
+
+        /* ── Language flag toggle button ── */
+        .lang-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1.5px solid var(--border-color, #dfe6e9);
+            border-radius: 50px;
+            padding: 5px 13px 5px 9px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,78,146,0.08);
+            transition: box-shadow 0.3s, border-color 0.3s, background 0.3s, color 0.3s;
+            flex-shrink: 0;
+            margin-inline-start: 0.35rem;
+            font-family: inherit;
+        }
+        .lang-toggle-btn:hover {
+            box-shadow: 0 4px 20px rgba(0,78,146,0.16);
+            border-color: rgba(0,78,146,0.28);
+            background: #f5f9ff;
+        }
+        .lang-toggle-flag-img {
+            width: 22px;
+            height: 15px;
+            border-radius: 3px;
+            object-fit: cover;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+        }
+        .lang-toggle-code {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--primary-color, #004e92);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .lang-toggle-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-color, #2d3436);
+            white-space: nowrap;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .lang-toggle-divider {
+            width: 1px;
+            height: 14px;
+            background: var(--border-color, #dfe6e9);
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        @media (max-width: 480px) {
+            .lang-toggle-label { display: none; }
+            .lang-toggle-divider { display: none; }
+            .lang-toggle-btn { padding: 5px 10px; }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
@@ -126,32 +461,41 @@
 
         <nav class="sidebar-nav">
             <a href="#" class="nav-item active" data-view="overview">
-                <i class="fa-solid fa-house"></i> Dashboard
+                <i class="fa-solid fa-house"></i>
+                <span data-i18n="org.nav.overview">Dashboard</span>
             </a>
             <a href="#" class="nav-item" data-view="create-event">
-                <i class="fa-solid fa-circle-plus"></i> Create Event
+                <i class="fa-solid fa-circle-plus"></i>
+                <span data-i18n="org.nav.createEvent">Create Event</span>
             </a>
-            <a href="#" class="nav-item" data-view="events-list">
-                <i class="fa-regular fa-calendar-days"></i> Events List
+            <a href="#" class="nav-item" data-view="events-list" id="nav-events-list">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span data-i18n="org.nav.eventsList">Events List</span>
+                <span class="nav-unread-badge" id="nav-events-unread-badge" style="display:none;"></span>
             </a>
             <a href="#" class="nav-item" data-view="vendors">
-                <i class="fa-solid fa-store"></i> Vendors
+                <i class="fa-solid fa-store"></i>
+                <span data-i18n="org.nav.vendors">Vendors</span>
             </a>
             <a href="#" class="nav-item" data-view="requests">
-                <i class="fa-solid fa-paper-plane"></i> Requests
+                <i class="fa-solid fa-paper-plane"></i>
+                <span data-i18n="org.nav.requests">Requests</span>
             </a>
             <a href="#" class="nav-item" data-view="analytics">
-                <i class="fa-solid fa-chart-pie"></i> Analytics
+                <i class="fa-solid fa-chart-pie"></i>
+                <span data-i18n="org.nav.analytics">Analytics</span>
             </a>
             <a href="#" class="nav-item" data-view="profile" onclick="switchView('profile')">
-                <i class="fa-solid fa-user-gear"></i> Profile
+                <i class="fa-solid fa-user-gear"></i>
+                <span data-i18n="org.nav.profile">Profile</span>
             </a>
         </nav>
 
         <div class="sidebar-footer">
 
             <a href="{% url 'logout' %}" class="nav-item">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span data-i18n="org.nav.logout">Logout</span>
             </a>
         </div>
     </aside>
@@ -162,7 +506,7 @@
             <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
                 <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
                 <div class="header-title">
-                    <h1 id="page-title">Dashboard Overview</h1>
+                    <h1 id="page-title" data-i18n="org.page.overviewTitle">Dashboard Overview</h1>
                 </div>
             </div>
 
@@ -170,7 +514,7 @@
                 <div class="profile-info">
                     <span class="profile-name">{{ request.user.organizer_profile.organization_name|default:request.user.get_full_name }}</span>
                     <span class="profile-role"
-                        style="font-size: 0.8rem; color: var(--text-muted); display: block;">Organizer</span>
+                        style="font-size: 0.8rem; color: var(--text-muted); display: block;" data-i18n="org.profile.role">Organizer</span>
                 </div>
                 <div class="profile-avatar">
                     {% if request.user.profile_picture %}
@@ -179,6 +523,14 @@
                         {{ request.user.first_name|make_list|first }}{{ request.user.last_name|make_list|first }}
                     {% endif %}
                 </div>
+                <button type="button" id="lang-switch" class="lang-toggle-btn" aria-label="Switch language" title="Switch language / تغيير اللغة"
+                    data-flag-sa="{% static 'assets/sa.svg' %}"
+                    data-flag-gb="{% static 'assets/gb.svg' %}">
+                    <img id="lang-toggle-flag" class="lang-toggle-flag-img" src="{% static 'assets/sa.svg' %}" alt="SA">
+                    <span class="lang-toggle-code" id="lang-toggle-code">AR</span>
+                    <span class="lang-toggle-divider"></span>
+                    <span class="lang-toggle-label" id="lang-toggle-label">العربية</span>
+                </button>
             </div>
         </header>
 
@@ -188,14 +540,14 @@
                     <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
                     <div class="stat-info">
                         <h3 id="stat-total-events">{{ total_events }}</h3>
-                        <p>Total Events</p>
+                        <p data-i18n="org.stats.totalEvents">Total Events</p>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-hourglass-half"></i></div>
                     <div class="stat-info">
                         <h3 id="stat-upcoming">{{ upcoming_count }}</h3>
-                        <p>Upcoming</p>
+                        <p data-i18n="org.stats.upcoming">Upcoming</p>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -203,14 +555,14 @@
                             class="fa-solid fa-clock"></i></div>
                     <div class="stat-info">
                         <h3 id="stat-pending">{{ pending_count }}</h3>
-                        <p>Pending Approval</p>
+                        <p data-i18n="status.pendingApproval">Pending Approval</p>
                     </div>
                 </div>
             </div>
 
             <div class="section-header">
-                <h2>Recent Events</h2>
-                <a href="#" class="btn btn-outline btn-sm" onclick="switchView('events-list')">View All</a>
+                <h2 data-i18n="org.section.recentEvents">Recent Events</h2>
+                <a href="#" class="btn btn-outline btn-sm" onclick="switchView('events-list')" data-i18n="common.viewAll">View All</a>
             </div>
             <div id="recent-events-list">
                 {% if recent_events %}
@@ -226,7 +578,7 @@
                                 <span><i class="fa-regular fa-clock"></i> {{ event.time|time:"H:i" }}</span>
                                 <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
                                 <span><i class="fa-solid fa-ticket"></i>
-                                    {% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} SAR{% endif %}
+                                    {% if event.ticket_price == 0 %}<span data-i18n="common.free">Free</span>{% else %}{{ event.ticket_price }} <span data-i18n="common.currencySar">SAR</span>{% endif %}
                                 </span>
                                 <span style="padding: 2px 8px; border-radius: 12px; background: rgba(123,31,162,0.15); color: #7b1fa2; font-weight: 500; font-size: 0.75rem;">Upcoming</span>
                             </div>
@@ -234,7 +586,7 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <p class="text-muted" style="text-align: center; padding: 2rem;">No upcoming events yet. Create one and wait for SCEGA approval.</p>
+                    <p class="text-muted" style="text-align: center; padding: 2rem;" data-i18n="org.empty.noEventsFull">No upcoming events yet. Create one and wait for SCEGA approval.</p>
                 {% endif %}
             </div>
         </section>
@@ -244,88 +596,96 @@
             <form id="create-event-form" class="create-event-form">
 
                 <div class="form-section">
-                    <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> Basic Information</h3>
+                    <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> <span data-i18n="org.form.basicInfo">Basic Information</span></h3>
                     <div class="form-row">
                         <div class="input-group">
-                            <label>Event Title *</label>
-                            <input type="text" id="event-title" placeholder="e.g. Annual Tech Summit 2026" required>
+                            <label data-i18n="org.form.eventTitle">Event Title *</label>
+                            <input type="text" id="event-title" data-i18n-placeholder="org.ph.eventTitle" placeholder="e.g. Annual Tech Summit 2026" required>
                         </div>
                         <div class="input-group">
-                            <label><i class="fa-solid fa-tags"></i> Category *</label>
+                            <label><i class="fa-solid fa-tags"></i> <span data-i18n="org.form.category">Category *</span></label>
                             <select id="event-category" required>
-                                <option value="" disabled selected>Select a category</option>
-                                <option value="Tech">Tech</option>
-                                <option value="Art">Art</option>
-                                <option value="Business">Business</option>
-                                <option value="Music">Music</option>
-                                <option value="Education">Education</option>
-                                <option value="Sports">Sports</option>
-                                <option value="Other">Other</option>
+                                <option value="" disabled selected data-i18n="org.form.selectCategory">Select a category</option>
+                                <option value="Tech" data-i18n="cat.tech">Tech</option>
+                                <option value="Art" data-i18n="cat.art">Art</option>
+                                <option value="Business" data-i18n="cat.business">Business</option>
+                                <option value="Music" data-i18n="cat.music">Music</option>
+                                <option value="Education" data-i18n="cat.education">Education</option>
+                                <option value="Sports" data-i18n="cat.sports">Sports</option>
+                                <option value="Other" data-i18n="cat.other">Other</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h3 class="form-section-title"><i class="fa-solid fa-calendar-days"></i> Date & Location</h3>
+                    <h3 class="form-section-title"><i class="fa-solid fa-calendar-days"></i> <span data-i18n="org.form.dateLocation">Date & Location</span></h3>
                     <div class="form-row">
                         <div class="input-group">
-                            <label><i class="fa-regular fa-calendar"></i> Date *</label>
-                            <input type="date" id="event-date" required>
+                            <label><i class="fa-regular fa-calendar"></i> <span data-i18n="org.form.date">Date *</span></label>
+                            <div class="organizer-date-input-wrap">
+                                <input type="text" id="event-date" name="date" autocomplete="off" inputmode="none" required
+                                    data-i18n-placeholder="org.ph.eventDate" placeholder="dd/mm/yyyy">
+                                <span class="organizer-date-cal-icon" aria-hidden="true"><i class="fa-regular fa-calendar"></i></span>
+                            </div>
                         </div>
                         <div class="input-group">
-                            <label><i class="fa-regular fa-clock"></i> Time *</label>
-                            <input type="time" id="event-time" required>
+                            <label><i class="fa-regular fa-clock"></i> <span data-i18n="org.form.time">Time *</span></label>
+                            <div class="organizer-time-input-wrap">
+                                <input type="hidden" id="event-time" value="">
+                                <input type="text" id="event-time-display" class="organizer-event-time-display" readonly
+                                    autocomplete="off" inputmode="none" tabindex="0" aria-expanded="false"
+                                    data-i18n-placeholder="org.ph.eventTime" data-i18n-aria-label="org.aria.pickTime"
+                                    placeholder="--:-- --">
+                                <span class="organizer-time-clock-icon"><i class="fa-regular fa-clock"></i></span>
+                            </div>
                         </div>
                     </div>
                     <div class="input-group">
-                        <label><i class="fa-solid fa-location-dot"></i> Venue / Location *</label>
-                        <input type="text" id="event-location" placeholder="e.g. Riyadh Front Exhibition Center, Hall A"
+                        <label><i class="fa-solid fa-location-dot"></i> <span data-i18n="org.form.venue">Venue / Location *</span></label>
+                        <input type="text" id="event-location" data-i18n-placeholder="org.form.venuePh" placeholder="e.g. Riyadh Front Exhibition Center, Hall A"
                             required>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h3 class="form-section-title"><i class="fa-solid fa-align-left"></i> Event Details</h3>
+                    <h3 class="form-section-title"><i class="fa-solid fa-align-left"></i> <span data-i18n="common.eventDetails">Event Details</span></h3>
                     <div class="input-group">
-                        <label><i class="fa-solid fa-pen"></i> Description *</label>
+                        <label><i class="fa-solid fa-pen"></i> <span data-i18n="org.form.description">Description *</span></label>
                         <textarea id="event-description" rows="5"
-                            placeholder="Describe your event, what attendees can expect, key highlights, speakers, etc..."
+                            data-i18n-placeholder="org.form.descriptionPh" placeholder="Describe your event, what attendees can expect, key highlights, speakers, etc..."
                             required></textarea>
                     </div>
                 </div>
 
                 <div class="form-section">
-                    <h3 class="form-section-title"><i class="fa-solid fa-shield-halved"></i> Withdrawal Policies</h3>
+                    <h3 class="form-section-title"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="org.form.withdrawalPolicies">Withdrawal Policies</span></h3>
                     <div class="form-row">
                         <div class="input-group">
-                            <label><i class="fa-solid fa-store" style="margin-right: 0.3rem;"></i> Vendor Policy
-                                *</label>
+                            <label><i class="fa-solid fa-store" style="margin-right: 0.3rem;"></i> <span data-i18n="org.policy.vendorLabel">Vendor Policy *</span></label>
                             <select id="event-withdrawal-policy" required>
-                                <option value="" disabled selected>Choose vendor policy...</option>
-                                <option value="flexible">Flexible — Vendors can withdraw up to 7 days before event
-                                </option>
-                                <option value="moderate">Moderate — Up to 14 days before event</option>
-                                <option value="strict">Strict — Up to 30 days before event</option>
-                                <option value="non-refundable">Non-refundable — No withdrawal allowed</option>
+                                <option value="" disabled selected data-i18n="org.policy.vendorChoose">Choose vendor policy...</option>
+                                <option value="flexible" data-i18n="org.policy.vendor.flexibleDesc">Flexible — Vendors can withdraw up to 7 days before event</option>
+                                <option value="moderate" data-i18n="org.policy.vendor.moderateDesc">Moderate — Up to 14 days before event</option>
+                                <option value="strict" data-i18n="org.policy.vendor.strictDesc">Strict — Up to 30 days before event</option>
+                                <option value="non-refundable" data-i18n="org.policy.vendor.nonRefundableDesc">Non-refundable — No withdrawal allowed</option>
                             </select>
                             <small
-                                style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;">
+                                style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;" data-i18n="org.policy.vendor.help">
                                 Applies to vendors participating in the event.
                             </small>
                         </div>
                         <div class="input-group">
-                            <label><i class="fa-solid fa-users" style="margin-right: 0.3rem;"></i> Attendee Policy
-                                *</label>
+                            <label><i class="fa-solid fa-users" style="margin-right: 0.3rem;"></i> <span data-i18n="org.policy.attendeeLabel">Attendee Policy *</span></label>
                             <select id="event-attendee-withdrawal-policy" required>
-                                <option value="" disabled selected>Choose attendee policy...</option>
-                                <option value="flexible">Flexible — Full refund up to 1 day before</option>
-                                <option value="moderate">Moderate — Full refund up to 7 days before</option>
-                                <option value="strict">Strict — Full refund up to 30 days before</option>
-                                <option value="non-refundable">Non-refundable — No refunds allowed</option>
+                                <option value="" disabled selected data-i18n="org.policy.attendeeChoose">Choose attendee policy...</option>
+                                <option value="flexible" data-i18n="org.policy.attendee.flexibleDesc">Flexible — Full refund up to 1 day before</option>
+                                <option value="moderate" data-i18n="org.policy.attendee.moderateDesc">Moderate — Full refund up to 7 days before</option>
+                                <option value="strict" data-i18n="org.policy.attendee.strictDesc">Strict — Full refund up to 30 days before</option>
+                                <option value="non-refundable" data-i18n="org.policy.attendee.nonRefundableDesc">Non-refundable — No refunds allowed</option>
                             </select>
                             <small
-                                style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;">
+                                style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;" data-i18n="org.policy.attendee.help">
                                 Applies to attendees buying tickets to the event.
                             </small>
                         </div>
@@ -333,24 +693,24 @@
                 </div>
 
                 <div class="form-section">
-                    <h3 class="form-section-title"><i class="fa-solid fa-ticket"></i> Tickets</h3>
+                    <h3 class="form-section-title"><i class="fa-solid fa-ticket"></i> <span data-i18n="org.form.tickets">Tickets</span></h3>
                     <div class="input-group" style="margin-bottom: 1rem;">
-                        <label><i class="fa-solid fa-users"></i> Total Event Capacity *</label>
-                        <input type="number" id="event-capacity" name="capacity" placeholder="e.g. 500" min="1" required
+                        <label><i class="fa-solid fa-users"></i> <span data-i18n="org.form.totalEventCapacity">Total Event Capacity *</span></label>
+                        <input type="number" id="event-capacity" name="capacity" data-i18n-placeholder="org.ph.eventCapacity" placeholder="e.g. 500" min="1" required
                             style="width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none;">
-                        <small style="color: var(--text-muted); display: block; margin-top: 0.4rem; font-size: 0.8rem;">
+                        <small style="color: var(--text-muted); display: block; margin-top: 0.4rem; font-size: 0.8rem;" data-i18n="org.form.totalEventCapacityHelp">
                             Maximum total number of attendees allowed for this event.
                         </small>
                     </div>
                     <div class="input-group">
-                        <label><i class="fa-solid fa-ticket"></i> Ticket Categories *</label>
+                        <label><i class="fa-solid fa-ticket"></i> <span data-i18n="org.form.ticketCategories">Ticket Categories *</span></label>
                         <div id="ticket-categories-container">
                             <div class="ticket-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
-                                <input type="text" class="ticket-name" placeholder="Name (e.g. General)"
+                                <input type="text" class="ticket-name" data-i18n-placeholder="org.ticket.namePh" placeholder="Name (e.g. General)"
                                     value="Standard" required style="flex: 2;">
-                                <input type="number" class="ticket-price" placeholder="Price" min="0" required
+                                <input type="number" class="ticket-price" data-i18n-placeholder="org.ticket.pricePh" placeholder="Price" min="0" required
                                     style="flex: 1;">
-                                <input type="number" class="ticket-capacity" placeholder="Max Attendees" min="1"
+                                <input type="number" class="ticket-capacity" data-i18n-placeholder="org.ticket.capacityPh" placeholder="Max Attendees" min="1"
                                     style="flex: 1;">
                                 <button type="button" class="btn btn-sm btn-outline remove-ticket-btn"
                                     style="color: var(--danger-color); border-color: var(--danger-color);"><i
@@ -359,12 +719,12 @@
                         </div>
                         <button type="button" id="add-ticket-btn" class="btn btn-sm btn-outline"
                             style="margin-top: 10px; width: 100%;">
-                            <i class="fa-solid fa-plus"></i> Add Another Category
+                            <i class="fa-solid fa-plus"></i> <span data-i18n="org.btn.addCategory">Add Another Category</span>
                         </button>
                     </div>
 
                     <div class="input-group">
-                        <label><i class="fa-solid fa-image"></i> Event Banner</label>
+                        <label><i class="fa-solid fa-image"></i> <span data-i18n="org.form.banner">Event Banner</span></label>
 
                         <!-- Hidden real file input -->
                         <input type="file" id="event-banner" accept="image/png, image/jpeg, image/jpg, image/webp" style="display: none;">
@@ -373,15 +733,15 @@
                         <div class="file-upload-area" id="banner-upload-zone" style="cursor: pointer; user-select: none;">
                             <div id="banner-placeholder" style="padding: 2rem 0; text-align: center; pointer-events: none;">
                                 <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: var(--primary-color, #004e92); display: block; margin-bottom: 0.5rem;"></i>
-                                <span style="display: block; margin: 0.5rem 0; font-weight: 500; color: var(--text-color, #333);">Click to upload banner</span>
-                                <small style="display: block; color: var(--text-muted, #888);">PNG, JPG, WEBP — up to 5MB</small>
+                                <span style="display: block; margin: 0.5rem 0; font-weight: 500; color: var(--text-color, #333);" data-i18n="org.upload.hint">Click to upload banner</span>
+                                <small style="display: block; color: var(--text-muted, #888);" data-i18n="org.upload.formats">PNG, JPG, WEBP — up to 5MB</small>
                             </div>
                             <div id="banner-preview-wrap" style="display: none; position: relative; width: 100%; border-radius: 10px; overflow: hidden;">
                                 <img id="banner-preview-img" src="" alt="Banner Preview"
                                     style="width: 100%; max-height: 220px; object-fit: cover; display: block; border-radius: 10px;">
                                 <button type="button" id="banner-remove-btn"
                                     style="position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.55); color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; pointer-events: all;"
-                                    title="Remove banner">
+                                    data-i18n-title="org.form.bannerRemove">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
@@ -391,10 +751,10 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn btn-outline" onclick="switchView('overview')">
-                        <i class="fa-solid fa-xmark"></i> Cancel
+                        <i class="fa-solid fa-xmark"></i> <span data-i18n="common.cancel">Cancel</span>
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-rocket"></i> Publish Event
+                        <span data-i18n="org.btn.publish">Publish Event</span>
                     </button>
                 </div>
             </form>
@@ -404,24 +764,24 @@
             <div class="section-header">
                 <div class="section-actions">
                     <select id="event-filter-select">
-                        <option value="all">All Status</option>
-                        <option value="Pending">Pending Approval</option>
-                        <option value="Upcoming">Upcoming</option>
-                        <option value="Ongoing">Ongoing</option>
-                        <option value="Past">Past</option>
-                        <option value="Rejected">Rejected</option>
+                        <option value="all" data-i18n="common.allStatus">All Status</option>
+                        <option value="Pending" data-i18n="status.pendingApproval">Pending Approval</option>
+                        <option value="Upcoming" data-i18n="status.upcoming">Upcoming</option>
+                        <option value="Ongoing" data-i18n="status.ongoing">Ongoing</option>
+                        <option value="Past" data-i18n="status.past">Past</option>
+                        <option value="Rejected" data-i18n="status.rejected">Rejected</option>
                     </select>
-                    <input type="text" placeholder="Search events...">
-                    <button class="btn btn-primary btn-sm" onclick="switchView('create-event')">+ Create</button>
+                    <input type="text" data-i18n-placeholder="common.searchEvents" placeholder="Search events...">
+                    <button class="btn btn-primary btn-sm" onclick="switchView('create-event')"><span data-i18n="org.btn.create">+ Create</span></button>
                 </div>
             </div>
 
             <div class="events-list-header"
                 style="display: grid; grid-template-columns: 80px 1fr 140px 120px; gap: 1.5rem; padding: 1rem 1.5rem; background: #f8f9fa; border-radius: 12px; margin-bottom: 1rem; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted);">
-                <span>Date</span>
-                <span>Event Details</span>
-                <span style="text-align: center;">SCEGA Approval</span>
-                <span style="text-align: center;">Actions</span>
+                <span data-i18n="common.date">Date</span>
+                <span data-i18n="common.eventDetails">Event Details</span>
+                <span style="text-align: center;" data-i18n="org.scegaApproval">SCEGA Approval</span>
+                <span style="text-align: center;" data-i18n="common.actions">Actions</span>
             </div>
 
             <div id="all-events-container">
@@ -440,22 +800,22 @@
                             <h4 style="margin: 0 0 0.25rem 0;">
                                 {{ event.title }}
                                 {% if event.state == 'Upcoming' %}
-                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(123,31,162,0.15);color:#7b1fa2;font-weight:500;margin-left:8px;">Upcoming</span>
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(123,31,162,0.15);color:#7b1fa2;font-weight:500;margin-left:8px;" data-i18n="status.upcoming">Upcoming</span>
                                 {% elif event.state == 'Ongoing' %}
-                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(46,125,50,0.15);color:#2e7d32;font-weight:500;margin-left:8px;">Ongoing</span>
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(46,125,50,0.15);color:#2e7d32;font-weight:500;margin-left:8px;" data-i18n="status.ongoing">Ongoing</span>
                                 {% elif event.state == 'Past' %}
-                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(117,117,117,0.15);color:#757575;font-weight:500;margin-left:8px;">Past</span>
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(117,117,117,0.15);color:#757575;font-weight:500;margin-left:8px;" data-i18n="status.past">Past</span>
                                 {% elif event.state == 'Pending' %}
-                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(255,152,0,0.15);color:#ff9800;font-weight:500;margin-left:8px;">Pending</span>
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(255,152,0,0.15);color:#ff9800;font-weight:500;margin-left:8px;" data-i18n="common.pending">Pending</span>
                                 {% elif event.state == 'Rejected' %}
-                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(198,40,40,0.15);color:#c62828;font-weight:500;margin-left:8px;">Rejected</span>
+                                    <span style="font-size:0.7rem;padding:2px 8px;border-radius:12px;background:rgba(198,40,40,0.15);color:#c62828;font-weight:500;margin-left:8px;" data-i18n="status.rejected">Rejected</span>
                                 {% endif %}
                             </h4>
                             <div class="event-meta-info" style="display:flex;flex-wrap:wrap;gap:1rem;font-size:0.85rem;color:var(--text-muted);">
                                 <span><i class="fa-regular fa-clock"></i> {{ event.time|time:"H:i" }}</span>
                                 <span><i class="fa-solid fa-location-dot"></i> {{ event.location }}</span>
                                 <span><i class="fa-solid fa-ticket"></i>
-                                    {% if event.ticket_price == 0 %}Free{% else %}{{ event.ticket_price }} SAR{% endif %}
+                                    {% if event.ticket_price == 0 %}<span data-i18n="common.free">Free</span>{% else %}{{ event.ticket_price }} <span data-i18n="common.currencySar">SAR</span>{% endif %}
                                 </span>
                             </div>
                         </div>
@@ -465,17 +825,17 @@
                             {% if event.status == 'PENDING' %}
                             <div style="background:rgba(255,152,0,0.1);padding:0.75rem 1rem;border-radius:12px;border:1px solid rgba(255,152,0,0.2);">
                                 <i class="fa-solid fa-clock" style="font-size:1.25rem;color:#ff9800;display:block;margin-bottom:0.25rem;"></i>
-                                <span style="font-size:0.75rem;font-weight:600;color:#ff9800;">Pending Review</span>
+                                <span style="font-size:0.75rem;font-weight:600;color:#ff9800;" data-i18n="status.pendingReview">Pending Review</span>
                             </div>
                             {% elif event.status == 'APPROVED' %}
                             <div style="background:rgba(46,125,50,0.1);padding:0.75rem 1rem;border-radius:12px;border:1px solid rgba(46,125,50,0.2);">
                                 <i class="fa-solid fa-circle-check" style="font-size:1.25rem;color:#2e7d32;display:block;margin-bottom:0.25rem;"></i>
-                                <span style="font-size:0.75rem;font-weight:600;color:#2e7d32;">Approved</span>
+                                <span style="font-size:0.75rem;font-weight:600;color:#2e7d32;" data-i18n="status.approved">Approved</span>
                             </div>
                             {% elif event.status == 'REJECTED' %}
                             <div style="background:rgba(198,40,40,0.1);padding:0.75rem 1rem;border-radius:12px;border:1px solid rgba(198,40,40,0.2);">
                                 <i class="fa-solid fa-circle-xmark" style="font-size:1.25rem;color:#c62828;display:block;margin-bottom:0.25rem;"></i>
-                                <span style="font-size:0.75rem;font-weight:600;color:#c62828;">Rejected</span>
+                                <span style="font-size:0.75rem;font-weight:600;color:#c62828;" data-i18n="status.rejected">Rejected</span>
                                 {% if event.rejection_reason %}
                                 <div style="font-size:0.72rem;color:#c62828;margin-top:0.3rem;">
                                     <i class="fa-solid fa-comment"></i> {{ event.rejection_reason|truncatechars:40 }}
@@ -487,18 +847,20 @@
 
                         <!-- Actions Column -->
                         <div class="event-actions" style="display:flex;flex-direction:column;gap:0.5rem;">
-                            <button class="btn btn-sm btn-primary manage-btn" data-id="{{ event.id }}">
-                                <i class="fa-solid fa-sliders"></i> Manage
-                            </button>
+                            <div class="manage-btn-wrap">
+                                <button class="btn btn-sm btn-primary manage-btn" data-id="{{ event.id }}">
+                                    <i class="fa-solid fa-sliders"></i> <span data-i18n="org.manage.manage">Manage</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
                 {% else %}
                     <div style="text-align:center;padding:4rem;">
                         <i class="fa-regular fa-calendar-xmark" style="font-size:3rem;color:#ddd;margin-bottom:1rem;display:block;"></i>
-                        <p class="text-muted">No events found. Create your first event!</p>
+                        <p class="text-muted" data-i18n="org.events.emptyListBanner">No events found. Create your first event!</p>
                         <button class="btn btn-primary btn-sm" style="margin-top:1rem;" onclick="switchView('create-event')">
-                            <i class="fa-solid fa-circle-plus"></i> Create Event
+                            <i class="fa-solid fa-circle-plus"></i> <span data-i18n="org.nav.createEvent">Create Event</span>
                         </button>
                     </div>
                 {% endif %}
@@ -511,17 +873,17 @@
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <div class="em-header-info">
-                    <h2 id="em-event-title">Event Title</h2>
+                    <h2 id="em-event-title" data-i18n="org.em.eventTitle">Event Title</h2>
                 </div>
             </div>
 
             <div class="em-status-bar">
                 <div class="em-status-item">
-                    <span class="em-status-label">Event Status</span>
+                    <span class="em-status-label" data-i18n="org.em.eventStatus">Event Status</span>
                     <span id="em-event-state-badge" class="em-badge"></span>
                 </div>
                 <div class="em-status-item">
-                    <span class="em-status-label">SCEGA Approval</span>
+                    <span class="em-status-label" data-i18n="org.scegaApproval">SCEGA Approval</span>
                     <span id="em-scega-badge" class="em-badge"></span>
                 </div>
             </div>
@@ -533,7 +895,7 @@
                     </div>
                     <div class="em-stat-info">
                         <span class="em-stat-value" id="em-stat-vendors">0</span>
-                        <span class="em-stat-label">Total Vendors</span>
+                        <span class="em-stat-label" data-i18n="org.em.totalVendors">Total Vendors</span>
                     </div>
                 </div>
                 <div class="em-stat-card">
@@ -542,7 +904,7 @@
                     </div>
                     <div class="em-stat-info">
                         <span class="em-stat-value" id="em-stat-pending-vendors">0</span>
-                        <span class="em-stat-label">Pending</span>
+                        <span class="em-stat-label" data-i18n="common.pending">Pending</span>
                     </div>
                 </div>
                 <div class="em-stat-card">
@@ -551,7 +913,7 @@
                     </div>
                     <div class="em-stat-info">
                         <span class="em-stat-value" id="em-stat-attendees">0</span>
-                        <span class="em-stat-label">Attendees</span>
+                        <span class="em-stat-label" data-i18n="org.em.attendees">Attendees</span>
                     </div>
                 </div>
                 <div class="em-stat-card">
@@ -560,23 +922,24 @@
                     </div>
                     <div class="em-stat-info">
                         <span class="em-stat-value" id="em-stat-countdown">--</span>
-                        <span class="em-stat-label">Days Left</span>
+                        <span class="em-stat-label" data-i18n="org.em.daysLeft">Days Left</span>
                     </div>
                 </div>
             </div>
 
             <div class="em-tabs">
                 <button class="em-tab active" data-emtab="overview">
-                    <i class="fa-solid fa-info-circle"></i> Overview
+                    <i class="fa-solid fa-info-circle"></i> <span data-i18n="common.overview">Overview</span>
                 </button>
                 <button class="em-tab" data-emtab="vendors">
-                    <i class="fa-solid fa-store"></i> Vendors
+                    <i class="fa-solid fa-store"></i> <span data-i18n="org.em.tab.vendors">Vendors</span>
                 </button>
-                <button class="em-tab" data-emtab="communication">
-                    <i class="fa-solid fa-comments"></i> Communication
+                <button class="em-tab" data-emtab="communication" id="em-tab-btn-communication">
+                    <i class="fa-solid fa-comments"></i> <span data-i18n="org.em.tab.communication">Communication</span>
+                    <span class="em-tab-unread-badge" id="em-comm-tab-badge" style="display:none;"></span>
                 </button>
                 <button class="em-tab" data-emtab="actions">
-                    <i class="fa-solid fa-gear"></i> Actions
+                    <i class="fa-solid fa-gear"></i> <span data-i18n="common.actions">Actions</span>
                 </button>
             </div>
 
@@ -584,7 +947,8 @@
                 <div class="em-overview-grid">
                     <div class="em-detail-card em-card-blue">
                         <div class="em-detail-card-header">
-                            <i class="fa-solid fa-info-circle"></i> Event Details
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span data-i18n="common.eventDetails">Event Details</span>
                         </div>
                         <div class="em-detail-card-body">
                             <div class="em-detail-item">
@@ -593,7 +957,7 @@
                                     <i class="fa-solid fa-heading"></i>
                                 </div>
                                 <div class="em-detail-item-content">
-                                    <span class="em-detail-label">Title</span>
+                                    <span class="em-detail-label" data-i18n="common.title">Title</span>
                                     <span class="em-detail-value" id="em-ov-title">—</span>
                                 </div>
                             </div>
@@ -603,7 +967,7 @@
                                     <i class="fa-solid fa-tags"></i>
                                 </div>
                                 <div class="em-detail-item-content">
-                                    <span class="em-detail-label">Category</span>
+                                    <span class="em-detail-label" data-i18n="common.category">Category</span>
                                     <span class="em-detail-value" id="em-ov-category">—</span>
                                 </div>
                             </div>
@@ -613,7 +977,7 @@
                                     <i class="fa-solid fa-align-left"></i>
                                 </div>
                                 <div class="em-detail-item-content" style="flex: 1;">
-                                    <span class="em-detail-label">Description</span>
+                                    <span class="em-detail-label" data-i18n="common.description">Description</span>
                                     <div id="em-description-display"
                                         style="display: flex; align-items: flex-start; gap: 0.5rem;">
                                         <span class="em-detail-value" id="em-ov-description" style="flex: 1;">—</span>
@@ -621,7 +985,8 @@
                                             style="flex-shrink: 0; background: none; border: 1px solid #d0d7de; border-radius: 6px; padding: 3px 8px; cursor: pointer; color: #555; font-size: 0.78rem; display: flex; align-items: center; gap: 4px; transition: all 0.2s;"
                                             onmouseover="this.style.background='#f0f4ff';this.style.borderColor='#1565c0';this.style.color='#1565c0';"
                                             onmouseout="this.style.background='none';this.style.borderColor='#d0d7de';this.style.color='#555';">
-                                            <i class="fa-solid fa-pen" style="font-size: 0.7rem;"></i> Edit
+                                            <i class="fa-solid fa-pen" style="font-size: 0.7rem;"></i>
+                                            <span data-i18n="common.edit">Edit</span>
                                         </button>
                                     </div>
                                     <div id="em-description-edit"
@@ -631,11 +996,12 @@
                                         <div style="display: flex; gap: 0.5rem;">
                                             <button id="em-save-desc-btn" class="btn btn-sm btn-primary"
                                                 style="padding: 5px 14px; font-size: 0.8rem;">
-                                                <i class="fa-solid fa-check"></i> Save
+                                                <i class="fa-solid fa-check"></i>
+                                                <span data-i18n="common.save">Save</span>
                                             </button>
                                             <button id="em-cancel-desc-btn" class="btn btn-sm btn-outline"
                                                 style="padding: 5px 14px; font-size: 0.8rem;">
-                                                Cancel
+                                                <span data-i18n="common.cancel">Cancel</span>
                                             </button>
                                         </div>
                                     </div>
@@ -646,7 +1012,8 @@
 
                     <div class="em-detail-card em-card-purple">
                         <div class="em-detail-card-header">
-                            <i class="fa-solid fa-calendar-days"></i> Date &amp; Location
+                            <i class="fa-solid fa-calendar-days"></i>
+                            <span data-i18n="org.form.dateLocation">Date &amp; Location</span>
                         </div>
                         <div class="em-detail-card-body">
                             <div class="em-detail-item">
@@ -655,7 +1022,7 @@
                                     <i class="fa-regular fa-calendar"></i>
                                 </div>
                                 <div class="em-detail-item-content">
-                                    <span class="em-detail-label">Date</span>
+                                    <span class="em-detail-label" data-i18n="org.form.date">Date</span>
                                     <span class="em-detail-value" id="em-ov-date">—</span>
                                 </div>
                             </div>
@@ -665,7 +1032,7 @@
                                     <i class="fa-regular fa-clock"></i>
                                 </div>
                                 <div class="em-detail-item-content">
-                                    <span class="em-detail-label">Time</span>
+                                    <span class="em-detail-label" data-i18n="org.form.time">Time</span>
                                     <span class="em-detail-value" id="em-ov-time">—</span>
                                 </div>
                             </div>
@@ -675,7 +1042,7 @@
                                     <i class="fa-solid fa-location-dot"></i>
                                 </div>
                                 <div class="em-detail-item-content">
-                                    <span class="em-detail-label">Location</span>
+                                    <span class="em-detail-label" data-i18n="common.location">Location</span>
                                     <span class="em-detail-value" id="em-ov-location">—</span>
                                 </div>
                             </div>
@@ -684,29 +1051,34 @@
 
                     <div class="em-detail-card em-full-width em-card-green">
                         <div class="em-detail-card-header">
-                            <i class="fa-solid fa-shield-halved"></i> Withdrawal Policies
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span data-i18n="org.form.withdrawalPolicies">Withdrawal Policies</span>
                         </div>
                         <div class="em-detail-card-body">
                             <div class="em-policy-panels">
                                 <div class="em-policy-panel">
                                     <div class="em-policy-panel-title">
-                                        <i class="fa-solid fa-store"></i> Vendor Policy
+                                        <i class="fa-solid fa-store"></i>
+                                        <span data-i18n="org.policy.vendorLabelPlain">Vendor Policy</span>
                                     </div>
                                     <div id="em-ov-vendor-policy-badge" class="em-policy-badge em-policy-none">
-                                        <i class="fa-solid fa-circle-question"></i> Not Set
+                                        <i class="fa-solid fa-circle-question"></i>
+                                        <span data-i18n="common.notSet">Not Set</span>
                                     </div>
-                                    <p class="em-policy-desc" id="em-ov-vendor-policy-desc">Applies to vendors
+                                    <p class="em-policy-desc" id="em-ov-vendor-policy-desc" data-i18n="org.policy.vendor.helpEvent">Applies to vendors
                                         participating in this event.</p>
                                 </div>
                                 <div class="em-policy-divider"></div>
                                 <div class="em-policy-panel">
                                     <div class="em-policy-panel-title">
-                                        <i class="fa-solid fa-users"></i> Attendee Policy
+                                        <i class="fa-solid fa-users"></i>
+                                        <span data-i18n="org.policy.attendeeLabelPlain">Attendee Policy</span>
                                     </div>
                                     <div id="em-ov-attendee-policy-badge" class="em-policy-badge em-policy-none">
-                                        <i class="fa-solid fa-circle-question"></i> Not Set
+                                        <i class="fa-solid fa-circle-question"></i>
+                                        <span data-i18n="common.notSet">Not Set</span>
                                     </div>
-                                    <p class="em-policy-desc" id="em-ov-attendee-policy-desc">Applies to attendees
+                                    <p class="em-policy-desc" id="em-ov-attendee-policy-desc" data-i18n="org.policy.attendee.helpShort">Applies to attendees
                                         purchasing tickets.</p>
                                 </div>
                             </div>
@@ -715,7 +1087,8 @@
 
                     <div class="em-detail-card em-full-width em-card-amber">
                         <div class="em-detail-card-header">
-                            <i class="fa-solid fa-ticket"></i> Ticket Tiers
+                            <i class="fa-solid fa-ticket"></i>
+                            <span data-i18n="org.em.ticketTiers">Ticket Tiers</span>
                         </div>
                         <div class="em-detail-card-body" id="em-ov-tickets">
                             </div>
@@ -725,9 +1098,10 @@
 
             <div class="em-tab-content" id="em-tab-vendors">
                 <div class="em-vendors-toolbar">
-                    <span id="em-vendors-count" class="em-vendors-count-label">0 vendors</span>
+                    <span id="em-vendors-count" class="em-vendors-count-label" data-i18n="org.em.vendorsCountDefault">0 vendors</span>
                     <button class="btn btn-primary btn-sm" onclick="switchView('vendors')">
-                        <i class="fa-solid fa-plus"></i> Invite Vendor
+                        <i class="fa-solid fa-plus"></i>
+                        <span data-i18n="org.em.inviteVendor">Invite Vendor</span>
                     </button>
                 </div>
                 <div id="em-vendors-list" class="em-vendors-list">
@@ -737,10 +1111,12 @@
             <div class="em-tab-content" id="em-tab-communication">
                 <div class="em-comm-subtabs">
                     <button class="em-comm-subtab active" data-commtab="vendor-msgs">
-                        <i class="fa-solid fa-comments"></i> Vendor Messages
+                        <i class="fa-solid fa-comments"></i>
+                        <span data-i18n="org.em.vendorMessages">Vendor Messages</span>
                     </button>
                     <button class="em-comm-subtab" data-commtab="broadcasts">
-                        <i class="fa-solid fa-bullhorn"></i> Attendee Broadcast
+                        <i class="fa-solid fa-bullhorn"></i>
+                        <span data-i18n="org.em.attendeeBroadcast">Attendee Broadcast</span>
                     </button>
                 </div>
 
@@ -751,15 +1127,17 @@
 
                 <div class="em-comm-panel" id="em-comm-broadcasts">
                     <div class="em-broadcast-compose">
-                        <h4><i class="fa-solid fa-bullhorn"></i> New Broadcast to All Attendees</h4>
+                        <h4><i class="fa-solid fa-bullhorn"></i> <span data-i18n="org.em.newBroadcast">New Broadcast to All Attendees</span></h4>
                         <textarea id="em-broadcast-text" rows="3"
+                            data-i18n-placeholder="org.em.broadcastPh"
                             placeholder="Type your announcement for all attendees..."></textarea>
                         <button class="btn btn-primary btn-sm" id="em-send-broadcast-btn">
-                            <i class="fa-solid fa-paper-plane"></i> Send Broadcast
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span data-i18n="org.em.sendBroadcast">Send Broadcast</span>
                         </button>
                     </div>
                     <div class="em-broadcast-history">
-                        <h4><i class="fa-solid fa-clock-rotate-left"></i> Past Broadcasts</h4>
+                        <h4><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="org.em.pastBroadcasts">Past Broadcasts</span></h4>
                         <div id="em-broadcasts-list">
                             </div>
                     </div>
@@ -773,21 +1151,23 @@
                         <div class="em-action-icon" style="background: linear-gradient(135deg, #1565c0, #42a5f5);">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </div>
-                        <h4>Edit Event</h4>
-                        <p>Modify event details, tickets, policies, and more.</p>
+                        <h4 data-i18n="org.em.editEvent">Edit Event</h4>
+                        <p data-i18n="org.em.editEventDesc">Modify event details, tickets, policies, and more.</p>
                         <button class="btn btn-primary btn-sm" id="em-edit-btn">
-                            <i class="fa-solid fa-pen"></i> Edit
+                            <i class="fa-solid fa-pen"></i>
+                            <span data-i18n="common.edit">Edit</span>
                         </button>
                     </div>
                     <div class="em-action-card" id="em-action-delete">
                         <div class="em-action-icon" style="background: linear-gradient(135deg, #c62828, #ef5350);">
                             <i class="fa-solid fa-trash-can"></i>
                         </div>
-                        <h4>Delete Event</h4>
-                        <p>Permanently remove this event and all associated data.</p>
+                        <h4 data-i18n="org.em.deleteEvent">Delete Event</h4>
+                        <p data-i18n="org.em.deleteEventDesc">Permanently remove this event and all associated data.</p>
                         <button class="btn btn-sm" id="em-delete-btn"
                             style="background: #c62828; color: white; border: none;">
-                            <i class="fa-solid fa-trash"></i> Delete
+                            <i class="fa-solid fa-trash"></i>
+                            <span data-i18n="common.delete">Delete</span>
                         </button>
                     </div>
                 </div>
@@ -805,8 +1185,8 @@
                             <i class="fa-solid fa-store"></i>
                         </div>
                         <div>
-                            <div class="em-chat-vendor-name" id="em-chat-vendor-name">Vendor Name</div>
-                            <div class="em-chat-vendor-category" id="em-chat-vendor-cat">Category</div>
+                            <div class="em-chat-vendor-name" id="em-chat-vendor-name" data-i18n="org.em.vendorName">Vendor Name</div>
+                            <div class="em-chat-vendor-category" id="em-chat-vendor-cat" data-i18n="common.category">Category</div>
                         </div>
                     </div>
                     <button class="em-chat-close" onclick="closeVendorChat()">
@@ -816,7 +1196,7 @@
                 <div class="em-chat-body" id="em-chat-body">
                     </div>
                 <div class="em-chat-input-area">
-                    <input type="text" id="em-chat-input" placeholder="Type a message..." autocomplete="off">
+                    <input type="text" id="em-chat-input" data-i18n-placeholder="org.em.chatPh" placeholder="Type a message..." autocomplete="off">
                     <button class="em-chat-send-btn" id="em-chat-send-btn">
                         <i class="fa-solid fa-paper-plane"></i>
                     </button>
@@ -843,88 +1223,86 @@
             <div
                 style="background: linear-gradient(135deg, #004e92, #4dabf7); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: white;">
                 <h2 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600;">
-                    <i class="fa-solid fa-search" style="margin-right: 0.5rem; opacity: 0.9;"></i>Find Your Perfect
-                    Vendors
+                    <i class="fa-solid fa-search" style="margin-right: 0.5rem; opacity: 0.9;"></i>
+                    <span data-i18n="org.vendors.heroTitle">Find Your Perfect
+                    Vendors</span>
                 </h2>
-                <p style="margin: 0 0 1rem 0; opacity: 0.85; font-size: 0.9rem;">Explore categories, compare options,
+                <p style="margin: 0 0 1rem 0; opacity: 0.85; font-size: 0.9rem;" data-i18n="org.vendors.heroDesc">Explore categories, compare options,
                     and send requests to top-rated vendors</p>
 
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 250px; position: relative;">
-                        <i class="fa-solid fa-search"
-                            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #888;"></i>
-                        <input type="text" id="vendor-search" placeholder="Search vendors by name or service..."
-                            style="width: 100%; padding: 12px 12px 12px 42px; border: none; border-radius: 10px; font-size: 0.95rem; outline: none; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div class="vendor-search-wrap">
+                        <i class="fa-solid fa-search vendor-search-icon"></i>
+                        <input type="text" id="vendor-search" class="vendor-search-input" data-i18n-placeholder="org.ph.vendorSearch" placeholder="Search vendors by name or service...">
                     </div>
-                    <select id="vendor-location-filter"
-                        style="padding: 10px 16px; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 500; cursor: pointer; background: rgba(255,255,255,0.95); min-width: 130px; appearance: none; background-image: url('data:image/svg+xml;utf8,<svg fill=\'%23333\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M7 10l5 5 5-5z\'/></svg>'); background-repeat: no-repeat; background-position: right 12px center; background-size: 16px; padding-right: 36px;">
-                        <option value="all">All Locations</option>
-                        <option value="Riyadh">Riyadh</option>
-                        <option value="Jeddah">Jeddah</option>
-                        <option value="Dammam">Dammam</option>
-                        <option value="Mecca">Mecca</option>
-                        <option value="Al Ula">Al Ula</option>
+                    <select id="vendor-location-filter">
+                        <option value="all" data-i18n="common.allLocations">All Locations</option>
+                        <option value="Riyadh" data-i18n="city.riyadh">Riyadh</option>
+                        <option value="Jeddah" data-i18n="city.jeddah">Jeddah</option>
+                        <option value="Dammam" data-i18n="city.dammam">Dammam</option>
+                        <option value="Mecca" data-i18n="city.mecca">Mecca</option>
+                        <option value="Al Ula" data-i18n="city.alula">Al Ula</option>
                     </select>
                 </div>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                    <span style="font-weight: 600; color: #333; font-size: 0.9rem;">Categories:</span>
+                    <span style="font-weight: 600; color: #333; font-size: 0.9rem;" data-i18n="common.categories">Categories:</span>
                     <button id="show-all-categories"
                         style="padding: 6px 14px; background: linear-gradient(135deg, #004e92, #4dabf7); border: none; color: white; font-size: 0.8rem; cursor: pointer; font-weight: 500; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(0, 78, 146, 0.25);">
-                        <i class="fa-solid fa-grid-2"></i>View All
+                        <i class="fa-solid fa-grid-2"></i><span data-i18n="common.viewAll">View All</span>
                     </button>
                 </div>
 
                 <div id="category-pills"
                     style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin;">
                     <button class="category-pill active" data-category="all"
-                        style="padding: 8px 18px; border: none; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: #004e92; color: white;">
+                        style="padding: 8px 18px; border: none; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: #004e92; color: white;" data-i18n="common.all">
                         All
                     </button>
                     <button class="category-pill" data-category="Catering"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.catering">
                         Catering
                     </button>
                     <button class="category-pill" data-category="Venue"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.venues">
                         Venues
                     </button>
                     <button class="category-pill" data-category="Photography"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.photography">
                         Photography
                     </button>
                     <button class="category-pill" data-category="Decoration"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.decoration">
                         Decoration
                     </button>
                     <button class="category-pill" data-category="AV Equipment"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.av">
                         AV & Sound
                     </button>
                     <button class="category-pill" data-category="Entertainment"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.entertainment">
                         Entertainment
                     </button>
                     <button class="category-pill" data-category="Security"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.security">
                         Security
                     </button>
                     <button class="category-pill" data-category="Transportation"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.transport">
                         Transport
                     </button>
                     <button class="category-pill" data-category="Floral Design"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.floral">
                         Floral
                     </button>
                     <button class="category-pill" data-category="Traditional Music"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.traditional">
                         Traditional
                     </button>
                     <button class="category-pill" data-category="Government Permits"
-                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">
+                        style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="common.government">
                         Government
                     </button>
                 </div>
@@ -938,138 +1316,137 @@
                 </div>
 
             <select id="vendor-category-select" style="display: none;">
-                <option value="all">All Categories</option>
-                <option value="Catering">Catering</option>
-                <option value="Bakery & Desserts">Bakery & Desserts</option>
-                <option value="Beverages">Beverages</option>
-                <option value="Food Trucks">Food Trucks</option>
-                <option value="Venue">Venue</option>
-                <option value="Conference Hall">Conference Hall</option>
-                <option value="Outdoor Venue">Outdoor Venue</option>
-                <option value="AV Equipment">AV Equipment</option>
-                <option value="LED Screens">LED Screens</option>
-                <option value="Stage & Rigging">Stage & Rigging</option>
-                <option value="Live Streaming">Live Streaming</option>
-                <option value="Decoration">Decoration</option>
-                <option value="Floral Design">Floral Design</option>
-                <option value="Balloon Decor">Balloon Decor</option>
-                <option value="Event Lighting">Event Lighting</option>
-                <option value="Photography">Photography</option>
-                <option value="Aerial Photography">Aerial Photography</option>
-                <option value="Photo Booth">Photo Booth</option>
-                <option value="DJ Services">DJ Services</option>
-                <option value="Live Entertainment">Live Entertainment</option>
-                <option value="Kids Entertainment">Kids Entertainment</option>
-                <option value="Traditional Music">Traditional Music</option>
-                <option value="Fireworks & Pyro">Fireworks & Pyro</option>
-                <option value="Transportation">Transportation</option>
-                <option value="Shuttle Services">Shuttle Services</option>
-                <option value="Valet Parking">Valet Parking</option>
-                <option value="Security">Security</option>
-                <option value="VIP Security">VIP Security</option>
-                <option value="Medical Services">Medical Services</option>
-                <option value="Event Staff">Event Staff</option>
-                <option value="Translation">Translation</option>
-                <option value="MC & Hosting">MC & Hosting</option>
-                <option value="Tent Rentals">Tent Rentals</option>
-                <option value="Furniture Rentals">Furniture Rentals</option>
-                <option value="Table/Chair Rentals">Table/Chair Rentals</option>
-                <option value="Power Supply">Power Supply</option>
-                <option value="Printing">Printing</option>
-                <option value="Social Media Marketing">Social Media Marketing</option>
-                <option value="Influencer Marketing">Influencer Marketing</option>
-                <option value="Government Permits">Government Permits</option>
-                <option value="Safety Permits">Safety Permits</option>
-                <option value="Sponsors">Sponsors</option>
-                <option value="Brand Partners">Brand Partners</option>
-                <option value="Henna Artists">Henna Artists</option>
-                <option value="Falconry Shows">Falconry Shows</option>
-                <option value="Horse Shows">Horse Shows</option>
-                <option value="Arabian Perfumes">Arabian Perfumes</option>
-                <option value="Arabic Calligraphy">Arabic Calligraphy</option>
-                <option value="VR/AR Experiences">VR/AR Experiences</option>
-                <option value="Eco-Friendly Services">Eco-Friendly Services</option>
-                <option value="Gifts & Giveaways">Gifts & Giveaways</option>
+                <option value="all" data-i18n="common.allCategories">All Categories</option>
+                <option value="Catering" data-i18n="common.catering">Catering</option>
+                <option value="Bakery & Desserts" data-i18n="common.bakeryDesserts">Bakery & Desserts</option>
+                <option value="Beverages" data-i18n="common.beverages">Beverages</option>
+                <option value="Food Trucks" data-i18n="common.foodTrucks">Food Trucks</option>
+                <option value="Venue" data-i18n="common.venue">Venue</option>
+                <option value="Conference Hall" data-i18n="common.conferenceHall">Conference Hall</option>
+                <option value="Outdoor Venue" data-i18n="common.outdoorVenue">Outdoor Venue</option>
+                <option value="AV Equipment" data-i18n="common.avEquipment">AV Equipment</option>
+                <option value="LED Screens" data-i18n="common.ledScreens">LED Screens</option>
+                <option value="Stage & Rigging" data-i18n="common.stageRigging">Stage & Rigging</option>
+                <option value="Live Streaming" data-i18n="common.liveStreaming">Live Streaming</option>
+                <option value="Decoration" data-i18n="common.decoration">Decoration</option>
+                <option value="Floral Design" data-i18n="common.floralDesign">Floral Design</option>
+                <option value="Balloon Decor" data-i18n="common.balloonDecor">Balloon Decor</option>
+                <option value="Event Lighting" data-i18n="common.eventLighting">Event Lighting</option>
+                <option value="Photography" data-i18n="common.photography">Photography</option>
+                <option value="Aerial Photography" data-i18n="common.aerialPhotography">Aerial Photography</option>
+                <option value="Photo Booth" data-i18n="common.photoBooth">Photo Booth</option>
+                <option value="DJ Services" data-i18n="common.dj">DJ Services</option>
+                <option value="Live Entertainment" data-i18n="common.liveEntertainment">Live Entertainment</option>
+                <option value="Kids Entertainment" data-i18n="common.kidsEntertainment">Kids Entertainment</option>
+                <option value="Traditional Music" data-i18n="common.traditionalMusic">Traditional Music</option>
+                <option value="Fireworks & Pyro" data-i18n="common.fireworks">Fireworks & Pyro</option>
+                <option value="Transportation" data-i18n="common.transportation">Transportation</option>
+                <option value="Shuttle Services" data-i18n="common.shuttle">Shuttle Services</option>
+                <option value="Valet Parking" data-i18n="common.valet">Valet Parking</option>
+                <option value="Security" data-i18n="common.security">Security</option>
+                <option value="VIP Security" data-i18n="common.vipSecurity">VIP Security</option>
+                <option value="Medical Services" data-i18n="common.medical">Medical Services</option>
+                <option value="Event Staff" data-i18n="common.eventStaff">Event Staff</option>
+                <option value="Translation" data-i18n="common.translation">Translation</option>
+                <option value="MC & Hosting" data-i18n="common.mcHosting">MC & Hosting</option>
+                <option value="Tent Rentals" data-i18n="common.tents">Tent Rentals</option>
+                <option value="Furniture Rentals" data-i18n="common.furniture">Furniture Rentals</option>
+                <option value="Table/Chair Rentals" data-i18n="common.tableChair">Table/Chair Rentals</option>
+                <option value="Power Supply" data-i18n="common.power">Power Supply</option>
+                <option value="Printing" data-i18n="common.printing">Printing</option>
+                <option value="Social Media Marketing" data-i18n="common.socialMedia">Social Media Marketing</option>
+                <option value="Influencer Marketing" data-i18n="common.influencer">Influencer Marketing</option>
+                <option value="Government Permits" data-i18n="common.governmentPermits">Government Permits</option>
+                <option value="Safety Permits" data-i18n="common.safetyPermits">Safety Permits</option>
+                <option value="Sponsors" data-i18n="common.sponsors">Sponsors</option>
+                <option value="Brand Partners" data-i18n="common.brandPartners">Brand Partners</option>
+                <option value="Henna Artists" data-i18n="common.henna">Henna Artists</option>
+                <option value="Falconry Shows" data-i18n="common.falconry">Falconry Shows</option>
+                <option value="Horse Shows" data-i18n="common.horseShows">Horse Shows</option>
+                <option value="Arabian Perfumes" data-i18n="common.perfumes">Arabian Perfumes</option>
+                <option value="Arabic Calligraphy" data-i18n="common.calligraphy">Arabic Calligraphy</option>
+                <option value="VR/AR Experiences" data-i18n="common.vrAr">VR/AR Experiences</option>
+                <option value="Eco-Friendly Services" data-i18n="common.eco">Eco-Friendly Services</option>
+                <option value="Gifts & Giveaways" data-i18n="common.gifts">Gifts & Giveaways</option>
             </select>
         </section>
 
         <section id="view-requests" class="content-section">
 
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="request-tab-cards">
                 <button class="request-tab active" data-tab="outgoing"
-                    style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: none; border-radius: 12px; background: linear-gradient(135deg, #1565c0, #0d47a1); cursor: pointer; transition: all 0.3s ease; text-align: left; box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);">
+                    style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 2px solid transparent; border-radius: 12px; background: linear-gradient(135deg, #1565c0, #0d47a1); cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);">
                     <div
                         style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="fa-solid fa-paper-plane" style="color: white; font-size: 1.3rem;"></i>
                     </div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 1rem; color: white; margin-bottom: 3px;">Outgoing
+                    <div class="request-tab-body">
+                        <div style="font-weight: 600; font-size: 1rem; color: white;" data-i18n="org.requests.outgoing">Outgoing
                             Requests</div>
-                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">Sent to vendors</div>
+                        <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);" data-i18n="org.requests.sentToVendors">Sent to vendors</div>
                     </div>
                 </button>
 
                 <button class="request-tab" data-tab="incoming"
-                    style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 2px solid #e0e0e0; border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s ease; text-align: left; position: relative;">
+                    style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 2px solid #e0e0e0; border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s ease; position: relative;">
                     <div
                         style="width: 50px; height: 50px; background: linear-gradient(135deg, #f0f4f8, #e3e8ed); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                         <i class="fa-solid fa-inbox" style="color: #1565c0; font-size: 1.3rem;"></i>
                     </div>
-                    <div>
-                        <div style="font-weight: 600; font-size: 1rem; color: #333; margin-bottom: 3px;">Incoming
+                    <div class="request-tab-body">
+                        <div style="font-weight: 600; font-size: 1rem; color: #333;" data-i18n="org.requests.incoming">Incoming
                             Requests</div>
-                        <div style="font-size: 0.85rem; color: #666;">From vendors</div>
+                        <div style="font-size: 0.85rem; color: #666;" data-i18n="org.requests.fromVendors">From vendors</div>
                     </div>
                     <span id="incoming-badge"
-                        style="display: none; position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);">0</span>
+                        style="display: none; position: absolute; top: 10px; inset-inline-end: 10px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);">0</span>
                 </button>
             </div>
 
             <div id="outgoing-requests-section" class="request-section">
                 <div class="req-filter-bar">
-                    <label class="req-filter-label">Show requests for:</label>
+                    <label class="req-filter-label" data-i18n="org.requests.showRequestsFor">Show requests for:</label>
                     <select id="request-event-filter" class="req-filter-select">
-                        <option value="all">All Events</option>
+                        <option value="all" data-i18n="common.allEvents">All Events</option>
                         </select>
                     <select id="request-status-filter" class="req-filter-select">
-                        <option value="all">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Approved">Confirmed</option>
-                        <option value="Rejected">Rejected</option>
+                        <option value="all" data-i18n="common.allStatus">All Status</option>
+                        <option value="Pending" data-i18n="common.pending">Pending</option>
+                        <option value="Approved" data-i18n="vendor.status.confirmed">Confirmed</option>
+                        <option value="Rejected" data-i18n="status.rejected">Rejected</option>
                     </select>
                     <span id="outgoing-count" class="req-count-label"></span>
                 </div>
                 <div id="outgoing-requests-tables" class="req-tables-container"></div>
                 <div id="no-requests-msg" class="req-empty-state" style="display: none;">
                     <div class="req-empty-icon"><i class="fa-regular fa-paper-plane"></i></div>
-                    <h4>No outgoing requests yet</h4>
-                    <p>Browse the Vendor Marketplace to find and invite vendors to your events</p>
+                    <h4 data-i18n="org.requests.noOutgoing">No outgoing requests yet</h4>
+                    <p data-i18n="org.requests.noOutgoingDesc">Browse the Vendor Marketplace to find and invite vendors to your events</p>
                     <button class="btn btn-primary" onclick="switchView('vendors')">
-                        <i class="fa-solid fa-store"></i> Browse Vendors
+                        <i class="fa-solid fa-store"></i> <span data-i18n="org.requests.browseVendors">Browse Vendors</span>
                     </button>
                 </div>
             </div>
 
             <div id="incoming-requests-section" class="request-section" style="display: none;">
                 <div class="req-filter-bar">
-                    <label class="req-filter-label">Show requests for:</label>
+                    <label class="req-filter-label" data-i18n="org.requests.showRequestsFor">Show requests for:</label>
                     <select id="incoming-event-filter" class="req-filter-select">
-                        <option value="all">All Events</option>
+                        <option value="all" data-i18n="common.allEvents">All Events</option>
                         </select>
                     <select id="incoming-status-filter" class="req-filter-select">
-                        <option value="all">All Status</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Approved">Approved</option>
-                        <option value="Rejected">Rejected</option>
+                        <option value="all" data-i18n="common.allStatus">All Status</option>
+                        <option value="Pending" data-i18n="common.pending">Pending</option>
+                        <option value="Approved" data-i18n="status.approved">Approved</option>
+                        <option value="Rejected" data-i18n="status.rejected">Rejected</option>
                     </select>
                     <span id="incoming-count" class="req-count-label"></span>
                 </div>
                 <div id="incoming-requests-tables" class="req-tables-container"></div>
                 <div id="no-incoming-requests-msg" class="req-empty-state" style="display: none;">
                     <div class="req-empty-icon"><i class="fa-regular fa-envelope"></i></div>
-                    <h4>No incoming requests</h4>
-                    <p>Vendors will appear here when they apply to join your events</p>
+                    <h4 data-i18n="org.requests.noIncoming">No incoming requests</h4>
+                    <p data-i18n="org.requests.noIncomingDesc">Vendors will appear here when they apply to join your events</p>
                 </div>
             </div>
         </section>
@@ -1079,7 +1456,7 @@
                 <div class="req-detail-modal-header">
                     <div class="req-detail-modal-header-inner">
                         <i class="fa-solid fa-file-lines"></i>
-                        <span id="request-detail-modal-title">Request Details</span>
+                        <span id="request-detail-modal-title" data-i18n="org.requests.requestDetails">Request Details</span>
                     </div>
                     <button type="button" class="req-detail-close" onclick="closeRequestDetailModal()"
                         aria-label="Close">
@@ -1090,13 +1467,13 @@
                     <h2 id="request-detail-event-title" class="req-detail-event-title"></h2>
                     <span id="request-detail-event-category" class="req-detail-category-pill"></span>
                     <div id="request-detail-vendor-wrap" class="req-detail-vendor-wrap" style="display: none;">
-                        <div class="req-detail-section-label"><i class="fa-solid fa-store"></i> Vendor</div>
+                        <div class="req-detail-section-label"><i class="fa-solid fa-store"></i> <span data-i18n="common.vendor">Vendor</span></div>
                         <div class="req-detail-vendor-box">
-                            <div class="req-detail-vendor-row"><strong>Name:</strong> <span
+                            <div class="req-detail-vendor-row"><strong data-i18n="common.name">Name:</strong> <span
                                     id="request-detail-vendor-name"></span></div>
-                            <div class="req-detail-vendor-row"><strong>Email:</strong> <span
+                            <div class="req-detail-vendor-row"><strong data-i18n="common.email">Email:</strong> <span
                                     id="request-detail-vendor-email"></span></div>
-                            <div class="req-detail-vendor-row"><strong>Service:</strong> <span
+                            <div class="req-detail-vendor-row"><strong data-i18n="common.servicecolon">Service:</strong> <span
                                     id="request-detail-vendor-service" class="req-detail-vendor-service-pill"></span>
                             </div>
                         </div>
@@ -1109,7 +1486,8 @@
                     </div>
                     <div id="request-detail-attachment-wrap" class="req-detail-section req-detail-attachment-section"
                         style="display: none;">
-                        <div class="req-detail-section-label"><i class="fa-solid fa-paperclip"></i> Vendor attachment
+                        <div class="req-detail-section-label"><i class="fa-solid fa-paperclip"></i>
+                            <span data-i18n="org.requests.vendorAttachment">Vendor attachment</span>
                         </div>
                         <div class="req-detail-attachment-card">
                             <div class="req-detail-attachment-head">
@@ -1119,30 +1497,31 @@
                                 <div class="req-detail-attachment-meta">
                                     <span class="req-detail-attachment-filename"
                                         id="request-detail-attachment-name">filename.pdf</span>
-                                    <p class="req-detail-attachment-desc">Company brochure or details shared by the
+                                    <p class="req-detail-attachment-desc" data-i18n="org.requests.attachmentDesc">Company brochure or details shared by the
                                         vendor</p>
                                 </div>
                             </div>
                             <div class="req-detail-attachment-actions">
                                 <a id="request-detail-attachment-view" href="#" target="_blank" rel="noopener"
                                     class="req-detail-attachment-btn req-detail-attachment-btn-view">
-                                    <i class="fa-solid fa-external-link-alt"></i> View
+                                    <i class="fa-solid fa-external-link-alt"></i>
+                                    <span data-i18n="common.view">View</span>
                                 </a>
                                 <a id="request-detail-attachment-download" href="#" download
                                     class="req-detail-attachment-btn req-detail-attachment-btn-download">
-                                    <i class="fa-solid fa-download"></i> Download
+                                    <i class="fa-solid fa-download"></i>
+                                    <span data-i18n="common.download">Download</span>
                                 </a>
                             </div>
                         </div>
                     </div>
                     <div id="request-detail-rejection-wrap" class="req-detail-rejection-wrap" style="display: none;">
-                        <div class="req-detail-section-label"><i class="fa-solid fa-circle-xmark"></i> Rejection reason
-                            (from vendor)</div>
+                        <div class="req-detail-section-label"><i class="fa-solid fa-circle-xmark"></i> <span data-i18n="org.requests.rejectionReasonFromVendor">Rejection reason (from vendor)</span></div>
                         <p id="request-detail-rejection" class="req-detail-rejection-text"></p>
                     </div>
                     <div class="req-detail-footer">
                         <span id="request-detail-status" class="status-badge"></span>
-                        <button type="button" class="btn btn-primary" onclick="closeRequestDetailModal()">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="closeRequestDetailModal()"><span data-i18n="common.close">Close</span></button>
                     </div>
                 </div>
             </div>
@@ -1151,12 +1530,13 @@
         <div id="request-modal" class="modal-overlay hidden">
             <div class="modal">
                 <div class="modal-header">
-                    <h3>Send Request</h3>
+                    <h3 data-i18n="org.requests.sendRequest">Send Request</h3>
                     <button class="close-modal-btn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
                 <div class="modal-body">
                     <p style="margin-bottom: 1.5rem; color: var(--text-muted);">
-                        You are sending a request to <strong id="modal-vendor-name"
+                        <span data-i18n="org.requests.sendingRequestTo">You are sending a request to</span>
+                        <strong id="modal-vendor-name"
                             style="color: var(--text-main);">Vendor Name</strong>.
                     </p>
 
@@ -1164,26 +1544,27 @@
                         <input type="hidden" id="request-vendor-id">
 
                         <div class="input-group">
-                            <label>Select Event *</label>
+                            <label data-i18n="org.requests.selectEvent">Select Event *</label>
                             <select id="request-event-select" required>
-                                <option value="" disabled selected>Choose an event...</option>
+                                <option value="" disabled selected data-i18n="org.requests.chooseEvent">Choose an event...</option>
                                 </select>
                             <small
-                                style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;">
+                                style="color: var(--text-muted); display: block; margin-top: 0.5rem; font-size: 0.8rem;" data-i18n="org.requests.chooseEventHelp">
                                 Choose the event you want to link this request to.
                             </small>
                         </div>
 
                         <div class="input-group">
-                            <label>Message *</label>
+                            <label data-i18n="common.messageStar">Message *</label>
                             <textarea id="request-message" rows="4"
+                                data-i18n-placeholder="org.requests.messagePh"
                                 placeholder="Describe your requirements (e.g. guest count, dates, preferences)..."
                                 required></textarea>
                         </div>
 
                         <div class="form-actions" style="justify-content: flex-end; gap: 1rem;">
-                            <button type="button" class="btn btn-outline close-modal-btn">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Send Request</button>
+                            <button type="button" class="btn btn-outline close-modal-btn"><span data-i18n="common.cancel">Cancel</span></button>
+                            <button type="submit" class="btn btn-primary"><span data-i18n="org.requests.sendRequest">Send Request</span></button>
                         </div>
                     </form>
                 </div>
@@ -1192,7 +1573,7 @@
         <div id="message-modal" class="modal-overlay hidden" style="z-index: 1000;">
             <div class="modal" style="max-width: 500px;">
                 <div class="modal-header">
-                    <h3>Full Message</h3>
+                    <h3 data-i18n="org.requests.fullMessage">Full Message</h3>
                     <button class="close-modal-btn" onclick="closeMessageModal()"><i
                             class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -1204,7 +1585,7 @@
                         </p>
                     </div>
                     <div class="form-actions" style="justify-content: flex-end;">
-                        <button type="button" class="btn btn-primary" onclick="closeMessageModal()">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="closeMessageModal()"><span data-i18n="common.close">Close</span></button>
                     </div>
                 </div>
             </div>
@@ -1216,19 +1597,24 @@
 
                 <div class="ana-main-tabs">
                     <button class="ana-main-tab active" data-ana-main="overview">
-                        <i class="fa-solid fa-chart-bar"></i> Overview
+                        <i class="fa-solid fa-chart-bar"></i>
+                        <span data-i18n="org.analytics.tab.overview">Overview</span>
                     </button>
                     <button class="ana-main-tab" data-ana-main="event-report">
-                        <i class="fa-solid fa-file-lines"></i> Event Report
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span data-i18n="org.analytics.tab.eventReport">Event Report</span>
                     </button>
                     <button class="ana-main-tab" data-ana-main="attendees">
-                        <i class="fa-solid fa-users"></i> Attendees
+                        <i class="fa-solid fa-users"></i>
+                        <span data-i18n="org.analytics.tab.attendees">Attendees</span>
                     </button>
                     <button class="ana-main-tab" data-ana-main="vendors">
-                        <i class="fa-solid fa-store"></i> Vendors
+                        <i class="fa-solid fa-store"></i>
+                        <span data-i18n="org.analytics.tab.vendors">Vendors</span>
                     </button>
                     <button class="ana-main-tab" data-ana-main="market-insights">
-                        <i class="fa-solid fa-lightbulb"></i> Market Insights
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span data-i18n="org.analytics.tab.marketInsights">Market Insights</span>
                     </button>
                 </div>
 
@@ -1238,32 +1624,32 @@
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-calendar-check"></i>
                             <div class="ana-kpi-value" id="kpi-total-events">--</div>
-                            <div class="ana-kpi-label">Total Events</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.kpi.totalEvents">Total Events</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-users"></i>
                             <div class="ana-kpi-value" id="kpi-total-attendees">--</div>
-                            <div class="ana-kpi-label">Total Attendees</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.kpi.totalAttendees">Total Attendees</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-sack-dollar"></i>
                             <div class="ana-kpi-value" id="kpi-total-revenue">--</div>
-                            <div class="ana-kpi-label">Est. Revenue</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.kpi.totalRevenue">Est. Revenue</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-chart-line"></i>
                             <div class="ana-kpi-value" id="kpi-avg-attendance">--</div>
-                            <div class="ana-kpi-label">Avg. Attendance</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.kpi.avgAttendance">Avg. Attendance</div>
                         </div>
                         <div class="ana-kpi-card ana-kpi-warn">
                             <i class="fa-solid fa-store-slash"></i>
                             <div class="ana-kpi-value" id="kpi-vendor-withdrawals">--</div>
-                            <div class="ana-kpi-label">Vendor Withdrawals</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.kpi.vendorWithdrawals">Vendor Withdrawals</div>
                         </div>
                         <div class="ana-kpi-card ana-kpi-warn">
                             <i class="fa-solid fa-user-minus"></i>
                             <div class="ana-kpi-value" id="kpi-attendee-withdrawals">--</div>
-                            <div class="ana-kpi-label">Attendee Withdrawals</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.kpi.attendeeWithdrawals">Attendee Withdrawals</div>
                         </div>
                     </div>
 
@@ -1271,28 +1657,28 @@
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-trophy"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Top Event</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.highlight.topEvent">Top Event</div>
                                 <div class="ana-highlight-value" id="highlight-top-event">--</div>
                             </div>
                         </div>
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-star"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Most Booked Service</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.highlight.topService">Most Booked Service</div>
                                 <div class="ana-highlight-value" id="highlight-top-service">--</div>
                             </div>
                         </div>
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-ranking-star"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Best Category</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.highlight.topCategory">Best Category</div>
                                 <div class="ana-highlight-value" id="highlight-top-category">--</div>
                             </div>
                         </div>
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-face-smile"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Avg. Satisfaction</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.highlight.avgSatisfaction">Avg. Satisfaction</div>
                                 <div class="ana-highlight-value" id="highlight-avg-satisfaction">--</div>
                             </div>
                         </div>
@@ -1300,19 +1686,20 @@
 
                     <div class="ana-chart-panel">
                         <div class="ana-tab-bar">
-                            <button class="ana-tab active" data-ana-tab="attendance">Attendance</button>
-                            <button class="ana-tab" data-ana-tab="revenue">Revenue</button>
-                            <button class="ana-tab" data-ana-tab="services">Services Distribution</button>
-                            <button class="ana-tab" data-ana-tab="categories">Categories</button>
+                            <button class="ana-tab active" data-ana-tab="attendance" data-i18n="org.analytics.chart.attendance">Attendance</button>
+                            <button class="ana-tab" data-ana-tab="revenue" data-i18n="org.analytics.chart.revenue">Revenue</button>
+                            <button class="ana-tab" data-ana-tab="services" data-i18n="org.analytics.chart.servicesDistribution">Services Distribution</button>
+                            <button class="ana-tab" data-ana-tab="categories" data-i18n="org.analytics.chart.categories">Categories</button>
                         </div>
                         <div class="ana-chart-area">
-                            <canvas id="ana-chart-canvas"></canvas>
+                            <canvas id="ana-chart-canvas" dir="ltr"></canvas>
                         </div>
                     </div>
 
                     <div class="ana-export-row">
-                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-overview-export-pdf" title="Export Overview as PDF">
-                            <i class="fa-solid fa-file-pdf"></i> Export Overview PDF
+                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-overview-export-pdf" data-i18n-title="org.analytics.exportOverviewTitle" title="Export Overview as PDF">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span data-i18n="org.analytics.exportOverview">Export Overview PDF</span>
                         </button>
                     </div>
 
@@ -1321,48 +1708,48 @@
                 <div class="ana-main-panel" id="ana-panel-attendees">
 
                     <div class="ana-event-report-header" style="margin-bottom:1.5rem;">
-                        <h3><i class="fa-solid fa-users"></i> Attendees</h3>
+                        <h3><i class="fa-solid fa-users"></i> <span data-i18n="org.analytics.tab.attendees">Attendees</span></h3>
                     </div>
 
                     <div class="ana-kpi-grid" style="margin-bottom:1.5rem;">
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-users"></i>
                             <div class="ana-kpi-value" id="att-kpi-total">--</div>
-                            <div class="ana-kpi-label">Total Attendees</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.att.total">Total Attendees</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-user-check"></i>
                             <div class="ana-kpi-value" id="att-kpi-active">--</div>
-                            <div class="ana-kpi-label">Confirmed Attendees</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.att.confirmed">Confirmed Attendees</div>
                         </div>
                         <div class="ana-kpi-card ana-kpi-warn">
                             <i class="fa-solid fa-user-minus"></i>
                             <div class="ana-kpi-value" id="att-kpi-withdrawn">--</div>
-                            <div class="ana-kpi-label">Withdrawn</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.att.withdrawn">Withdrawn</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-percent"></i>
                             <div class="ana-kpi-value" id="att-kpi-retention">--</div>
-                            <div class="ana-kpi-label">Retention Rate</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.att.retention">Retention Rate</div>
                         </div>
                     </div>
 
                     <div class="ana-chart-panel">
                         <div class="ana-tab-bar">
-                            <button class="ana-tab active" data-ana-att-tab="age-groups">Age Groups</button>
-                            <button class="ana-tab" data-ana-att-tab="ticket-types">Ticket Types</button>
-                            <button class="ana-tab" data-ana-att-tab="satisfaction-category">Satisfaction by Category</button>
-                            <button class="ana-tab" data-ana-att-tab="loyalty">Loyalty</button>
+                            <button class="ana-tab active" data-ana-att-tab="age-groups" data-i18n="org.analytics.chart.ageGroups">Age Groups</button>
+                            <button class="ana-tab" data-ana-att-tab="ticket-types" data-i18n="org.analytics.att.ticketTypes">Ticket Types</button>
+                            <button class="ana-tab" data-ana-att-tab="satisfaction-category" data-i18n="org.analytics.att.satisfactionCategory">Satisfaction by Category</button>
+                            <button class="ana-tab" data-ana-att-tab="loyalty" data-i18n="org.analytics.att.loyalty">Loyalty</button>
                         </div>
                         <div class="ana-chart-area">
-                            <canvas id="ana-att-chart-canvas"></canvas>
+                            <canvas id="ana-att-chart-canvas" dir="ltr"></canvas>
                         </div>
                         <div id="att-loyalty-content" style="display:none;">
                             <div class="att-loyalty-section">
                                 <div class="att-loyalty-header">
                                     <div>
-                                        <h3><i class="fa-solid fa-crown"></i> Loyal Attendees</h3>
-                                        <p>Attendees who registered for multiple events — your most dedicated supporters.</p>
+                                        <h3><i class="fa-solid fa-crown"></i> <span data-i18n="org.analytics.att.loyalAttendees">Loyal Attendees</span></h3>
+                                        <p data-i18n="org.analytics.att.loyalDesc">Attendees who registered for multiple events — your most dedicated supporters.</p>
                                     </div>
                                 </div>
                                 <div id="att-loyalty-list" class="att-loyalty-list">
@@ -1372,8 +1759,9 @@
                     </div>
 
                     <div class="ana-export-row">
-                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-attendees-export-pdf" title="Export Attendees Report as PDF">
-                            <i class="fa-solid fa-file-pdf"></i> Export Attendees PDF
+                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-attendees-export-pdf" data-i18n-title="org.analytics.att.exportTitle" title="Export Attendees Report as PDF">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span data-i18n="org.analytics.att.export">Export Attendees PDF</span>
                         </button>
                     </div>
 
@@ -1382,11 +1770,11 @@
                 <div class="ana-main-panel" id="ana-panel-event-report">
 
                     <div class="ana-event-report-header">
-                        <h3><i class="fa-solid fa-file-lines"></i> Event Report</h3>
+                        <h3><i class="fa-solid fa-file-lines"></i> <span data-i18n="org.analytics.eventReportTitle">Event Report</span></h3>
                         <div class="ana-event-selector">
-                            <label for="ana-event-select">Select Event</label>
+                            <label for="ana-event-select" data-i18n="org.analytics.selectEventLabel">Select Event</label>
                             <select id="ana-event-select">
-                                <option value="">— Choose an event —</option>
+                                <option value="" data-i18n="org.analytics.selectEventPlaceholder">— Choose an event —</option>
                             </select>
                         </div>
                     </div>
@@ -1402,8 +1790,9 @@
                                     <span id="ana-evt-title-status"><i class="fa-solid fa-circle-info"></i> --</span>
                                 </div>
                             </div>
-                            <button type="button" class="ana-export-pdf-btn" id="ana-evt-export-pdf" title="Export as PDF">
-                                <i class="fa-solid fa-file-pdf"></i> Export PDF
+                            <button type="button" class="ana-export-pdf-btn" id="ana-evt-export-pdf" data-i18n-title="org.analytics.exportEventTitle" title="Export as PDF">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                <span data-i18n="org.analytics.exportEvent">Export PDF</span>
                             </button>
                         </div>
 
@@ -1411,56 +1800,56 @@
                             <div class="evt-kpi">
                                 <i class="fa-solid fa-users"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-attendees">--</div>
-                                <div class="evt-kpi-label">Attendees</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.attendees">Attendees</div>
                             </div>
                             <div class="evt-kpi">
                                 <i class="fa-solid fa-sack-dollar"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-revenue">--</div>
-                                <div class="evt-kpi-label">Total Revenue</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.revenue">Total Revenue</div>
                             </div>
                             <div class="evt-kpi">
                                 <i class="fa-solid fa-shield-check"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-retention">--</div>
-                                <div class="evt-kpi-label">Retention Rate</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.retention">Retention Rate</div>
                             </div>
                             <div class="evt-kpi">
                                 <i class="fa-solid fa-handshake"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-vendors">--</div>
-                                <div class="evt-kpi-label">Vendors</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.vendors">Vendors</div>
                             </div>
                             <div class="evt-kpi ana-kpi-warn">
                                 <i class="fa-solid fa-store-slash"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-vendor-wd">--</div>
-                                <div class="evt-kpi-label">Vendor WD</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.vendorWithdrawals">Vendor WD</div>
                             </div>
                             <div class="evt-kpi ana-kpi-warn">
                                 <i class="fa-solid fa-user-minus"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-attendee-wd">--</div>
-                                <div class="evt-kpi-label">Attendee WD</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.attendeeWithdrawals">Attendee WD</div>
                             </div>
                             <div class="evt-kpi">
                                 <i class="fa-solid fa-face-smile"></i>
                                 <div class="evt-kpi-value" id="ana-evt-kpi-satisfaction">--</div>
-                                <div class="evt-kpi-label">Satisfaction</div>
+                                <div class="evt-kpi-label" data-i18n="org.analytics.event.kpi.satisfaction">Satisfaction</div>
                             </div>
                         </div>
 
                         <div class="ana-chart-panel evt-report-chart-panel">
                             <div class="ana-tab-bar">
-                                <button class="ana-tab active" data-ana-evt-tab="revenue-tier">Revenue by Tier</button>
-                                <button class="ana-tab" data-ana-evt-tab="age-groups">Age Groups</button>
-                                <button class="ana-tab" data-ana-evt-tab="reg-timeline">Registration Timeline</button>
-                                <button class="ana-tab" data-ana-evt-tab="vendor-services">Vendor Services</button>
+                                <button class="ana-tab active" data-ana-evt-tab="revenue-tier" data-i18n="org.analytics.event.chart.revenueTier">Revenue by Tier</button>
+                                <button class="ana-tab" data-ana-evt-tab="age-groups" data-i18n="org.analytics.event.chart.ageGroups">Age Groups</button>
+                                <button class="ana-tab" data-ana-evt-tab="reg-timeline" data-i18n="org.analytics.event.chart.registrationTimeline">Registration Timeline</button>
+                                <button class="ana-tab" data-ana-evt-tab="vendor-services" data-i18n="org.analytics.event.chart.vendorServices">Vendor Services</button>
                             </div>
                             <div class="ana-chart-area">
-                                <canvas id="ana-evt-report-chart-canvas"></canvas>
+                                <canvas id="ana-evt-report-chart-canvas" dir="ltr"></canvas>
                             </div>
                         </div>
                     </div>
 
                     <div id="ana-event-report-placeholder" class="ana-event-report-placeholder">
                         <i class="fa-solid fa-chart-pie"></i>
-                        <p>Select an event above to view its detailed report.</p>
+                        <p data-i18n="org.analytics.event.placeholder">Select an event above to view its detailed report.</p>
                     </div>
 
                 </div>
@@ -1468,28 +1857,31 @@
                 <div class="ana-main-panel" id="ana-panel-market-insights">
 
                     <div class="ana-event-report-header" style="margin-bottom:1.5rem;">
-                        <h3><i class="fa-solid fa-lightbulb"></i> Market Insights</h3>
+                        <h3><i class="fa-solid fa-lightbulb"></i> <span data-i18n="org.analytics.tab.marketInsights">Market Insights</span></h3>
                     </div>
 
                     <div class="ana-chart-panel">
-                        <div class="ana-tab-bar" style="display:flex;align-items:center;">
-                            <button class="ana-tab active" data-ana-market-tab="events-month">Events by Month</button>
-                            <button class="ana-tab" data-ana-market-tab="avg-price">Avg. Ticket Price</button>
-                            <button class="ana-tab" data-ana-market-tab="revenue-potential">Revenue Potential</button>
-                            <div id="ana-market-tier-filter" style="display:none;margin-left:auto;padding-right:1rem;">
-                                <select id="ana-market-tier-select" class="req-filter-select" style="font-size:0.82rem;padding:0.4rem 0.7rem;border-radius:8px;border:1px solid #d0dbe6;font-family:'Inter',sans-serif;color:#2d3436;cursor:pointer;">
-                                    <option value="all">All Tiers</option>
+                        <div class="ana-tab-bar ana-market-chart-toolbar">
+                            <div class="ana-market-tab-strip">
+                                <button class="ana-tab active" data-ana-market-tab="events-month" data-i18n="org.analytics.market.eventsByMonth">Events by Month</button>
+                                <button class="ana-tab" data-ana-market-tab="avg-price" data-i18n="org.analytics.market.avgPrice">Avg. Ticket Price</button>
+                                <button class="ana-tab" data-ana-market-tab="revenue-potential" data-i18n="org.analytics.market.revenuePotential">Revenue Potential</button>
+                            </div>
+                            <div id="ana-market-tier-filter" class="ana-market-tier-filter-wrap" style="display:none;">
+                                <select id="ana-market-tier-select" class="req-filter-select ana-market-tier-select">
+                                    <option value="all" data-i18n="org.analytics.market.allTiers">All Tiers</option>
                                 </select>
                             </div>
                         </div>
                         <div class="ana-chart-area">
-                            <canvas id="ana-market-chart-canvas"></canvas>
+                            <canvas id="ana-market-chart-canvas" dir="ltr"></canvas>
                         </div>
                     </div>
 
                     <div class="ana-export-row">
-                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-market-export-pdf" title="Export Market Insights as PDF">
-                            <i class="fa-solid fa-file-pdf"></i> Export Market Insights PDF
+                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-market-export-pdf" data-i18n-title="org.analytics.market.exportTitle" title="Export Market Insights as PDF">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span data-i18n="org.analytics.market.export">Export Market Insights PDF</span>
                         </button>
                     </div>
 
@@ -1498,34 +1890,34 @@
                 <div class="ana-main-panel" id="ana-panel-vendors">
 
                     <div class="ana-event-report-header" style="margin-bottom:1.5rem;">
-                        <h3><i class="fa-solid fa-store"></i> Vendor Analytics</h3>
+                        <h3><i class="fa-solid fa-store"></i> <span data-i18n="org.analytics.vendors.title">Vendor Analytics</span></h3>
                     </div>
 
                     <div class="ana-kpi-grid" style="margin-bottom:1.5rem;">
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-store"></i>
                             <div class="ana-kpi-value" id="vnd-kpi-total">--</div>
-                            <div class="ana-kpi-label">Total Vendors</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.vendors.total">Total Vendors</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-handshake"></i>
                             <div class="ana-kpi-value" id="vnd-kpi-confirmed">--</div>
-                            <div class="ana-kpi-label">Confirmed</div>
+                            <div class="ana-kpi-label" data-i18n="vendor.status.confirmed">Confirmed</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-hourglass-half"></i>
                             <div class="ana-kpi-value" id="vnd-kpi-pending">--</div>
-                            <div class="ana-kpi-label">Pending</div>
+                            <div class="ana-kpi-label" data-i18n="vendor.prep.pending">Pending</div>
                         </div>
                         <div class="ana-kpi-card ana-kpi-warn">
                             <i class="fa-solid fa-store-slash"></i>
                             <div class="ana-kpi-value" id="vnd-kpi-declined">--</div>
-                            <div class="ana-kpi-label">Declined / Withdrawn</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.vendors.declinedWithdrawn">Declined / Withdrawn</div>
                         </div>
                         <div class="ana-kpi-card">
                             <i class="fa-solid fa-percent"></i>
                             <div class="ana-kpi-value" id="vnd-kpi-acceptance">--</div>
-                            <div class="ana-kpi-label">Acceptance Rate</div>
+                            <div class="ana-kpi-label" data-i18n="org.analytics.vendors.acceptanceRate">Acceptance Rate</div>
                         </div>
                     </div>
 
@@ -1533,28 +1925,28 @@
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-trophy"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Most Booked Vendor</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.vendors.topVendor">Most Booked Vendor</div>
                                 <div class="ana-highlight-value" id="vnd-highlight-top-vendor">--</div>
                             </div>
                         </div>
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-star"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Highest Rated Vendor</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.vendors.topRated">Highest Rated Vendor</div>
                                 <div class="ana-highlight-value" id="vnd-highlight-top-rated">--</div>
                             </div>
                         </div>
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-ranking-star"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Top Category</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.highlight.topCategory">Top Category</div>
                                 <div class="ana-highlight-value" id="vnd-highlight-top-category">--</div>
                             </div>
                         </div>
                         <div class="ana-highlight-card">
                             <div class="ana-highlight-icon"><i class="fa-solid fa-chart-simple"></i></div>
                             <div class="ana-highlight-body">
-                                <div class="ana-highlight-label">Avg. Vendors per Event</div>
+                                <div class="ana-highlight-label" data-i18n="org.analytics.vendors.avgPerEvent">Avg. Vendors per Event</div>
                                 <div class="ana-highlight-value" id="vnd-highlight-avg-per-event">--</div>
                             </div>
                         </div>
@@ -1562,20 +1954,20 @@
 
                     <div class="ana-chart-panel">
                         <div class="ana-tab-bar">
-                            <button class="ana-tab active" data-ana-vnd-tab="category-dist">Category Distribution</button>
-                            <button class="ana-tab" data-ana-vnd-tab="status-breakdown">Status Breakdown</button>
-                            <button class="ana-tab" data-ana-vnd-tab="vendors-per-event">Vendors per Event</button>
-                            <button class="ana-tab" data-ana-vnd-tab="all-vendors">All Vendors</button>
+                            <button class="ana-tab active" data-ana-vnd-tab="category-dist" data-i18n="org.analytics.chart.categoryDistribution">Category Distribution</button>
+                            <button class="ana-tab" data-ana-vnd-tab="status-breakdown" data-i18n="org.analytics.vendors.statusBreakdown">Status Breakdown</button>
+                            <button class="ana-tab" data-ana-vnd-tab="vendors-per-event" data-i18n="org.analytics.vendors.perEvent">Vendors per Event</button>
+                            <button class="ana-tab" data-ana-vnd-tab="all-vendors" data-i18n="org.analytics.vendors.allVendors">All Vendors</button>
                         </div>
                         <div class="ana-chart-area">
-                            <canvas id="ana-vnd-chart-canvas"></canvas>
+                            <canvas id="ana-vnd-chart-canvas" dir="ltr"></canvas>
                         </div>
                         <div id="vnd-all-vendors-content" style="display:none;">
                             <div class="att-loyalty-section">
                                 <div class="att-loyalty-header">
                                     <div>
-                                        <h3><i class="fa-solid fa-store"></i> All Vendors</h3>
-                                        <p>Complete list of vendors ordered by number of event participations.</p>
+                                        <h3><i class="fa-solid fa-store"></i> <span data-i18n="org.analytics.vendors.allVendors">All Vendors</span></h3>
+                                        <p data-i18n="org.analytics.vendors.allVendorsDesc">Complete list of vendors ordered by number of event participations.</p>
                                     </div>
                                 </div>
                                 <div id="vnd-all-vendors-list" class="att-loyalty-list">
@@ -1585,8 +1977,9 @@
                     </div>
 
                     <div class="ana-export-row">
-                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-vendors-export-pdf" title="Export Vendors Report as PDF">
-                            <i class="fa-solid fa-file-pdf"></i> Export Vendors PDF
+                        <button type="button" class="ana-export-pdf-btn ana-export-pdf-outline" id="ana-vendors-export-pdf" data-i18n-title="org.analytics.vendors.exportTitle" title="Export Vendors Report as PDF">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span data-i18n="org.analytics.vendors.export">Export Vendors PDF</span>
                         </button>
                     </div>
 
@@ -1605,7 +1998,8 @@
                         <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
                             <div id="org-profile-avatar"
                                 style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;"
-                                onclick="document.getElementById('org-pfp-upload').click()" title="Click to change photo">
+                                onclick="document.getElementById('org-pfp-upload').click()" title="Click to change photo"
+                                data-i18n-title="att.profile.changePhoto">
 
                                 {% if request.user.profile_picture %}
                                     <img id="org-profile-avatar-img" src="{{ request.user.profile_picture.url }}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;" alt="Profile">
@@ -1621,32 +2015,32 @@
                             </div>
                             <input type="file" id="org-pfp-upload" name="profile_picture" accept="image/*" style="display: none;">
                             <h3 id="org-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.get_full_name|default:request.user.username }}</h3>
-                            <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Event Organizer</p>
+                            <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;" data-i18n="org.profile.roleFull">Event Organizer</p>
                         </div>
 
                         <div style="padding: 2rem;">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                 <div style="grid-column: 1 / -1;">
-                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Username</label>
+                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="signup.form.username">Username</label>
                                     <input type="text" name="username" value="{{ user.username }}" required style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none;">
                                 </div>
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Organization Name</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="org.profile.organizationName">Organization Name</label>
                                 <input type="text" id="org-profile-orgname" name="organization_name" value="{{ request.user.organizer_profile.organization_name }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email Address</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="common.emailAddress">Email Address</label>
                                 <input type="email" id="org-profile-email" name="email" value="{{ request.user.email }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
                                     onblur="this.style.borderColor='#e0e0e0'">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone Number</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="common.phoneNumber">Phone Number</label>
                                 <input type="tel" id="org-profile-phone" name="phone_number" value="{{ request.user.phone_number }}" required
                                     style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                     onfocus="this.style.borderColor='#004e92'"
@@ -1654,15 +2048,15 @@
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                                 <div>
-                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Password</label>
-                                    <input type="password" id="org-profile-password" name="password" placeholder="Leave blank to keep current"
+                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="common.password">Password</label>
+                                    <input type="password" id="org-profile-password" name="password" data-i18n-placeholder="org.profile.passwordKeepPlaceholder" placeholder="Leave blank to keep current"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
                                 </div>
                                 <div>
-                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm Password</label>
-                                    <input type="password" id="org-profile-password-confirm" name="password_confirm" placeholder="Leave blank to keep current"
+                                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="common.confirmPassword">Confirm Password</label>
+                                    <input type="password" id="org-profile-password-confirm" name="password_confirm" data-i18n-placeholder="org.profile.passwordKeepPlaceholder" placeholder="Leave blank to keep current"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
                                         onblur="this.style.borderColor='#e0e0e0'">
@@ -1670,7 +2064,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary"
                                 style="width: 100%; padding: 12px; font-size: 1rem;">
-                                <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                                <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="att.profile.save">Save Changes</span>
                             </button>
                         </div>
                     </form>
@@ -1690,31 +2084,34 @@
                     style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.8rem; color: white;"></i>
                 </div>
-                <h3 style="color: white; font-size: 1.5rem; margin: 0;">Reject Request</h3>
-                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;">This action will notify
+                <h3 style="color: white; font-size: 1.5rem; margin: 0;" data-i18n="org.requests.rejectRequest">Reject Request</h3>
+                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;" data-i18n="org.requests.rejectNotify">This action will notify
                     the vendor</p>
             </div>
 
             <div style="padding: 2rem;">
                 <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;">
                     <i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i>
-                    Rejection Reason <span style="color: #999; font-weight: 400;">(optional)</span>
+                    <span data-i18n="org.requests.rejectionReason">Rejection Reason</span> <span style="color: #999; font-weight: 400;" data-i18n="common.optional">(optional)</span>
                 </label>
                 <textarea id="rejection-reason" rows="4"
                     style="width: 100%; border: 2px solid #e0e0e0; padding: 1rem; border-radius: 12px; font-size: 1rem; font-family: inherit; resize: vertical; transition: border-color 0.2s; outline: none;"
+                    data-i18n-placeholder="org.requests.rejectionReasonPh"
                     placeholder="Enter the reason for rejection..." onfocus="this.style.borderColor='#c62828'"
                     onblur="this.style.borderColor='#e0e0e0'"></textarea>
                 <p style="color: #999; font-size: 0.8rem; margin-top: 0.5rem;">
-                    <i class="fa-solid fa-info-circle"></i> The vendor will see this message.
+                    <i class="fa-solid fa-info-circle"></i>
+                    <span data-i18n="org.requests.vendorWillSee">The vendor will see this message.</span>
                 </p>
 
                 <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                     <button class="btn btn-outline" onclick="closeRejectionModal()" style="flex: 1; padding: 0.8rem;">
-                        Cancel
+                        <span data-i18n="common.cancel">Cancel</span>
                     </button>
                     <button class="btn btn-danger" onclick="confirmRejection()"
                         style="flex: 1; padding: 0.8rem; background: #c62828; color: white; border: none;">
-                        <i class="fa-solid fa-xmark"></i> Reject
+                        <i class="fa-solid fa-xmark"></i>
+                        <span data-i18n="common.reject">Reject</span>
                     </button>
                 </div>
             </div>
@@ -1750,8 +2147,11 @@
         // organizer-logic.js reads this in its API_DATA initializer.
         window.__PRELOADED_EVENTS__ = {{ events_json|safe }};
     </script>
-    <script src="{% static 'js/app.js' %}"></script>
-    <script src="{% static 'js/organizer-logic.js' %}"></script>
+    <script id="organizer-flash-data" type="application/json">{{ organizer_flash_json|safe }}</script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/ar.js"></script>
+    <script src="{% static 'js/app-ar.js' %}?v=8"></script>
+    <script src="{% static 'js/organizer-logic.js' %}?v=8"></script>
     <script src="{% static 'js/organizer-analytics.js' %}"></script>
 
     <script>
@@ -1803,8 +2203,12 @@
 
         // Tracker persists in local storage
         let chatReadTracker = JSON.parse(localStorage.getItem('eventia_chat_read_tracker_v3')) || {};
+        // Expose for organizer-logic.js badge system
+        window.chatReadTracker = chatReadTracker;
         function saveChatTracker() {
             localStorage.setItem('eventia_chat_read_tracker_v3', JSON.stringify(chatReadTracker));
+            // Keep window reference in sync
+            window.chatReadTracker = chatReadTracker;
         }
 
         function patchChatBadges() {
@@ -1855,6 +2259,11 @@
 
         // ── Banner Upload: Click-Only ──────────────────────────────────
         (function () {
+            function i18nKey(key) {
+                var lang = (typeof getLang === 'function') ? getLang() : 'en';
+                var dict = (window.I18N && window.I18N[lang]) || (window.I18N && window.I18N.en) || {};
+                return dict[key] != null ? dict[key] : key;
+            }
             function initBannerUpload() {
                 const zone      = document.getElementById('banner-upload-zone');
                 const input     = document.getElementById('event-banner');
@@ -1878,7 +2287,7 @@
 
                     // Size guard: 5 MB
                     if (file.size > 5 * 1024 * 1024) {
-                        alert('File is too large. Please choose an image under 5 MB.');
+                        alert(i18nKey('org.upload.fileTooLarge'));
                         input.value = '';
                         return;
                     }
@@ -1920,6 +2329,10 @@
                     .then(data => {
                         window.eventiaApiData = data;
                         patchChatBadges();
+                        // Also refresh all three unread badge surfaces
+                        if (typeof window.patchAllUnreadBadges === 'function') {
+                            window.patchAllUnreadBadges();
+                        }
                     })
                     .catch(e => console.error("Poll Error:", e));
             }, 3000);
@@ -1959,6 +2372,7 @@
 
                         originalOpenVendorChat(eventId, vendorId);
                         patchChatBadges();
+                        if (typeof window.patchAllUnreadBadges === 'function') window.patchAllUnreadBadges();
                     };
                 }
 
@@ -1975,6 +2389,7 @@
 
                         originalCloseVendorChat();
                         patchChatBadges();
+                        if (typeof window.patchAllUnreadBadges === 'function') window.patchAllUnreadBadges();
                     };
                 }
 
@@ -1985,6 +2400,7 @@
                     const observer = new MutationObserver((mutations) => {
                         observer.disconnect();
                         patchChatBadges();
+                        if (typeof window.patchAllUnreadBadges === 'function') window.patchAllUnreadBadges();
                         observer.observe(convContainer, { childList: true, subtree: true });
                     });
                     observer.observe(convContainer, { childList: true, subtree: true });
