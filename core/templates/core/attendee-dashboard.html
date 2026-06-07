@@ -8,12 +8,12 @@
     <title>Eventia | My Events</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap"
         rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2">
     <link rel="stylesheet" href="{% static 'css/landing.css' %}?v=2">
-    <link rel="stylesheet" href="{% static 'css/attendee.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/attendee.css' %}?v=4">
     <link rel="stylesheet" href="{% static 'css/ai-assistant.css' %}?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -25,38 +25,66 @@
             <a href="{% url 'attendee_dashboard' %}" class="logo" id="nav-logo">
                 <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia Logo" class="logo-img">
             </a>
-            <div class="nav-links" style="display: flex; align-items: center; gap: 0.75rem;">
+            <!-- Mobile hamburger — visible only on small screens (CSS-controlled) -->
+            <button type="button" class="att-mobile-toggle" id="att-mobile-toggle" aria-label="Open menu" data-i18n-aria-label="att.nav.openMenu">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <div class="nav-links att-nav-links-wrapper" id="att-nav-links-wrapper">
+                <!-- Drawer header — shown only inside mobile slide-out panel -->
+                <div class="att-drawer-header">
+                    <span class="att-drawer-brand">Eventia</span>
+                    <button type="button" class="att-drawer-close" id="att-drawer-close" aria-label="Close menu" data-i18n-aria-label="att.nav.closeMenu">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
                 <a href="#" class="btn btn-outline btn-sm att-nav-link active" data-view="home"
                     style="border-radius: 20px; font-size: 0.85rem;">
-                    <i class="fa-solid fa-compass"></i> Browse
+                    <i class="fa-solid fa-compass"></i>
+                    <span data-i18n="att.nav.browse">Browse</span>
                 </a>
                 <a href="#" class="btn btn-outline btn-sm att-nav-link" data-view="home"
                     data-scroll="my-tickets-section" style="border-radius: 20px; font-size: 0.85rem;">
-                    <i class="fa-solid fa-ticket"></i> My Tickets
+                    <i class="fa-solid fa-ticket"></i>
+                    <span data-i18n="att.tickets">My Tickets</span>
                 </a>
                 <a href="#" class="btn btn-outline btn-sm att-nav-link" data-view="history"
                     style="border-radius: 20px; font-size: 0.85rem;">
-                    <i class="fa-solid fa-clock-rotate-left"></i> History
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span data-i18n="att.nav.history">History</span>
                 </a>
                 <a href="#" class="btn btn-outline btn-sm att-nav-link" data-view="profile"
                     style="border-radius: 20px; font-size: 0.85rem;">
-                    <i class="fa-solid fa-user"></i> Profile
+                    <i class="fa-solid fa-user"></i>
+                    <span data-i18n="att.nav.profile">Profile</span>
                 </a>
                 <div id="notif-bell-wrapper" class="notif-bell-wrapper">
                     <button id="notif-bell-btn" class="notif-bell-btn"
                         onclick="switchAttendeeViewPublic('notifications')"
-                        title="Notifications">
+                        title="Notifications" data-i18n-title="att.nav.notifications">
                         <i class="fa-solid fa-bell"></i>
                         <span id="notif-badge" class="notif-badge">0</span>
                     </button>
                 </div>
                 <a href="{% url 'logout' %}" class="btn btn-primary btn-sm"
                     style="border-radius: 20px; font-size: 0.85rem;">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span data-i18n="att.nav.logout">Logout</span>
                 </a>
+                <button type="button" id="lang-switch" class="lang-toggle-btn" data-i18n-aria-label="lang.switch.aria" aria-label="Switch language" title="Switch language / تغيير اللغة"
+                    data-flag-sa="{% static 'assets/sa.svg' %}"
+                    data-flag-gb="{% static 'assets/gb.svg' %}">
+                    <img id="lang-toggle-flag" class="lang-toggle-flag-img" src="{% static 'assets/sa.svg' %}" alt="SA">
+                    <span class="lang-toggle-code" id="lang-toggle-code">AR</span>
+                    <span class="lang-toggle-divider"></span>
+                    <span class="lang-toggle-label" id="lang-toggle-label">العربية</span>
+                </button>
             </div>
         </div>
     </nav>
+    <!-- Mobile nav backdrop -->
+    <div class="att-mobile-backdrop" id="att-mobile-backdrop"></div>
 
     <div id="view-notifications" class="attendee-view" style="display:none;">
 
@@ -67,8 +95,8 @@
                     style="width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
                     <i class="fa-solid fa-bell" style="font-size:2rem;"></i>
                 </div>
-                <h1 style="margin:0 0 0.5rem;font-size:2rem;font-weight:700;">Notifications</h1>
-                <p style="margin:0;opacity:0.8;font-size:1rem;">Updates and broadcasts from your event organizers</p>
+                <h1 style="margin:0 0 0.5rem;font-size:2rem;font-weight:700;" data-i18n="att.notifications.title">Notifications</h1>
+                <p style="margin:0;opacity:0.8;font-size:1rem;" data-i18n="att.notifications.desc">Updates and broadcasts from your event organizers</p>
             </div>
         </section>
 
@@ -81,7 +109,8 @@
                             style="background:white;border:2px solid #004e92;color:#004e92;border-radius:10px;padding:7px 16px;cursor:pointer;font-size:0.82rem;font-weight:600;display:flex;align-items:center;gap:6px;transition:all 0.2s;"
                             onmouseenter="this.style.background='#004e92';this.style.color='white'"
                             onmouseleave="this.style.background='white';this.style.color='#004e92'">
-                            <i class="fa-solid fa-check-double"></i> Mark all as read
+                            <i class="fa-solid fa-check-double"></i>
+                            <span data-i18n="att.notifications.markAll">Mark all as read</span>
                         </button>
                     </div>
                     <div id="notif-list"></div>
@@ -115,24 +144,29 @@
 
             <div class="hero-content">
                 <p
+                    data-i18n="att.hero.welcome"
                     style="color: rgba(255,255,255,0.7); font-size: 1rem; margin-bottom: 0.5rem; letter-spacing: 2px; text-transform: uppercase;">
                     Welcome back
                 </p>
-                <h1 class="hero-title" style="font-size: clamp(2rem, 4vw, 3.2rem); white-space: nowrap;">Hello, <span
-                        class="hero-title-gradient" id="attendee-hero-name">{{
+                <h1 class="hero-title" style="font-size: clamp(2rem, 4vw, 3.2rem); white-space: nowrap;"><span
+                        data-i18n="att.hero.title">Hello,</span> <span class="hero-title-gradient" id="attendee-hero-name">{{
                         request.user.first_name|default:"Attendee" }}</span></h1>
                 <div class="hero-tagline">
                     <div class="hero-tagline-line"></div>
-                    <p>Discover events. Book tickets. Enjoy the experience.</p>
+                    <p data-i18n="att.hero.tagline">
+                        Discover events. Book tickets. Enjoy the experience.
+                    </p>
                     <div class="hero-tagline-line"></div>
                 </div>
                 <div class="hero-buttons">
                     <a href="#events-section" class="btn btn-primary btn-lg hero-cta nav-scroll-link">
-                        <i class="fa-solid fa-compass"></i> Explore Events
+                        <i class="fa-solid fa-compass"></i>
+                        <span data-i18n="att.hero.explore">Explore Events</span>
                     </a>
                     <a href="#my-tickets-section"
                         class="btn btn-outline btn-lg hero-cta hero-cta-outline nav-scroll-link">
-                        <i class="fa-solid fa-ticket"></i> My Tickets
+                        <i class="fa-solid fa-ticket"></i>
+                        <span data-i18n="att.tickets">My Tickets</span>
                     </a>
                 </div>
 
@@ -149,85 +183,101 @@
 
         <section class="search-section" id="events-section">
             <div class="container">
-                <div class="search-bar-wrapper">
+                <div class="search-bar-wrapper search-bar-wrapper--ai-sparkle">
                     <div class="search-input-group">
                         <i class="fa-solid fa-search search-icon"></i>
-                        <input type="text" id="landing-search"
+                        <input type="text" id="landing-search" data-i18n-placeholder="search.placeholder"
                             placeholder="Search for events, workshops, conferences..." class="search-input">
                     </div>
                     <select id="landing-location-filter" class="search-select">
-                        <option value="all">All Cities</option>
-                        <option value="riyadh">Riyadh</option>
-                        <option value="jeddah">Jeddah</option>
-                        <option value="dhahran">Dhahran</option>
-                        <option value="kaust">KAUST</option>
-                        <option value="kfupm">KFUPM</option>
+                        <option value="all" data-i18n="search.allCities">All Cities</option>
+                        <option value="riyadh" data-i18n="city.riyadh">Riyadh</option>
+                        <option value="jeddah" data-i18n="city.jeddah">Jeddah</option>
+                        <option value="dhahran" data-i18n="city.dhahran">Dhahran</option>
+                        <option value="kaust" data-i18n="city.kaust">KAUST</option>
+                        <option value="kfupm" data-i18n="city.kfupm">KFUPM</option>
                     </select>
                     <button class="btn btn-primary search-btn" id="landing-search-btn">
-                        <i class="fa-solid fa-search"></i> Search
+                        <i class="fa-solid fa-search"></i>
+                        <span data-i18n="search.button">Search</span>
                     </button>
                     <div class="ai-sparkle-wrapper" id="ai-sparkle-wrapper">
                         <button type="button" class="ai-search-sparkle-btn" id="ai-search-sparkle-btn"
-                            aria-label="AI Assistant — find your perfect event">
+                            aria-label="AI Assistant — find your perfect event"
+                            data-i18n-aria-label="att.ai.aria">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <span class="ai-sparkle-btn-label">AI Assistant</span>
-                            <span class="ai-sparkle-tooltip">Let AI find your event</span>
+                            <span class="ai-sparkle-btn-label" data-i18n="att.ai.label">AI Assistant</span>
+                            <span class="ai-sparkle-tooltip" data-i18n="att.ai.tooltip">Let AI find your event</span>
                         </button>
                         <div class="ai-sparkle-nudge" id="ai-sparkle-nudge">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            Not sure what to attend? Let AI help you!
-                            <button type="button" class="ai-nudge-close" id="ai-nudge-close" aria-label="Dismiss">&times;</button>
+                            <span data-i18n="att.ai.nudge">Not sure what to attend? Let AI help you!</span>
+                            <button type="button" class="ai-nudge-close" id="ai-nudge-close" aria-label="Dismiss" data-i18n-aria-label="ai.nudge.close">&times;</button>
                         </div>
                     </div>
                 </div>
                 <p class="ai-search-hint">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    Can't find what you're looking for? Try our <button type="button" class="ai-hint-link" id="ai-hint-link">AI Assistant</button> — describe what you're in the mood for and let it find the perfect event for you.
+                    <span data-i18n="att.ai.hint.before">Can't find what you're looking for? Try our </span><button type="button" class="ai-hint-link" id="ai-hint-link" data-i18n="att.ai.label">AI Assistant</button><span data-i18n="att.ai.hint.after"> — describe what you're in the mood for and let it find the perfect event for you.</span>
                 </p>
                 <div class="category-pills-row" id="landing-category-pills">
                     <button class="cat-pill active" data-category="all">
-                        <i class="fa-solid fa-fire"></i> All Events
+                        <i class="fa-solid fa-fire"></i>
+                        <span data-i18n="cat.all">All Events</span>
                     </button>
                     <button class="cat-pill" data-category="Conference">
-                        <i class="fa-solid fa-microphone"></i> Conference
+                        <i class="fa-solid fa-microphone"></i>
+                        <span data-i18n="cat.conference">Conference</span>
                     </button>
                     <button class="cat-pill" data-category="Exhibition">
-                        <i class="fa-solid fa-store"></i> Exhibition
+                        <i class="fa-solid fa-store"></i>
+                        <span data-i18n="cat.exhibition">Exhibition</span>
                     </button>
                     <button class="cat-pill" data-category="Entertainment">
-                        <i class="fa-solid fa-masks-theater"></i> Entertainment
+                        <i class="fa-solid fa-masks-theater"></i>
+                        <span data-i18n="cat.entertainment">Entertainment</span>
                     </button>
                     <button class="cat-pill" data-category="Workshop">
-                        <i class="fa-solid fa-screwdriver-wrench"></i> Workshop
+                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                        <span data-i18n="cat.workshop">Workshop</span>
                     </button>
                     <button class="cat-pill" data-category="Sports">
-                        <i class="fa-solid fa-futbol"></i> Sports
+                        <i class="fa-solid fa-futbol"></i>
+                        <span data-i18n="cat.sports">Sports</span>
                     </button>
                     <button class="cat-pill" data-category="Business">
-                        <i class="fa-solid fa-briefcase"></i> Business
+                        <i class="fa-solid fa-briefcase"></i>
+                        <span data-i18n="cat.business">Business</span>
                     </button>
                     <button class="cat-pill" data-category="Food & Culture">
-                        <i class="fa-solid fa-utensils"></i> Food & Culture
+                        <i class="fa-solid fa-utensils"></i>
+                        <span data-i18n="cat.foodCulture">Food & Culture</span>
                     </button>
                     <button class="cat-pill" data-category="Technology">
-                        <i class="fa-solid fa-laptop-code"></i> Technology
+                        <i class="fa-solid fa-laptop-code"></i>
+                        <span data-i18n="cat.technology">Technology</span>
                     </button>
                     <button class="cat-pill" data-category="Education">
-                        <i class="fa-solid fa-graduation-cap"></i> Education
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span data-i18n="cat.education">Education</span>
                     </button>
                     <button class="cat-pill" data-category="Culture">
-                        <i class="fa-solid fa-landmark"></i> Culture
+                        <i class="fa-solid fa-landmark"></i>
+                        <span data-i18n="cat.culture">Culture</span>
                     </button>
                     <button class="cat-pill" data-category="Family">
-                        <i class="fa-solid fa-children"></i> Family
+                        <i class="fa-solid fa-children"></i>
+                        <span data-i18n="cat.family">Family</span>
                     </button>
                     <button class="cat-pill" data-category="Shopping">
-                        <i class="fa-solid fa-bag-shopping"></i> Shopping
+                        <i class="fa-solid fa-bag-shopping"></i>
+                        <span data-i18n="cat.shopping">Shopping</span>
                     </button>
                 </div>
                 <div id="reset-filters-wrapper" style="display:none;margin-top:10px;">
                     <button class="btn btn-sm" id="reset-filters-btn" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:50px;padding:8px 20px;font-weight:600;font-size:0.85rem;cursor:pointer;">
-                        <i class="fa-solid fa-xmark"></i> Reset Filters
+                        <i class="fa-solid fa-xmark"></i>
+                        <span data-i18n="landing.resetFilters">Reset Filters</span>
                     </button>
                 </div>
             </div>
@@ -235,80 +285,11 @@
 
         <div class="ai-assistant" id="ai-assistant" data-state="collapsed" hidden></div>
 
-        <div class="ai-panel-overlay" id="ai-panel-overlay" hidden>
-            <div class="ai-panel-backdrop" id="ai-panel-backdrop" aria-hidden="true"></div>
-            <div class="ai-panel" id="ai-panel" role="dialog" aria-label="Eventia AI assistant" aria-modal="true">
-                <div class="ai-panel-header">
-                    <div class="ai-panel-identity">
-                        <div class="ai-avatar" aria-hidden="true">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        </div>
-                        <div class="ai-panel-identity-text">
-                            <div class="ai-panel-name">Eventia AI <span class="ai-panel-badge">Assistant</span></div>
-                            <div class="ai-panel-status">
-                                Your event discovery guide
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ai-panel-actions">
-                        <button type="button" class="ai-icon-btn" id="ai-history-btn" title="Past conversations" aria-label="Past conversations">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </button>
-                        <button type="button" class="ai-icon-btn" id="ai-reset-btn" title="New conversation" aria-label="New conversation">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button type="button" class="ai-icon-btn" id="ai-close-btn" title="Close assistant" aria-label="Close assistant">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="ai-panel-messages" id="ai-messages" aria-live="polite" aria-relevant="additions">
-                    <div class="ai-welcome" id="ai-welcome">
-                        <h3 class="ai-welcome-title">Hi, I'm the <span class="ai-welcome-title-accent">Eventia AI Assistant</span></h3>
-                        <p class="ai-welcome-subtitle">
-                            Tell me about your interests and I'll find the best events for you.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="ai-history-view" id="ai-history-view" hidden>
-                    <div class="ai-history-header">
-                        <div class="ai-history-title-wrap">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                            <h4>Past conversations</h4>
-                        </div>
-                        <button type="button" class="ai-history-clear" id="ai-history-clear-btn">
-                            <i class="fa-solid fa-trash-can"></i>
-                            <span>Clear all</span>
-                        </button>
-                    </div>
-                    <div class="ai-history-list" id="ai-history-list">
-                    </div>
-                </div>
-
-                <div class="ai-panel-chips" id="ai-suggested-chips">
-                </div>
-
-                <form class="ai-panel-input" id="ai-input-form" autocomplete="off">
-                    <div class="ai-input-wrapper">
-                        <i class="fa-solid fa-wand-magic-sparkles ai-input-icon"></i>
-                        <input type="text" id="ai-input" class="ai-input"
-                            placeholder="Tell me what you're interested in..."
-                            aria-label="Ask the Eventia AI about events">
-                    </div>
-                    <button type="submit" class="ai-send-btn" id="ai-send-btn" aria-label="Send message">
-                        <i class="fa-solid fa-arrow-up"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-
         <section class="landing-events">
             <div class="container">
                 <div class="section-heading">
-                    <h2><i class="fa-solid fa-sparkles"></i> Upcoming Events</h2>
-                    <p class="section-desc">Don't miss out on these exciting upcoming events across Saudi Arabia</p>
+                    <h2><i class="fa-solid fa-sparkles"></i><span data-i18n="events.upcoming">Upcoming Events</span></h2>
+                    <p class="section-desc" data-i18n="events.subtitle">Don't miss out on these exciting upcoming events across Saudi Arabia</p>
                 </div>
 
                 <div class="landing-events-grid" id="django-events-grid">
@@ -350,31 +331,31 @@
                                 {% else %}<i class="fa-solid fa-calendar-day"></i>{% endif %}
                             {% endif %}
 
-                            <div class="lp-card-badge">{{ event.category|default:'Event' }}</div>
+                            <div class="lp-card-badge" data-event-category="{{ event.category|default_if_none:'' }}">{{ event.category|default:'Event' }}</div>
                             <div class="lp-card-price">
-                                {% if event.ticket_price > 0 %}From {{ event.ticket_price }} <img src="{% static 'assets/sar_white.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% else %}Free{% endif %}
+                                {% if event.ticket_price > 0 %}<span data-i18n="common.from">From</span> {{ event.ticket_price }} <img src="{% static 'assets/sar_white.svg' %}" alt="SAR" style="height:0.9em;vertical-align:middle;">{% else %}<span data-i18n="common.free">Free</span>{% endif %}
                             </div>
                         </div>
                         <div class="lp-card-body">
                             <h3 class="lp-card-title">{{ event.title }}</h3>
                             <div class="lp-card-meta">
-                                <span><i class="fa-regular fa-calendar"></i> {{ event.date|date:"M d, Y" }}</span>
+                                <span><i class="fa-regular fa-calendar"></i> <span class="lp-card-date" data-date="{% if event.date %}{{ event.date|date:'Y-m-d' }}{% endif %}">{{ event.date|date:"M d, Y" }}</span></span>
                                 <span><i class="fa-solid fa-location-dot"></i> {{ event.location|default:'TBD' }}</span>
                             </div>
                             <p class="lp-card-desc">{{ event.description|truncatechars:100 }}</p>
                             <div class="lp-card-footer" style="display: flex; gap: 0.5rem;">
                                 <button class="btn btn-primary btn-sm lp-view-btn"
-                                    onclick="viewEventDetails('{{ event.id }}')">View Details</button>
+                                    onclick="viewEventDetails('{{ event.id }}')" data-i18n="att.browse.viewDetails">View Details</button>
 
                                 {% if event.id in registered_event_ids %}
                                 <button class="btn btn-sm"
                                     style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; cursor: default;"
-                                    disabled><i class="fa-solid fa-check"></i> Registered</button>
+                                    disabled><i class="fa-solid fa-check"></i> <span data-i18n="att.browse.registered">Registered</span></button>
                                 {% else %}
                                 <button class="btn btn-sm"
                                     style="background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb;"
                                     onclick="openRegisterModal('{{ event.id }}')"><i class="fa-solid fa-ticket"></i>
-                                    Register</button>
+                                    <span data-i18n="att.browse.register">Register</span></button>
                                 {% endif %}
                             </div>
                         </div>
@@ -384,14 +365,15 @@
                     <div class="no-events-state" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
                         <i class="fa-regular fa-calendar-xmark"
                             style="font-size: 3rem; color: #ccc; margin-bottom: 1rem; display: block;"></i>
-                        <h3 style="margin: 0 0 0.5rem; color: #555;">No events found</h3>
+                        <h3 style="margin: 0 0 0.5rem; color: #555;" data-i18n="att.browse.noEvents">No events found</h3>
                     </div>
                     {% endif %}
                 </div>
 
                 <div class="load-more-wrapper">
                     <button class="btn btn-outline btn-lg" id="load-more-events">
-                        <i class="fa-solid fa-arrow-down"></i> Load More Events
+                        <i class="fa-solid fa-arrow-down"></i>
+                        <span data-i18n="events.loadMore">Load More Events</span>
                     </button>
                 </div>
             </div>
@@ -400,8 +382,8 @@
         <section class="landing-events" id="my-tickets-section" style="background: white;">
             <div class="container">
                 <div class="section-heading">
-                    <h2><i class="fa-solid fa-ticket"></i> My Tickets</h2>
-                    <p class="section-desc">Your registered events and digital tickets</p>
+                    <h2><i class="fa-solid fa-ticket"></i> <span data-i18n="att.tickets">My Tickets</span></h2>
+                    <p class="section-desc" data-i18n="att.tickets.desc">Your registered events and digital tickets</p>
                 </div>
                 <div id="my-tickets-container"
                     style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.5rem;">
@@ -419,8 +401,8 @@
                     style="width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fa-solid fa-clock-rotate-left" style="font-size: 2rem;"></i>
                 </div>
-                <h1 style="margin: 0 0 0.5rem; font-size: 2rem; font-weight: 700;">Event History</h1>
-                <p style="margin: 0; opacity: 0.8; font-size: 1rem;">Past events you attended with your ratings and
+                <h1 data-i18n="att.history.title" style="margin: 0 0 0.5rem; font-size: 2rem; font-weight: 700;">Event History</h1>
+                <p data-i18n="att.history.desc" style="margin: 0; opacity: 0.8; font-size: 1rem;">Past events you attended with your ratings and
                     feedback</p>
             </div>
         </section>
@@ -442,8 +424,8 @@
                     style="width: 72px; height: 72px; background: rgba(255,255,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fa-solid fa-user-gear" style="font-size: 2rem;"></i>
                 </div>
-                <h1 style="margin: 0 0 0.5rem; font-size: 2rem; font-weight: 700;">My Profile</h1>
-                <p style="margin: 0; opacity: 0.8; font-size: 1rem;">Manage your personal information and preferences
+                <h1 data-i18n="att.profile.title" style="margin: 0 0 0.5rem; font-size: 2rem; font-weight: 700;">My Profile</h1>
+                <p data-i18n="att.profile.desc" style="margin: 0; opacity: 0.8; font-size: 1rem;">Manage your personal information and preferences
                 </p>
             </div>
         </section>
@@ -463,7 +445,7 @@
                                 <div id="profile-avatar"
                                     style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;"
                                     onclick="document.getElementById('pfp-upload').click()"
-                                    title="Click to change photo">
+                                    data-i18n-title="att.profile.changePhoto" title="Click to change photo">
 
                                     {% if user.profile_picture %}
                                     <img id="profile-avatar-img" src="{{ user.profile_picture.url }}"
@@ -490,7 +472,7 @@
                                 <h3 id="profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{
                                     user.first_name }} {{ user.last_name }}
                                 </h3>
-                                <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia
+                                <p data-i18n="att.profile.member" style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia
                                     Member</p>
                             </div>
 
@@ -498,7 +480,7 @@
                                 <div
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                                     <div>
-                                        <label
+                                        <label data-i18n="att.profile.firstName"
                                             style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">First
                                             Name</label>
                                         <input type="text" name="first_name" id="profile-firstname"
@@ -508,7 +490,7 @@
                                             onblur="this.style.borderColor='#e0e0e0'">
                                     </div>
                                     <div>
-                                        <label
+                                        <label data-i18n="att.profile.lastName"
                                             style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Last
                                             Name</label>
                                         <input type="text" name="last_name" id="profile-lastname"
@@ -519,7 +501,7 @@
                                     </div>
                                 </div>
                                 <div style="margin-bottom: 1rem;">
-                                    <label
+                                    <label data-i18n="att.profile.email"
                                         style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email
                                         Address</label>
                                     <input type="email" name="email" id="profile-email" value="{{ user.email }}"
@@ -529,7 +511,7 @@
                                         onblur="this.style.borderColor='#e0e0e0'">
                                 </div>
                                 <div style="margin-bottom: 1rem;">
-                                    <label
+                                    <label data-i18n="att.profile.phone"
                                         style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone
                                         Number</label>
                                     <input type="tel" name="phone_number" id="profile-phone"
@@ -540,10 +522,11 @@
                                 </div>
                                 <div style="margin-bottom: 1rem;">
                                     <label
-                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Job
-                                        Title <span style="color: #888; font-weight: 400;">(optional)</span></label>
-                                    <input type="text" name="job_title" id="profile-jobtitle"
-                                        placeholder="e.g. Software Engineer"
+                                        style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">
+                                        <span data-i18n="att.profile.jobTitle">Job Title</span>
+                                        <span style="color: #888; font-weight: 400;" data-i18n="att.profile.optional">(optional)</span>
+                                    </label>
+                                    <input type="text" name="job_title" id="profile-jobtitle" data-i18n-placeholder="att.profile.jobPlaceholder" placeholder="e.g. Software Engineer"
                                         value="{{ user.attendee_profile.job_title|default:'' }}"
                                         style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                         onfocus="this.style.borderColor='#004e92'"
@@ -552,21 +535,21 @@
                                 <div
                                     style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
                                     <div>
-                                        <label
+                                        <label data-i18n="att.profile.password"
                                             style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">New
                                             Password</label>
                                         <input type="password" name="password" id="profile-password"
-                                            placeholder="Leave blank to keep current"
+                                            data-i18n-placeholder="org.profile.passwordKeepPlaceholder" placeholder="Leave blank to keep current"
                                             style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                             onfocus="this.style.borderColor='#004e92'"
                                             onblur="this.style.borderColor='#e0e0e0'">
                                     </div>
                                     <div>
-                                        <label
+                                        <label data-i18n="att.profile.confirmPassword"
                                             style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Confirm
                                             Password</label>
                                         <input type="password" name="password_confirm" id="profile-password-confirm"
-                                            placeholder="Leave blank to keep current"
+                                            data-i18n-placeholder="org.profile.passwordKeepPlaceholder" placeholder="Leave blank to keep current"
                                             style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s; outline: none;"
                                             onfocus="this.style.borderColor='#004e92'"
                                             onblur="this.style.borderColor='#e0e0e0'">
@@ -574,7 +557,8 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary"
                                     style="width: 100%; padding: 12px; font-size: 1rem;">
-                                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span data-i18n="att.profile.save">Save Changes</span>
                                 </button>
                             </div>
                         </form>
@@ -589,27 +573,27 @@
             <div class="footer-grid">
                 <div class="footer-brand">
                     <img src="{% static 'assets/eventia_logo_new.png' %}" alt="Eventia" class="footer-logo">
-                    <p>Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees
+                    <p data-i18n="footer.brandDesc">Saudi Arabia's leading event management platform. Connecting organizers, vendors, and attendees
                         for exceptional experiences.</p>
                 </div>
                 <div class="footer-links-col">
-                    <h4>Quick Links</h4>
-                    <a href="#" class="att-nav-link" data-view="home">Browse Events</a>
-                    <a href="#" class="att-nav-link" data-view="home" data-scroll="my-tickets-section">My Tickets</a>
-                    <a href="#" class="att-nav-link" data-view="history">Event History</a>
-                    <a href="#" class="att-nav-link" data-view="profile">My Profile</a>
+                    <h4 data-i18n="footer.quickLinks">Quick Links</h4>
+                    <a href="#" class="att-nav-link" data-view="home" data-i18n="footer.browseEvents">Browse Events</a>
+                    <a href="#" class="att-nav-link" data-view="home" data-scroll="my-tickets-section" data-i18n="att.tickets">My Tickets</a>
+                    <a href="#" class="att-nav-link" data-view="history" data-i18n="att.history.title">Event History</a>
+                    <a href="#" class="att-nav-link" data-view="profile" data-i18n="att.profile.title">My Profile</a>
                 </div>
                 <div class="footer-links-col">
-                    <h4>Cities</h4>
-                    <a href="#">Riyadh</a>
-                    <a href="#">Jeddah</a>
-                    <a href="#">Dhahran</a>
-                    <a href="#">KAUST</a>
+                    <h4 data-i18n="footer.cities">Cities</h4>
+                    <a href="#" data-i18n="city.riyadh">Riyadh</a>
+                    <a href="#" data-i18n="city.jeddah">Jeddah</a>
+                    <a href="#" data-i18n="city.dhahran">Dhahran</a>
+                    <a href="#" data-i18n="city.kaust">KAUST</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2026 Eventia. All rights reserved.</p>
-                <p>Made with <i class="fa-solid fa-heart" style="color: #00a650;"></i> in Saudi Arabia</p>
+                <p data-i18n="footer.copyright">&copy; 2026 Eventia. All rights reserved.</p>
+                <p><span data-i18n="footer.madeWith">Made with</span> <i class="fa-solid fa-heart" style="color: #00a650;"></i> <span data-i18n="footer.inSaudi">in Saudi Arabia</span></p>
             </div>
         </div>
     </footer>
@@ -619,6 +603,46 @@
         window.CSRF_TOKEN = "{{ csrf_token }}";
 
         document.addEventListener('DOMContentLoaded', () => {
+
+            // ── Mobile nav drawer ─────────────────────────────────────────
+            (function () {
+                var toggle   = document.getElementById('att-mobile-toggle');
+                var wrapper  = document.getElementById('att-nav-links-wrapper');
+                var backdrop = document.getElementById('att-mobile-backdrop');
+                var closeBtn = document.getElementById('att-drawer-close');
+
+                function openDrawer() {
+                    if (!wrapper) return;
+                    wrapper.classList.add('open');
+                    if (backdrop) backdrop.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+                function closeDrawer() {
+                    if (!wrapper) return;
+                    wrapper.classList.remove('open');
+                    if (backdrop) backdrop.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+
+                if (toggle)   toggle.addEventListener('click', openDrawer);
+                if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+                if (backdrop) backdrop.addEventListener('click', closeDrawer);
+
+                // Close drawer when any nav link or bell inside the drawer is tapped
+                if (wrapper) {
+                    wrapper.querySelectorAll('a, button.att-nav-link, button.notif-bell-btn').forEach(function (el) {
+                        el.addEventListener('click', closeDrawer);
+                    });
+                }
+            })();
+            // ─────────────────────────────────────────────────────────────
+
+            function eventiaTxt(key, fallback) {
+                var lang = (typeof window.getLang === 'function') ? window.getLang() : 'en';
+                var dict = (window.I18N && window.I18N[lang]) || {};
+                var v = dict[key];
+                return (typeof v === 'string' && v.length) ? v : fallback;
+            }
 
             // --- Filter Django-rendered event cards ---
             var EVENTS_PER_PAGE = 6;
@@ -716,8 +740,11 @@
                         noEventsEl = document.createElement('div');
                         noEventsEl.id = 'django-no-events-msg';
                         noEventsEl.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; color: #888;';
-                        noEventsEl.innerHTML = '<i class="fa-regular fa-calendar-xmark" style="font-size:3rem;margin-bottom:1rem;display:block;color:#ccc;"></i><h3 style="margin:0 0 0.5rem;color:#555;">No events found</h3><p style="margin:0;">Try adjusting your search or filters.</p>';
+                        noEventsEl.innerHTML = '<i class="fa-regular fa-calendar-xmark" style="font-size:3rem;margin-bottom:1rem;display:block;color:#ccc;"></i><h3 style="margin:0 0 0.5rem;color:#555;" data-i18n="att.browse.noEvents">No events found</h3><p style="margin:0;" data-i18n="att.browse.tryFilters">Try adjusting your search or filters.</p>';
                         document.getElementById('django-events-grid').appendChild(noEventsEl);
+                        if (typeof window.applyLang === 'function' && typeof window.getLang === 'function') {
+                            window.applyLang(window.getLang());
+                        }
                     }
                     noEventsEl.style.display = '';
                 } else if (noEventsEl) {
@@ -808,7 +835,7 @@
                     const btn = this.querySelector('button[type="submit"]');
                     const originalHtml = btn.innerHTML;
 
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> ' + eventiaTxt('att.profile.saving', 'Saving...');
                     btn.disabled = true;
 
                     fetch(this.action, {
@@ -817,7 +844,7 @@
                     })
                         .then(response => {
                             if (response.ok) {
-                                btn.innerHTML = '<i class="fa-solid fa-check"></i> Profile Updated!';
+                                btn.innerHTML = '<i class="fa-solid fa-check"></i> ' + eventiaTxt('att.profile.saveSuccess', 'Profile updated!');
                                 btn.style.background = '#16a34a';
                                 btn.style.borderColor = '#16a34a';
 
@@ -826,14 +853,14 @@
                                     window.location.reload();
                                 }, 800);
                             } else {
-                                alert("Error saving profile. Please check your inputs.");
+                                alert(eventiaTxt('att.profile.saveError', 'Error saving profile. Please check your inputs.'));
                                 btn.innerHTML = originalHtml;
                                 btn.disabled = false;
                             }
                         })
                         .catch(error => {
                             console.error("Profile save error:", error);
-                            alert("Network error while saving.");
+                            alert(eventiaTxt('att.profile.saveNetworkError', 'Network error while saving.'));
                             btn.innerHTML = originalHtml;
                             btn.disabled = false;
                         });
@@ -886,10 +913,83 @@
 </script>
 
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="{% static 'js/attendee-logic.js' %}?v=10"></script>
+    <script src="{% static 'js/app-ar.js' %}"></script>
+    <script src="{% static 'js/attendee-logic.js' %}?v=12"></script>
     <script src="{% static 'js/ai-assistant.js' %}?v=3"></script>
 
+    <!-- AI panel overlay lives here as a direct child of body so its z-index
+         competes at the root stacking context — same level as dynamically
+         appended modals (event-detail-modal, register-modal, etc.) -->
+    <div class="ai-panel-overlay" id="ai-panel-overlay" hidden>
+        <div class="ai-panel-backdrop" id="ai-panel-backdrop" aria-hidden="true"></div>
+        <div class="ai-panel" id="ai-panel" role="dialog" aria-label="Eventia AI assistant" aria-modal="true" data-i18n-aria-label="att.aiPanel.aria">
+            <div class="ai-panel-header">
+                <div class="ai-panel-identity">
+                    <div class="ai-avatar" aria-hidden="true">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="ai-panel-identity-text">
+                        <div class="ai-panel-name">Eventia AI <span class="ai-panel-badge" data-i18n="att.aiPanel.badge">Assistant</span></div>
+                        <div class="ai-panel-status">
+                            <span data-i18n="att.aiPanel.status">Your event discovery guide</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-panel-actions">
+                    <button type="button" class="ai-icon-btn" id="ai-history-btn" title="Past conversations" aria-label="Past conversations" data-i18n-title="ai.history.title" data-i18n-aria-label="ai.history.title">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                    <button type="button" class="ai-icon-btn" id="ai-reset-btn" title="New conversation" aria-label="New conversation" data-i18n-title="ai.btn.reset" data-i18n-aria-label="ai.btn.reset">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="ai-icon-btn" id="ai-close-btn" title="Close assistant" aria-label="Close assistant" data-i18n-title="att.aiPanel.close" data-i18n-aria-label="att.aiPanel.close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
 
+            <div class="ai-panel-messages" id="ai-messages" aria-live="polite" aria-relevant="additions">
+                <div class="ai-welcome" id="ai-welcome">
+                    <h3 class="ai-welcome-title"><span data-i18n="att.aiPanel.welcome">Hi, I'm the </span><span class="ai-welcome-title-accent" data-i18n="att.aiPanel.welcomeAccent">Eventia AI Assistant</span></h3>
+                    <p class="ai-welcome-subtitle" data-i18n="att.aiPanel.welcomeSubtitle">
+                        Tell me about your interests and I'll find the best events for you.
+                    </p>
+                </div>
+            </div>
+
+            <div class="ai-history-view" id="ai-history-view" hidden>
+                <div class="ai-history-header">
+                    <div class="ai-history-title-wrap">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <h4 data-i18n="ai.history.title">Past conversations</h4>
+                    </div>
+                    <button type="button" class="ai-history-clear" id="ai-history-clear-btn">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span data-i18n="ai.history.clearAll">Clear all</span>
+                    </button>
+                </div>
+                <div class="ai-history-list" id="ai-history-list">
+                </div>
+            </div>
+
+            <div class="ai-panel-chips" id="ai-suggested-chips">
+            </div>
+
+            <form class="ai-panel-input" id="ai-input-form" autocomplete="off">
+                <div class="ai-input-wrapper">
+                    <i class="fa-solid fa-wand-magic-sparkles ai-input-icon"></i>
+                    <input type="text" id="ai-input" class="ai-input"
+                        placeholder="Tell me what you're interested in..."
+                        data-i18n-placeholder="att.aiPanel.inputPlaceholder"
+                        aria-label="Ask the Eventia AI about events"
+                        data-i18n-aria-label="att.aiPanel.inputAria">
+                </div>
+                <button type="submit" class="ai-send-btn" id="ai-send-btn" aria-label="Send message" data-i18n-aria-label="att.aiPanel.sendAria">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </form>
+        </div>
+    </div>
 
 </body>
 
