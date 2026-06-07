@@ -9,6 +9,216 @@ const SAR_ICON = '<img src="' + (window.STATIC_URL || '/static/') + 'assets/sar_
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    function t(key) {
+        const lang = localStorage.getItem('eventia_lang') || 'en';
+        if (window.I18N && window.I18N[lang] && window.I18N[lang][key]) {
+            return window.I18N[lang][key];
+        }
+        if (window.I18N && window.I18N.en && window.I18N.en[key]) {
+            return window.I18N.en[key];
+        }
+        return key;
+    }
+
+    function translateFlashMessage(tags, text) {
+        const match = String(tags || '').match(/i18n:([\w.]+)/);
+        if (!match) {
+            return text || '';
+        }
+        let msg = t(match[1]);
+        if (text) {
+            msg = msg.replace('{vendor}', text).replace('{detail}', text);
+        }
+        return msg;
+    }
+
+    function formatOrganizerRequestCount(n) {
+        const lang = typeof window.getLang === 'function' ? window.getLang() : (localStorage.getItem('eventia_lang') || 'en');
+        const word = t(n > 1 ? 'org.requests.requestsPlural' : 'org.requests.requestSingular');
+        return lang === 'ar' ? `${word} ${n}` : `${n} ${word}`;
+    }
+
+    function statusKey(status) {
+        const map = {
+            Pending: 'vendor.prep.pending',
+            Approved: 'status.approved',
+            Confirmed: 'vendor.status.confirmed',
+            Rejected: 'status.rejected',
+            Upcoming: 'status.upcoming',
+            Ongoing: 'status.ongoing',
+            Past: 'status.past'
+        };
+        return t(map[status] || status);
+    }
+
+    const prepKeyMap = {
+        'Pending': 'vendor.prep.pending',
+        'Preparing': 'vendor.prep.preparing',
+        'In Transit': 'vendor.prep.inTransit',
+        'Setting Up': 'vendor.prep.settingUp',
+        'Ready': 'vendor.prep.ready'
+    };
+
+    const statusKeyMap = {
+        'Pending': 'vendor.prep.pending',
+        'Confirmed': 'vendor.status.confirmed',
+        'Rejected': 'status.rejected'
+    };
+
+    const categoryMap = {
+        "Catering": "common.catering",
+        "Bakery & Desserts": "common.bakeryDesserts",
+        "Beverages": "common.beverages",
+        "Food Trucks": "common.foodTrucks",
+        "Venue": "common.venue",
+        "Conference Hall": "common.conferenceHall",
+        "Outdoor Venue": "common.outdoorVenue",
+        "AV Equipment": "common.avEquipment",
+        "Audio & Lighting": "common.audioLighting",
+        "LED Screens": "common.ledScreens",
+        "Stage & Rigging": "common.stageRigging",
+        "Live Streaming": "common.liveStreaming",
+        "Decoration": "common.decoration",
+        "Event Decoration": "common.eventDecoration",
+        "Floral Design": "common.floralDesign",
+        "Balloon Decor": "common.balloonDecor",
+        "Event Lighting": "common.eventLighting",
+        "Photography": "common.photography",
+        "Photography & Video": "common.photographyVideo",
+        "Aerial Photography": "common.aerialPhotography",
+        "Photo Booth": "common.photoBooth",
+        "DJ Services": "common.dj",
+        "Live Entertainment": "common.liveEntertainment",
+        "Kids Entertainment": "common.kidsEntertainment",
+        "Traditional Music": "common.traditionalMusic",
+        "Fireworks & Pyro": "common.fireworks",
+        "Transportation": "common.transportation",
+        "Shuttle Services": "common.shuttle",
+        "Valet Parking": "common.valet",
+        "Security": "common.security",
+        "Security Services": "common.securityServices",
+        "VIP Security": "common.vipSecurity",
+        "Medical Services": "common.medical",
+        "Event Staff": "common.eventStaff",
+        "Translation": "common.translation",
+        "MC & Hosting": "common.mcHosting",
+        "Tent Rentals": "common.tents",
+        "Furniture Rentals": "common.furniture",
+        "Table/Chair Rentals": "common.tableChair",
+        "Power Supply": "common.power",
+        "Printing": "common.printing",
+        "Printing & Signage": "common.printingSignage",
+        "Book Sales": "common.bookSales",
+        "Connectivity Services": "common.connectivityServices",
+        "Food & Beverages": "common.foodBeverages",
+        "Entertainment": "common.entertainment",
+        "Audio Visual": "common.audioVisual",
+        "Florists": "common.florists",
+        "Cleaning": "common.cleaning",
+        "Professional Services": "common.professionalServices",
+        "Furniture Rental": "common.furniture",
+        "Permits & Licensing": "common.permitsLicensing",
+        "Facilities": "common.facilities",
+        "Special Effects": "common.specialEffects",
+        "Children Services": "common.childrenServices",
+        "Technology": "common.technology",
+        "Other": "cat.other",
+        "Social Media Marketing": "common.socialMedia",
+        "Influencer Marketing": "common.influencer",
+        "Government Permits": "common.governmentPermits",
+        "Safety Permits": "common.safetyPermits",
+        "Sponsors": "common.sponsors",
+        "Brand Partners": "common.brandPartners",
+        "Henna Artists": "common.henna",
+        "Falconry Shows": "common.falconry",
+        "Horse Shows": "common.horseShows",
+        "Arabian Perfumes": "common.perfumes",
+        "Arabic Calligraphy": "common.calligraphy",
+        "VR/AR Experiences": "common.vrAr",
+        "Eco-Friendly Services": "common.eco",
+        "Gifts & Giveaways": "common.gifts"
+    };
+
+    const categoryMapInsensitive = Object.create(null);
+    Object.keys(categoryMap).forEach((k) => {
+        categoryMapInsensitive[k.toLowerCase()] = categoryMap[k];
+    });
+
+    function translateServiceTypeLabel(raw) {
+        if (raw == null || raw === '') return '';
+        const trimmed = String(raw).trim();
+        let key = categoryMap[trimmed];
+        if (!key) key = categoryMapInsensitive[trimmed.toLowerCase()];
+        return key ? t(key) : trimmed;
+    }
+
+    /** Event catalogue labels (organizer events) → i18n keys — distinct from vendor service-type categoryMap above. */
+    const eventCategoryMap = {
+        'Conference': 'cat.conference',
+        'Entertainment': 'cat.entertainment',
+        'Exhibition': 'cat.exhibition',
+        'Technology': 'cat.technology',
+        'Tech': 'cat.tech',
+        'Art': 'cat.art',
+        'Business': 'cat.business',
+        'Music': 'cat.music',
+        'Education': 'cat.education',
+        'Sports': 'cat.sports',
+        'Workshop': 'cat.workshop',
+        'Food & Culture': 'cat.foodCulture',
+        'Culture': 'cat.culture',
+        'Family': 'cat.family',
+        'Shopping': 'cat.shopping',
+        'Gaming': 'cat.gaming',
+        'Automotive': 'cat.automotive',
+        'Other': 'cat.other',
+        'Innovation': 'vendor.cat.innovation',
+        'Startup': 'vendor.cat.startup',
+        'Fashion': 'vendor.cat.fashion',
+        'Design': 'vendor.cat.design',
+        'Networking': 'vendor.cat.networking',
+        'Trade Show': 'vendor.cat.tradeShow',
+        'Concert': 'vendor.cat.concert',
+        'Festival': 'vendor.cat.festival',
+        'Theater': 'vendor.cat.theater',
+        'Training': 'vendor.cat.training',
+        'Seminar': 'vendor.cat.seminar',
+        'Marathon': 'vendor.cat.marathon',
+        'Tournament': 'vendor.cat.tournament',
+        'Fitness': 'vendor.cat.fitness',
+        'Food': 'vendor.cat.foodBeverage',
+        'Culinary': 'vendor.cat.culinary',
+        'Wine Tasting': 'vendor.cat.wineTasting',
+        'Food Festival': 'vendor.cat.foodFestival',
+        'Health': 'vendor.cat.health',
+        'Wellness': 'vendor.cat.wellness',
+        'Yoga': 'vendor.cat.yoga',
+        'Meditation': 'vendor.cat.meditation',
+        'Charity': 'vendor.cat.charity',
+        'Fundraising': 'vendor.cat.fundraising',
+        'Community': 'vendor.cat.community',
+        'Social': 'vendor.cat.social',
+        'Expo': 'vendor.cat.expo',
+        'Fair': 'vendor.cat.fair',
+        'Celebration': 'vendor.cat.celebration'
+    };
+
+    const eventCategoryMapInsensitive = Object.create(null);
+    Object.keys(eventCategoryMap).forEach((k) => {
+        eventCategoryMapInsensitive[k.toLowerCase()] = eventCategoryMap[k];
+    });
+
+    function translateEventCategory(raw) {
+        if (raw == null || raw === '') return '';
+        const trimmed = String(raw).trim();
+        let i18nKey = eventCategoryMap[trimmed] || eventCategoryMapInsensitive[trimmed.toLowerCase()];
+        if (i18nKey) return t(i18nKey);
+        const slugKey = `cat.${trimmed.toLowerCase()}`;
+        const viaSlug = t(slugKey);
+        if (viaSlug !== slugKey) return viaSlug;
+        return trimmed;
+    }
+
     // --- DASHBOARD LOGIC ---
     if (document.body.classList.contains('dashboard-body')) {
         initDashboard();
@@ -22,7 +232,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const sidebar = document.getElementById('sidebar');
 
+        function applyOrganizerPageTitle(viewId) {
+            if (!pageTitle) return;
+            const titleKeys = {
+                overview: 'org.page.overviewTitle',
+                'create-event': 'org.page.createEventTitle',
+                'events-list': 'org.page.eventsListTitle',
+                'event-manage': 'org.page.eventManageTitle',
+                vendors: 'org.page.vendorsTitle',
+                requests: 'org.page.requestsTitle',
+                analytics: 'org.page.analyticsTitle',
+                profile: 'org.page.profileTitle',
+            };
+            const fallbackEn = {
+                overview: 'Dashboard Overview',
+                'create-event': 'Create New Event',
+                'events-list': 'My Events',
+                'event-manage': 'Event Management',
+                vendors: 'Vendor Marketplace',
+                requests: 'Manage Requests',
+                analytics: 'Event Analytics',
+                profile: 'My Profile',
+            };
+            const key = titleKeys[viewId];
+            const lang = typeof window.getLang === 'function' ? window.getLang() : (localStorage.getItem('eventia_lang') || 'en');
+            if (!key) {
+                pageTitle.removeAttribute('data-i18n');
+                pageTitle.textContent = fallbackEn[viewId] || 'Dashboard';
+            } else {
+                pageTitle.setAttribute('data-i18n', key);
+                pageTitle.textContent = window.I18N?.[lang]?.[key] ?? window.I18N?.en?.[key] ?? fallbackEn[viewId] ?? 'Dashboard';
+            }
+        }
+
         let currentEditingId = null; // State for Edit Mode
+        let currentView = 'overview';
 
         // Toast Notification Helper
         function showToast(message) {
@@ -54,6 +298,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 3000);
         }
 
+        function showOrganizerFlashMessages() {
+            const dataEl = document.getElementById('organizer-flash-data');
+            if (!dataEl || !dataEl.textContent.trim()) return;
+            try {
+                const items = JSON.parse(dataEl.textContent);
+                items.forEach((item) => {
+                    const msg = translateFlashMessage(item.tags, item.text);
+                    if (msg) showToast(msg);
+                });
+            } catch (e) {
+                console.error('Flash message parse error:', e);
+            }
+        }
+
+        showOrganizerFlashMessages();
+
         // Show full rejection reason in a modal popup
         window.showFullRejectionReason = function (encodedReason) {
             const reason = decodeURIComponent(encodedReason);
@@ -69,13 +329,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
                     <div style="background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 500px; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                            <h3 style="margin: 0; color: #c62828;"><i class="fa-solid fa-circle-xmark" style="margin-right: 0.5rem;"></i> Rejection Reason</h3>
+                            <h3 style="margin: 0; color: #c62828;"><i class="fa-solid fa-circle-xmark" style="margin-right: 0.5rem;"></i> ${t('org.requests.rejectionReason')}</h3>
                             <button class="btn btn-sm btn-outline" onclick="document.getElementById('rejection-comment-modal').remove()">
                                 <i class="fa-solid fa-xmark"></i>
                             </button>
                         </div>
                         <div style="background: #ffebee; padding: 1rem; border-radius: 8px; font-size: 0.95rem; line-height: 1.6; color: #c62828; max-height: 300px; overflow-y: auto;">${reason}</div>
-                        <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;" onclick="document.getElementById('rejection-comment-modal').remove()">Close</button>
+                        <button class="btn btn-primary" style="margin-top: 1.5rem; width: 100%;" onclick="document.getElementById('rejection-comment-modal').remove()">${t('common.close')}</button>
                     </div>
                 </div>
             `;
@@ -126,16 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Update Header Title
-            const titles = {
-                'overview': 'Dashboard Overview',
-                'create-event': 'Create New Event',
-                'events-list': 'My Events',
-                'vendors': 'Vendor Marketplace',
-                'analytics': 'Event Analytics',
-                'profile': 'My Profile'
-            };
-            if (pageTitle) pageTitle.textContent = titles[viewId] || 'Dashboard';
+            applyOrganizerPageTitle(viewId);
 
             // Close sidebar on mobile after selection
             if (window.innerWidth < 992) {
@@ -227,21 +478,133 @@ document.addEventListener('DOMContentLoaded', () => {
             if (existing) existing.remove();
 
             const categories = [
-                { group: 'Food & Beverages', items: ['Catering', 'Bakery & Desserts', 'Beverages', 'Food Trucks'] },
-                { group: 'Venues', items: ['Venue', 'Conference Hall', 'Outdoor Venue'] },
-                { group: 'AV & Technology', items: ['AV Equipment', 'LED Screens', 'Stage & Rigging', 'Live Streaming'] },
-                { group: 'Decoration & Design', items: ['Decoration', 'Floral Design', 'Balloon Decor', 'Event Lighting'] },
-                { group: 'Photography & Media', items: ['Photography', 'Aerial Photography', 'Photo Booth'] },
-                { group: 'Entertainment', items: ['DJ Services', 'Live Entertainment', 'Kids Entertainment', 'Traditional Music', 'Fireworks & Pyro'] },
-                { group: 'Transportation', items: ['Transportation', 'Shuttle Services', 'Valet Parking'] },
-                { group: 'Security & Safety', items: ['Security', 'VIP Security', 'Medical Services'] },
-                { group: 'Staffing & Services', items: ['Event Staff', 'Translation', 'MC & Hosting'] },
-                { group: 'Rentals & Equipment', items: ['Tent Rentals', 'Furniture Rentals', 'Table/Chair Rentals', 'Power Supply'] },
-                { group: 'Marketing & Promotion', items: ['Printing', 'Social Media Marketing', 'Influencer Marketing'] },
-                { group: 'Government & Permits', items: ['Government Permits', 'Safety Permits'] },
-                { group: 'Sponsors & Partners', items: ['Sponsors', 'Brand Partners'] },
-                { group: 'Saudi Cultural', items: ['Henna Artists', 'Falconry Shows', 'Horse Shows', 'Arabian Perfumes', 'Arabic Calligraphy'] },
-                { group: 'Specialized Services', items: ['VR/AR Experiences', 'Eco-Friendly Services', 'Gifts & Giveaways'] }
+                {
+                    group: t('vendor.group.foodBeverages'),
+                    items: [
+                        { value: 'Catering', label: t('common.catering') },
+                        { value: 'Bakery & Desserts', label: t('common.bakeryDesserts') },
+                        { value: 'Beverages', label: t('common.beverages') },
+                        { value: 'Food Trucks', label: t('common.foodTrucks') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.venues'),
+                    items: [
+                        { value: 'Venue', label: t('common.venue') },
+                        { value: 'Conference Hall', label: t('common.conferenceHall') },
+                        { value: 'Outdoor Venue', label: t('common.outdoorVenue') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.avTechnology'),
+                    items: [
+                        { value: 'AV Equipment', label: t('common.avEquipment') },
+                        { value: 'LED Screens', label: t('common.ledScreens') },
+                        { value: 'Stage & Rigging', label: t('common.stageRigging') },
+                        { value: 'Live Streaming', label: t('common.liveStreaming') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.decorationDesign'),
+                    items: [
+                        { value: 'Decoration', label: t('common.decoration') },
+                        { value: 'Floral Design', label: t('common.floralDesign') },
+                        { value: 'Balloon Decor', label: t('common.balloonDecor') },
+                        { value: 'Event Lighting', label: t('common.eventLighting') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.photographyMedia'),
+                    items: [
+                        { value: 'Photography', label: t('common.photography') },
+                        { value: 'Aerial Photography', label: t('common.aerialPhotography') },
+                        { value: 'Photo Booth', label: t('common.photoBooth') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.entertainment'),
+                    items: [
+                        { value: 'DJ Services', label: t('common.dj') },
+                        { value: 'Live Entertainment', label: t('common.liveEntertainment') },
+                        { value: 'Kids Entertainment', label: t('common.kidsEntertainment') },
+                        { value: 'Traditional Music', label: t('common.traditionalMusic') },
+                        { value: 'Fireworks & Pyro', label: t('common.fireworks') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.transportation'),
+                    items: [
+                        { value: 'Transportation', label: t('common.transportation') },
+                        { value: 'Shuttle Services', label: t('common.shuttle') },
+                        { value: 'Valet Parking', label: t('common.valet') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.securitySafety'),
+                    items: [
+                        { value: 'Security', label: t('common.security') },
+                        { value: 'VIP Security', label: t('common.vipSecurity') },
+                        { value: 'Medical Services', label: t('common.medical') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.staffingServices'),
+                    items: [
+                        { value: 'Event Staff', label: t('common.eventStaff') },
+                        { value: 'Translation', label: t('common.translation') },
+                        { value: 'MC & Hosting', label: t('common.mcHosting') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.rentalsEquipment'),
+                    items: [
+                        { value: 'Tent Rentals', label: t('common.tents') },
+                        { value: 'Furniture Rentals', label: t('common.furniture') },
+                        { value: 'Table/Chair Rentals', label: t('common.tableChair') },
+                        { value: 'Power Supply', label: t('common.power') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.marketingPromotion'),
+                    items: [
+                        { value: 'Printing', label: t('common.printing') },
+                        { value: 'Book Sales', label: t('common.bookSales') },
+                        { value: 'Social Media Marketing', label: t('common.socialMedia') },
+                        { value: 'Influencer Marketing', label: t('common.influencer') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.governmentPermits'),
+                    items: [
+                        { value: 'Government Permits', label: t('common.governmentPermits') },
+                        { value: 'Safety Permits', label: t('common.safetyPermits') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.sponsorsPartners'),
+                    items: [
+                        { value: 'Sponsors', label: t('common.sponsors') },
+                        { value: 'Brand Partners', label: t('common.brandPartners') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.saudiCultural'),
+                    items: [
+                        { value: 'Henna Artists', label: t('common.henna') },
+                        { value: 'Falconry Shows', label: t('common.falconry') },
+                        { value: 'Horse Shows', label: t('common.horseShows') },
+                        { value: 'Arabian Perfumes', label: t('common.perfumes') },
+                        { value: 'Arabic Calligraphy', label: t('common.calligraphy') }
+                    ]
+                },
+                {
+                    group: t('vendor.group.specializedServices'),
+                    items: [
+                        { value: 'VR/AR Experiences', label: t('common.vrAr') },
+                        { value: 'Eco-Friendly Services', label: t('common.eco') },
+                        { value: 'Gifts & Giveaways', label: t('common.gifts') }
+                    ]
+                }
             ];
 
             let categoriesHTML = '';
@@ -251,9 +614,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div style="font-weight: 600; color: #333; margin-bottom: 0.5rem; font-size: 0.9rem;">${cat.group}</div>
                         <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
                             ${cat.items.map(item => `
-                                <button class="modal-category-btn" data-category="${item}" 
+                                <button class="modal-category-btn" data-category="${item.value}"
                                     style="padding: 6px 14px; border: 1px solid #e0e0e0; border-radius: 16px; background: white; cursor: pointer; font-size: 0.8rem; transition: all 0.2s ease;">
-                                    ${item}
+                                    ${item.label}
                                 </button>
                             `).join('')}
                         </div>
@@ -266,12 +629,13 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.innerHTML = `
                 <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);" onclick="if(event.target === this) this.parentElement.remove()">
                     <div style="background: white; border-radius: 16px; width: 90%; max-width: 700px; max-height: 80vh; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
-                        <div style="background: linear-gradient(135deg, #004e92, #4dabf7); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0; font-size: 1.1rem;">
-                                <i class="fa-solid fa-grid-2" style="margin-right: 0.5rem;"></i>All Categories
+                        <div style="position: relative; background: linear-gradient(135deg, #004e92, #4dabf7); color: white; padding: 1.25rem 1.5rem 1.25rem 3.25rem;">
+                            <h3 dir="auto" style="margin: 0; font-size: 1.1rem; text-align: start;">
+                                <i class="fa-solid fa-grid-2" style="margin-inline-end: 0.5rem;"></i>
+                                <span>${t('common.allCategories')}</span>
                             </h3>
-                            <button onclick="document.getElementById('categories-modal').remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;">
-                                <i class="fa-solid fa-xmark"></i>
+                            <button type="button" onclick="document.getElementById('categories-modal').remove()" style="position: absolute; top: 50%; left: 1.25rem; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; padding: 0; display: inline-flex; align-items: center; justify-content: center; line-height: 0; z-index: 1;" aria-label="Close">
+                                <i class="fa-solid fa-xmark" style="font-size: 0.9rem; line-height: 1; display: block; transform: translateY(0.08em);" aria-hidden="true"></i>
                             </button>
                         </div>
                         <div style="padding: 1.5rem; overflow-y: auto; max-height: 60vh;">
@@ -326,12 +690,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        function setCreateFormSubmitButton(btn, i18nKey) {
+            if (!btn) return;
+            const label = t(i18nKey);
+            btn.innerHTML = `<span data-i18n="${i18nKey}">${label}</span>`;
+        }
+
         function resetCreateForm() {
             currentEditingId = null;
             if (createEventForm) {
                 createEventForm.reset();
+                if (window.organizerEventDatePickerInstance) {
+                    window.organizerEventDatePickerInstance.clear();
+                }
+                if (typeof window.refreshOrganizerEventTimePicker === 'function') {
+                    window.refreshOrganizerEventTimePicker();
+                }
                 const btn = createEventForm.querySelector('button[type="submit"]');
-                if (btn) btn.textContent = 'Publish Event';
+                setCreateFormSubmitButton(btn, 'org.btn.publish');
 
                 // Reset Headings
                 const formHeader = document.querySelector('#view-create-event .section-header h2');
@@ -342,9 +718,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (container) {
                     container.innerHTML = `
                         <div class="ticket-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="text" class="ticket-name" placeholder="Name (e.g. General)" value="Standard" required style="flex: 2;">
-                            <input type="number" class="ticket-price" placeholder="Price" min="0" required style="flex: 1;">
-                            <input type="number" class="ticket-capacity" placeholder="Max Attendees" min="1" style="flex: 1;">
+                            <input type="text" class="ticket-name" data-i18n-placeholder="org.ticket.namePh" placeholder="${t('org.ticket.namePh')}" value="Standard" required style="flex: 2;">
+                            <input type="number" class="ticket-price" data-i18n-placeholder="org.ticket.pricePh" placeholder="${t('org.ticket.pricePh')}" min="0" required style="flex: 1;">
+                            <input type="number" class="ticket-capacity" data-i18n-placeholder="org.ticket.capacityPh" placeholder="${t('org.ticket.capacityPh')}" min="1" style="flex: 1;">
                             <button type="button" class="btn btn-sm btn-outline remove-ticket-btn" style="color: var(--danger-color); border-color: var(--danger-color);"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     `;
@@ -361,18 +737,40 @@ document.addEventListener('DOMContentLoaded', () => {
             switchView('create-event');
 
             // Override Page Title
-            if (pageTitle) pageTitle.textContent = 'Edit Event';
+            if (pageTitle) {
+                pageTitle.setAttribute('data-i18n', 'org.em.editEvent');
+                const lg = typeof window.getLang === 'function' ? window.getLang() : (localStorage.getItem('eventia_lang') || 'en');
+                pageTitle.textContent =
+                    window.I18N?.[lg]?.['org.em.editEvent'] ??
+                    window.I18N?.en?.['org.em.editEvent'] ??
+                    'Edit Event';
+            }
 
             // Override Form Header
             const formHeader = document.querySelector('#view-create-event .section-header h2');
-            if (formHeader) formHeader.textContent = 'Edit Event';
-
-
+            if (formHeader) formHeader.textContent = t('org.em.editEvent');
             // Populate Form
             document.getElementById('event-title').value = evt.title;
             document.getElementById('event-category').value = evt.category;
-            document.getElementById('event-date').value = evt.date;
-            document.getElementById('event-time').value = evt.time;
+            const dateInput = document.getElementById('event-date');
+            if (evt.date) {
+                dateInput.value = evt.date;
+                if (window.organizerEventDatePickerInstance) {
+                    window.organizerEventDatePickerInstance.setDate(evt.date, false);
+                }
+            } else {
+                dateInput.value = '';
+                if (window.organizerEventDatePickerInstance) {
+                    window.organizerEventDatePickerInstance.clear();
+                }
+            }
+            const pTime = organizerParseHm(evt.time);
+            document.getElementById('event-time').value = pTime
+                ? `${String(pTime.h).padStart(2, '0')}:${String(pTime.min).padStart(2, '0')}`
+                : '';
+            if (typeof window.refreshOrganizerEventTimePicker === 'function') {
+                window.refreshOrganizerEventTimePicker();
+            }
             document.getElementById('event-location').value = evt.location;
             document.getElementById('event-description').value = evt.description;
             // Also repopulate withdrawal policies
@@ -401,9 +799,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 row.className = 'ticket-row';
                 row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px;';
                 row.innerHTML = `
-                    <input type="text" class="ticket-name" placeholder="Name (e.g. General)" value="${ticket.name}" required style="flex: 2;">
-                    <input type="number" class="ticket-price" placeholder="Price" value="${ticket.price}" min="0" required style="flex: 1;">
-                    <input type="number" class="ticket-capacity" placeholder="Max Attendees" value="${ticket.capacity || ''}" min="1" style="flex: 1;">
+                    <input type="text" class="ticket-name" data-i18n-placeholder="org.ticket.namePh" placeholder="${t('org.ticket.namePh')}" value="${ticket.name}" required style="flex: 2;">
+                    <input type="number" class="ticket-price" data-i18n-placeholder="org.ticket.pricePh" placeholder="${t('org.ticket.pricePh')}" value="${ticket.price}" min="0" required style="flex: 1;">
+                    <input type="number" class="ticket-capacity" data-i18n-placeholder="org.ticket.capacityPh" placeholder="${t('org.ticket.capacityPh')}" value="${ticket.capacity || ''}" min="1" style="flex: 1;">
                     <button type="button" class="btn btn-sm btn-outline remove-ticket-btn" style="color: var(--danger-color); border-color: var(--danger-color);"><i class="fa-solid fa-trash"></i></button>
                 `;
                 container.appendChild(row);
@@ -411,16 +809,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update Button
             const btn = createEventForm.querySelector('button[type="submit"]');
-            if (btn) btn.textContent = 'Update Event';
+            setCreateFormSubmitButton(btn, 'org.em.updateEvent');
         }
 
         // --- API DATA ACCESS ---
-        // Use server-injected data immediately so first render is never blank.
-        // The async initData() will re-fetch and overwrite with fresh data.
         let API_DATA = {
-            events: (window.__PRELOADED_EVENTS__ && Array.isArray(window.__PRELOADED_EVENTS__))
-                        ? window.__PRELOADED_EVENTS__ : [],
-            vendors: [], outgoingRequests: [], incomingRequests: [],
+            events: [], vendors: [], outgoingRequests: [], incomingRequests: [],
             eventVendors: [], messages: [], broadcasts: []
         };
 
@@ -435,7 +829,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof updateStats === 'function') updateStats();
             } catch (error) {
                 console.error("API Error:", error);
-                showToast("Error loading data from server.");
+                showToast(t('org.error.loadingData'));
             }
         }
 
@@ -460,9 +854,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     row.className = 'ticket-row';
                     row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px;';
                     row.innerHTML = `
-                        <input type="text" class="ticket-name" placeholder="Name (e.g. General)" required style="flex: 2;">
-                        <input type="number" class="ticket-price" placeholder="Price" min="0" required style="flex: 1;">
-                        <input type="number" class="ticket-capacity" placeholder="Max Attendees" min="1" style="flex: 1;">
+                        <input type="text" class="ticket-name" data-i18n-placeholder="org.ticket.namePh" placeholder="${t('org.ticket.namePh')}" required style="flex: 2;">
+                        <input type="number" class="ticket-price" data-i18n-placeholder="org.ticket.pricePh" placeholder="${t('org.ticket.pricePh')}" min="0" required style="flex: 1;">
+                        <input type="number" class="ticket-capacity" data-i18n-placeholder="org.ticket.capacityPh" placeholder="${t('org.ticket.capacityPh')}" min="1" style="flex: 1;">
                         <button type="button" class="btn btn-sm btn-outline remove-ticket-btn" style="color: var(--danger-color); border-color: var(--danger-color);"><i class="fa-solid fa-trash"></i></button>
                     `;
                     container.appendChild(row);
@@ -478,7 +872,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Optionally clear values instead of removing
                             row.querySelector('.ticket-name').value = '';
                             row.querySelector('.ticket-price').value = '';
-                            showToast('At least one ticket category is required.');
+                            showToast(t('org.toast.ticketRequired'));
                         }
                     }
                 });
@@ -486,7 +880,375 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         setupTicketHandlers(); // Call it
 
+        function refreshOrganizerEventDatePicker() {
+            const el = document.getElementById('event-date');
+            if (!el || typeof flatpickr === 'undefined') return;
 
+            const wrap = el.closest('.organizer-date-input-wrap');
+            const lang = typeof window.getLang === 'function' ? window.getLang() : (localStorage.getItem('eventia_lang') || 'en');
+            const preserved = el.value;
+
+            if (window.organizerEventDatePickerInstance) {
+                try {
+                    window.organizerEventDatePickerInstance.destroy();
+                } catch (e) { /* noop */ }
+                window.organizerEventDatePickerInstance = null;
+            }
+
+            el.setAttribute('type', 'text');
+            el.setAttribute('autocomplete', 'off');
+
+            const fpOpts = {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                altInputClass: 'organizer-event-date-alt flatpickr-input',
+                allowInput: false,
+                disableMobile: true,
+                appendTo: document.body,
+                positionElement: wrap || el,
+                position: 'below auto',
+                onReady: function (_d, _s, inst) {
+                    const alt = inst.altInput;
+                    if (alt) {
+                        alt.classList.add('organizer-event-date-alt');
+                        const lg = typeof window.getLang === 'function' ? window.getLang() : 'en';
+                        const dict = (window.I18N && window.I18N[lg]) || (window.I18N && window.I18N.en) || {};
+                        alt.setAttribute('placeholder', dict['org.ph.eventDate'] || 'dd/mm/yyyy');
+                    }
+                    if (inst.calendarContainer) {
+                        inst.calendarContainer.classList.add('eventia-organizer-fp');
+                        inst.calendarContainer.classList.toggle('eventia-organizer-fp--ar',
+                            lang === 'ar');
+                        inst.calendarContainer.setAttribute('dir', 'ltr');
+                        inst.calendarContainer.style.direction = 'ltr';
+                    }
+                    const iconEl = wrap ? wrap.querySelector('.organizer-date-cal-icon') : null;
+                    if (iconEl) {
+                        iconEl.style.pointerEvents = 'auto';
+                        iconEl.style.cursor = 'pointer';
+                        iconEl.onclick = function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            inst.toggle();
+                        };
+                    }
+                },
+            };
+            if (lang === 'ar' && flatpickr.l10ns && flatpickr.l10ns.ar) {
+                fpOpts.locale = flatpickr.l10ns.ar;
+            }
+
+            window.organizerEventDatePickerInstance = flatpickr(el, fpOpts);
+
+            if (preserved) {
+                window.organizerEventDatePickerInstance.setDate(preserved, false);
+            }
+        }
+        window.refreshOrganizerEventDatePicker = refreshOrganizerEventDatePicker;
+        refreshOrganizerEventDatePicker();
+
+        /* --- Event time: 12h scroll columns (hours | minutes | period), EN + AR same layout --- */
+        const ORG_TIME_ITEM_H = 40;
+        const westernToArabicIndic = (() => {
+            const map = { '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤', '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩' };
+            return (s) => String(s).replace(/[0-9]/g, (d) => map[d] || d);
+        })();
+
+        function organizerTimeLang() {
+            return typeof window.getLang === 'function' ? window.getLang() : (localStorage.getItem('eventia_lang') || 'en');
+        }
+
+        function organizerParseHm(v) {
+            if (v == null || v === '' || v === 'TBD') return null;
+            const m = /^(\d{1,2}):(\d{2})/.exec(String(v).trim());
+            if (!m) return null;
+            const h = parseInt(m[1], 10);
+            const min = parseInt(m[2], 10);
+            if (Number.isNaN(h) || Number.isNaN(min) || h > 23 || min > 59) return null;
+            return { h, min };
+        }
+
+        function organizerFromH24(h24) {
+            const isPm = h24 >= 12;
+            let h12 = h24 % 12;
+            if (h12 === 0) h12 = 12;
+            return { h12, isPm };
+        }
+
+        function organizerToH24(h12, isPm) {
+            if (h12 === 12) return isPm ? 12 : 0;
+            return h12 + (isPm ? 12 : 0);
+        }
+
+        function organizerFormatTimeDisplay(h24, min, lang) {
+            const { h12, isPm } = organizerFromH24(h24);
+            const hh = String(h12).padStart(2, '0');
+            const mm = String(min).padStart(2, '0');
+            const clock = lang === 'ar' ? `${westernToArabicIndic(hh)}:${westernToArabicIndic(mm)}` : `${hh}:${mm}`;
+            if (lang === 'ar') {
+                const ap = isPm ? 'م' : 'ص';
+                return `${clock} ${ap}`;
+            }
+            return `${clock} ${isPm ? 'PM' : 'AM'}`;
+        }
+
+        function setupOrganizerEventTimePicker() {
+            const hidden = document.getElementById('event-time');
+            const wrap = document.querySelector('.organizer-time-input-wrap');
+            if (!hidden || !wrap) return;
+
+            const display = document.getElementById('event-time-display');
+            if (!display) return;
+
+            let popover = document.getElementById('eventia-organizer-time-popover');
+            if (!popover) {
+                popover = document.createElement('div');
+                popover.id = 'eventia-organizer-time-popover';
+                popover.className = 'eventia-organizer-time-popover';
+                popover.setAttribute('role', 'dialog');
+                popover.setAttribute('aria-modal', 'true');
+                popover.innerHTML = `
+                    <div class="eventia-time-picker-shell">
+                        <div class="eventia-time-picker-highlight" aria-hidden="true"></div>
+                        <div class="eventia-time-picker-cols">
+                            <div class="eventia-time-col" data-role="hour"></div>
+                            <div class="eventia-time-col" data-role="minute"></div>
+                            <div class="eventia-time-col" data-role="ampm"></div>
+                        </div>
+                    </div>`;
+                document.body.appendChild(popover);
+            }
+
+            const colHour = popover.querySelector('[data-role="hour"]');
+            const colMin = popover.querySelector('[data-role="minute"]');
+            const colAmpm = popover.querySelector('[data-role="ampm"]');
+
+            let open = false;
+            let syncingScroll = false;
+            let teardownOutside = null;
+            let activeIdx = { hour: 0, minute: 0, ampm: 1 };
+
+            function fillColumns() {
+                const lang = organizerTimeLang();
+                colHour.innerHTML = '';
+                for (let h = 1; h <= 12; h++) {
+                    const label = lang === 'ar' ? westernToArabicIndic(String(h).padStart(2, '0')) : String(h).padStart(2, '0');
+                    colHour.appendChild(makeOpt(label, String(h)));
+                }
+                colMin.innerHTML = '';
+                for (let m = 0; m <= 59; m++) {
+                    const key = String(m).padStart(2, '0');
+                    const label = lang === 'ar' ? westernToArabicIndic(key) : key;
+                    colMin.appendChild(makeOpt(label, key));
+                }
+                colAmpm.innerHTML = '';
+                if (lang === 'ar') {
+                    colAmpm.appendChild(makeOpt('ص', '0'));
+                    colAmpm.appendChild(makeOpt('م', '1'));
+                } else {
+                    colAmpm.appendChild(makeOpt('AM', '0'));
+                    colAmpm.appendChild(makeOpt('PM', '1'));
+                }
+            }
+
+            function makeOpt(labelText, val) {
+                const el = document.createElement('div');
+                el.className = 'eventia-time-option';
+                el.textContent = labelText;
+                el.dataset.value = val;
+                el.setAttribute('role', 'option');
+                return el;
+            }
+
+            function readIndicesFromCols() {
+                return {
+                    hour: Math.min(11, Math.max(0, Math.round(colHour.scrollTop / ORG_TIME_ITEM_H))),
+                    minute: Math.min(59, Math.max(0, Math.round(colMin.scrollTop / ORG_TIME_ITEM_H))),
+                    ampm: Math.min(1, Math.max(0, Math.round(colAmpm.scrollTop / ORG_TIME_ITEM_H))),
+                };
+            }
+
+            function applyIndicesToHidden() {
+                const hour12 = activeIdx.hour + 1;
+                const min = activeIdx.minute;
+                const isPm = activeIdx.ampm === 1;
+                const h24 = organizerToH24(hour12, isPm);
+                hidden.value = `${String(h24).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+                syncDisplayOnly();
+                markSelectedOpts();
+            }
+
+            function indicesFromHm(h24, min) {
+                const { h12, isPm } = organizerFromH24(h24);
+                return {
+                    hour: Math.max(0, Math.min(11, h12 - 1)),
+                    minute: Math.max(0, Math.min(59, min)),
+                    ampm: isPm ? 1 : 0,
+                };
+            }
+
+            function scrollColTo(col, idx) {
+                syncingScroll = true;
+                col.scrollTop = idx * ORG_TIME_ITEM_H;
+                requestAnimationFrame(() => {
+                    syncingScroll = false;
+                });
+            }
+
+            function markSelectedOpts() {
+                [colHour, colMin, colAmpm].forEach((col) => {
+                    const idx = Math.round(col.scrollTop / ORG_TIME_ITEM_H);
+                    col.querySelectorAll('.eventia-time-option').forEach((opt, i) => {
+                        opt.classList.toggle('is-selected', i === idx);
+                    });
+                });
+            }
+
+            function syncDisplayOnly() {
+                const lang = organizerTimeLang();
+                const parsed = organizerParseHm(hidden.value);
+                if (!parsed) {
+                    display.value = '';
+                    display.removeAttribute('value');
+                    return;
+                }
+                display.value = organizerFormatTimeDisplay(parsed.h, parsed.min, lang);
+            }
+
+            function syncFromHiddenToPicker() {
+                const parsed = organizerParseHm(hidden.value);
+                if (!parsed) {
+                    activeIdx = { hour: 11, minute: 0, ampm: 0 };
+                } else {
+                    activeIdx = indicesFromHm(parsed.h, parsed.min);
+                }
+                scrollColTo(colHour, activeIdx.hour);
+                scrollColTo(colMin, activeIdx.minute);
+                scrollColTo(colAmpm, activeIdx.ampm);
+                markSelectedOpts();
+            }
+
+            function positionPopover() {
+                const rect = wrap.getBoundingClientRect();
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                popover.style.maxWidth = 'min(272px, calc(100vw - 24px))';
+                const pw = Math.min(272, vw - 24);
+                let left = rect.left + (rect.width - pw) / 2;
+                left = Math.max(12, Math.min(left, vw - pw - 12));
+                let top = rect.bottom + 6;
+                const ph = popover.offsetHeight || 216;
+                if (top + ph > vh - 12) top = Math.max(12, rect.top - ph - 6);
+                popover.style.left = `${left}px`;
+                popover.style.top = `${top}px`;
+                popover.style.width = `${pw}px`;
+            }
+
+            function openPicker() {
+                if (open) return;
+                fillColumns();
+                syncFromHiddenToPicker();
+                popover.classList.add('is-open');
+                positionPopover();
+                open = true;
+                display.setAttribute('aria-expanded', 'true');
+
+                const docEscHandler = (e) => {
+                    if (e.key === 'Escape') closePicker();
+                };
+                document.addEventListener('keydown', docEscHandler);
+                teardownOutside = (e) => {
+                    if (wrap.contains(e.target) || popover.contains(e.target)) return;
+                    closePicker();
+                };
+                teardownOutside._esc = docEscHandler;
+                setTimeout(() => {
+                    document.addEventListener('mousedown', teardownOutside, true);
+                }, 0);
+            }
+
+            function closePicker() {
+                if (!open) return;
+                popover.classList.remove('is-open');
+                open = false;
+                display.setAttribute('aria-expanded', 'false');
+                if (teardownOutside) {
+                    document.removeEventListener('mousedown', teardownOutside, true);
+                    if (teardownOutside._esc) {
+                        document.removeEventListener('keydown', teardownOutside._esc);
+                    }
+                    teardownOutside = null;
+                }
+            }
+
+            function onColScroll(col) {
+                if (syncingScroll) return;
+                const role = col.getAttribute('data-role');
+                const max = role === 'hour' ? 11 : role === 'minute' ? 59 : 1;
+                let idx = Math.round(col.scrollTop / ORG_TIME_ITEM_H);
+                idx = Math.max(0, Math.min(max, idx));
+                if (Math.abs(col.scrollTop - idx * ORG_TIME_ITEM_H) > 1) {
+                    scrollColTo(col, idx);
+                }
+                activeIdx = readIndicesFromCols();
+                applyIndicesToHidden();
+            }
+
+            const scrollTimers = { hour: null, minute: null, ampm: null };
+
+            [colHour, colMin, colAmpm].forEach((col) => {
+                col.addEventListener('scroll', () => {
+                    const role = col.getAttribute('data-role');
+                    if (!role || !Object.prototype.hasOwnProperty.call(scrollTimers, role)) return;
+                    if (scrollTimers[role]) clearTimeout(scrollTimers[role]);
+                    scrollTimers[role] = setTimeout(() => onColScroll(col), 50);
+                }, { passive: true });
+                col.addEventListener('click', (e) => {
+                    const opt = e.target.closest('.eventia-time-option');
+                    if (!opt || !col.contains(opt)) return;
+                    const i = Array.prototype.indexOf.call(col.children, opt);
+                    if (i < 0) return;
+                    scrollColTo(col, i);
+                    activeIdx = readIndicesFromCols();
+                    applyIndicesToHidden();
+                });
+            });
+
+            display.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (open) closePicker();
+                else openPicker();
+            });
+            display.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (open) closePicker();
+                    else openPicker();
+                }
+                if (e.key === 'Escape' && open) {
+                    e.preventDefault();
+                    closePicker();
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                if (open) positionPopover();
+            });
+
+            function refreshOrganizerEventTimePicker() {
+                fillColumns();
+                syncDisplayOnly();
+                if (open) {
+                    syncFromHiddenToPicker();
+                    positionPopover();
+                }
+            }
+            window.refreshOrganizerEventTimePicker = refreshOrganizerEventTimePicker;
+
+            syncDisplayOnly();
+        }
+        setupOrganizerEventTimePicker();
 
         async function deleteEvent(eventId) {
             try {
@@ -500,11 +1262,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderEvents();
                     updateStats();
                 } else {
-                    showToast('Error deleting event.');
+                    showToast(t('org.error.deletingEvent'));
                 }
             } catch (err) {
                 console.error('Delete error:', err);
-                showToast('Error deleting event.');
+                showToast(t('org.error.deletingEvent'));
             }
         }
 
@@ -517,6 +1279,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (createEventForm) {
             createEventForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+
+                const timeHidden = document.getElementById('event-time');
+                if (!timeHidden || !String(timeHidden.value || '').trim()) {
+                    showToast(t('org.validation.selectEventTime'));
+                    return;
+                }
 
                 // Collect ticket price from the first ticket row
                 const ticketRows = document.querySelectorAll('.ticket-row');
@@ -556,18 +1324,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (response.ok || response.redirected) {
                         const msg = currentEditingId
-                            ? 'Event Updated Successfully!'
-                            : 'Event Submitted for Approval! SCEGA will review your event shortly.';
+                            ? t('org.toast.updated')
+                            : t('org.toast.submitted');
                         showToast(msg);
                         resetCreateForm();
                         await initData();
                         switchView('overview');
                     } else {
-                        showToast('Error saving event.');
+                        showToast(t('org.error.savingEvent'));
                     }
                 } catch (err) {
                     console.error('Save error:', err);
-                    showToast('Error saving event.');
+                    showToast(t('org.error.savingEvent'));
                 }
             });
         }
@@ -642,6 +1410,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     allContainer.innerHTML = sorted.map(evt => createEventListItem(evt)).join('');
+                    // Patch per-event unread badges after DOM is updated
+                    setTimeout(() => { if (typeof window.patchAllUnreadBadges === 'function') window.patchAllUnreadBadges(); }, 0);
                 }
             }
 
@@ -695,18 +1465,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update results count
             if (resultsCount) {
-                const categoryLabel = filterSelect && filterSelect.value !== 'all' ? filterSelect.value : 'all categories';
-                resultsCount.innerHTML = `<strong>${filtered.length}</strong> vendors found${filterSelect && filterSelect.value !== 'all' ? ` in ${categoryLabel}` : ''}`;
+                const categoryLabel = (filterSelect && filterSelect.value !== 'all')
+                    ? translateServiceTypeLabel(filterSelect.value)
+                    : '';
+
+                if (filterSelect && filterSelect.value !== 'all') {
+                    resultsCount.innerHTML = t('org.vendors.resultsFull')
+                        .replace('{count}', filtered.length)
+                        .replace('{category}', categoryLabel);
+                } else {
+                    resultsCount.innerHTML = t('org.vendors.resultsAll')
+                        .replace('{count}', filtered.length);
+                }
             }
 
             if (filtered.length === 0) {
                 grid.innerHTML = `
                 <div style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
                     <i class="fa-solid fa-store-slash" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
-                    <p style="color: #888; margin: 0;">No vendors found matching your criteria.</p>
+                    <p style="color: #888; margin: 0;">${t('org.vendors.noResults')}</p>
                     <button onclick="document.getElementById('vendor-search').value=''; document.getElementById('vendor-category-select').value='all'; document.querySelectorAll('.category-pill').forEach(p => { p.classList.remove('active'); p.style.background='white'; p.style.color='#333'; p.style.border='1px solid #e0e0e0'; }); document.querySelector('.category-pill[data-category=\\'all\\']').classList.add('active'); document.querySelector('.category-pill[data-category=\\'all\\']').style.background='#004e92'; document.querySelector('.category-pill[data-category=\\'all\\']').style.color='white'; renderVendors();" 
                         style="margin-top: 1rem; padding: 8px 16px; border: 1px solid #004e92; border-radius: 8px; background: white; color: #004e92; cursor: pointer; font-size: 0.85rem;">
-                        Clear Filters
+                        ${t('org.vendors.clearFilters')}
                     </button>
                 </div>`;
                 return;
@@ -721,7 +1501,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="vendor-details">
-                        <div class="vendor-category">${vendor.category}</div>
+                        <div class="vendor-category">${translateServiceTypeLabel(vendor.category)}</div>
                         <h3>${vendor.name}</h3>
                         <div class="vendor-location">
                             <i class="fa-solid fa-location-dot"></i> ${vendor.location}
@@ -730,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         <div class="vendor-footer">
                             <span class="vendor-price">${vendor.priceRange}</span>
-                            <button class="btn btn-sm btn-outline send-request-btn" data-id="${vendor.id}" data-name="${vendor.name}">Send Request</button>
+                            <button class="btn btn-sm btn-outline send-request-btn" data-id="${vendor.id}" data-name="${vendor.name}">${t('org.requests.sendRequest')}</button>
                         </div>
                     </div>
                 </div>
@@ -754,15 +1534,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Simplified event item for Dashboard Overview (no SCEGA status column)
         function createDashboardEventItem(evt) {
             const dateObj = new Date(evt.date);
-            const month = dateObj.toLocaleString('default', { month: 'short' });
+            const currentLang = localStorage.getItem('eventia_lang') || 'en';
+            const month = dateObj.toLocaleString(
+                currentLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US',
+                { month: 'short' }
+            ).toUpperCase();
             const day = dateObj.getDate();
 
             // Price Display Logic
-            let priceDisplay = 'Free';
+            let priceDisplay = t('common.free');
             if (evt.price > 0) {
                 priceDisplay = `${evt.price} ${SAR_ICON}`;
                 if (evt.tickets && evt.tickets.length > 1) {
-                    priceDisplay = `From ${evt.price} ${SAR_ICON}`;
+                    priceDisplay = `${t('common.from')} ${evt.price} ${SAR_ICON}`;
                 }
             }
 
@@ -792,7 +1576,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span><i class="fa-regular fa-clock"></i> ${evt.time}</span>
                             <span><i class="fa-solid fa-location-dot"></i> ${evt.location}</span>
                             <span><i class="fa-solid fa-ticket"></i> ${priceDisplay}</span>
-                            <span style="padding: 2px 8px; border-radius: 12px; background: ${stateBg}; color: ${stateColor}; font-weight: 500; font-size: 0.75rem;">${evt.status}</span>
+                            <span style="padding: 2px 8px; border-radius: 12px; background: ${stateBg}; color: ${stateColor}; font-weight: 500; font-size: 0.75rem;">${statusKey(evt.status)}</span>
                         </div>
                     </div>
                 </div>
@@ -801,75 +1585,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function createEventListItem(evt) {
             const dateObj = new Date(evt.date);
-            const month = dateObj.toLocaleString('default', { month: 'short' });
+            const currentLang = localStorage.getItem('eventia_lang') || 'en';
+            const month = dateObj.toLocaleString(
+                currentLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US',
+                { month: 'short' }
+            ).toUpperCase();
             const day = dateObj.getDate();
 
             // Price Display Logic
-            let priceDisplay = 'Free';
+            let priceDisplay = t('common.free');
             if (evt.price > 0) {
                 priceDisplay = `${evt.price} ${SAR_ICON}`;
                 if (evt.tickets && evt.tickets.length > 1) {
-                    priceDisplay = `From ${evt.price} ${SAR_ICON}`;
+                    priceDisplay = `${t('common.from')} ${evt.price} ${SAR_ICON}`;
                 }
             }
 
-            // Calculate Event State (temporal) - based on date comparison
+            // Calculate Event State badge — SCEGA status takes priority for non-approved events
             const todayStr = new Date().toISOString().split('T')[0];
             let eventState, stateColor, stateBg;
-            if (evt.date === todayStr) {
-                eventState = 'Ongoing';
-                stateColor = '#2e7d32'; // Green
+            if (evt.scegaStatus === 'PENDING') {
+                eventState = t('common.pending');
+                stateColor = '#ff9800';
+                stateBg = 'rgba(255, 152, 0, 0.15)';
+            } else if (evt.scegaStatus === 'REJECTED') {
+                eventState = t('status.rejected');
+                stateColor = '#c62828';
+                stateBg = 'rgba(198, 40, 40, 0.15)';
+            } else if (evt.date === todayStr) {
+                eventState = t('status.ongoing');
+                stateColor = '#2e7d32';
                 stateBg = 'rgba(46, 125, 50, 0.15)';
             } else if (evt.date > todayStr) {
-                eventState = 'Upcoming';
+                eventState = t('status.upcoming');
                 stateColor = '#7b1fa2';
                 stateBg = 'rgba(123, 31, 162, 0.15)';
             } else {
-                eventState = 'Past';
+                eventState = t('status.past');
                 stateColor = '#757575';
                 stateBg = 'rgba(117, 117, 117, 0.15)';
             }
             const eventStateBadge = `<span style="font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; background: ${stateBg}; color: ${stateColor}; font-weight: 500; margin-left: 8px;">${eventState}</span>`;
 
-            // SCEGA Approval Status Column - Dedicated visual display
+            // SCEGA Approval Status Column — driven by scegaStatus (PENDING/APPROVED/REJECTED)
             let scegaStatusIcon, scegaStatusColor, scegaStatusBg, scegaStatusText;
-            switch (evt.status) {
-                case 'Pending':
+            switch (evt.scegaStatus) {
+                case 'PENDING':
                     scegaStatusIcon = 'fa-clock';
                     scegaStatusColor = '#ff9800';
                     scegaStatusBg = 'rgba(255, 152, 0, 0.1)';
-                    scegaStatusText = 'Pending Review';
+                    scegaStatusText = t('status.pendingReview');
                     break;
-                case 'Rejected':
+                case 'REJECTED':
                     scegaStatusIcon = 'fa-circle-xmark';
                     scegaStatusColor = '#c62828';
                     scegaStatusBg = 'rgba(198, 40, 40, 0.1)';
-                    scegaStatusText = 'Rejected';
+                    scegaStatusText = t('status.rejected');
                     break;
-                default: // Upcoming, Ongoing, Past = Approved
+                default: // APPROVED
                     scegaStatusIcon = 'fa-circle-check';
                     scegaStatusColor = '#2e7d32';
                     scegaStatusBg = 'rgba(46, 125, 50, 0.1)';
-                    scegaStatusText = 'Approved';
+                    scegaStatusText = t('status.approved');
             }
 
-            // Rejection info for rejected events
+            // Rejection reason note — shown for any REJECTED event (past or future)
             let rejectionInfo = '';
-            if (evt.status === 'Rejected' && evt.rejectionReason) {
+            if (evt.scegaStatus === 'REJECTED' && evt.rejectionReason) {
                 const maxLen = 40;
                 if (evt.rejectionReason.length <= maxLen) {
                     rejectionInfo = `
-                        <div style="font-size: 0.75rem; color: #c62828; margin-top: 0.25rem;">
+                        <div class="scega-rejection-note">
                             <i class="fa-solid fa-comment"></i> ${evt.rejectionReason}
                         </div>
                     `;
                 } else {
                     const truncated = evt.rejectionReason.substring(0, maxLen) + '...';
                     rejectionInfo = `
-                        <div style="font-size: 0.75rem; color: #c62828; margin-top: 0.25rem;">
+                        <div class="scega-rejection-note">
                             <i class="fa-solid fa-comment"></i> ${truncated}
                             <button class="btn btn-sm" style="padding: 1px 6px; font-size: 0.65rem; margin-left: 4px; background: #c62828; color: white; border: none; border-radius: 4px; cursor: pointer;" onclick="showFullRejectionReason('${encodeURIComponent(evt.rejectionReason)}')">
-                                <i class="fa-solid fa-eye"></i> View
+                                <i class="fa-solid fa-eye"></i> <span>${t('common.view')}</span>
                             </button>
                         </div>
                     `;
@@ -878,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Single Manage button — edit & delete accessed inside the manage view
             const actionButtons = `
-                <button class="btn btn-sm btn-primary manage-btn" data-id="${evt.id}"><i class="fa-solid fa-sliders"></i> Manage</button>
+                <button class="btn btn-sm btn-primary manage-btn" data-id="${evt.id}"><i class="fa-solid fa-sliders"></i> <span>${t('org.manage.manage')}</span></button>
             `;
 
             return `
@@ -959,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const events = getEvents();
             const outgoingSelect = document.getElementById('request-event-filter');
             const incomingSelect = document.getElementById('incoming-event-filter');
-            const optionHtml = '<option value="all">All Events</option>' + (events || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('');
+            const optionHtml = `<option value="all">${t('common.allEvents')}</option>` + (events || []).map(e => `<option value="${e.id}">${e.title}</option>`).join('');
             if (outgoingSelect) outgoingSelect.innerHTML = optionHtml;
             if (incomingSelect) incomingSelect.innerHTML = optionHtml;
         }
@@ -990,7 +1786,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // If one event selected, only that event
             const eventIds = eventFilter && eventFilter.value !== 'all' ? [eventFilter.value] : Object.keys(byEvent);
 
-            if (countLabel) countLabel.textContent = filtered.length ? `${filtered.length} request${filtered.length > 1 ? 's' : ''}` : '';
+            if (countLabel) countLabel.textContent = filtered.length ? formatOrganizerRequestCount(filtered.length) : '';
 
             if (filtered.length === 0 || eventIds.length === 0) {
                 container.innerHTML = '';
@@ -1001,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noMsg) noMsg.style.display = 'none';
 
             // Sort event IDs by event title
-            const eventList = eventIds.map(eid => ({ id: eid, evt: events.find(e => e.id === eid) || { title: 'Unlinked Event' } }));
+            const eventList = eventIds.map(eid => ({ id: eid, evt: events.find(e => e.id === eid) || { title: t('org.requests.unlinkedEvent') } }));
             eventList.sort((a, b) => (a.evt.title || '').localeCompare(b.evt.title || ''));
 
             container.innerHTML = eventList.map(({ id: eventId, evt }) => {
@@ -1012,20 +1808,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     let statusIcon = '<i class="fa-solid fa-clock"></i>';
                     if (req.status === 'Approved') { statusClass = 'status-approved'; statusIcon = '<i class="fa-solid fa-check-circle"></i>'; }
                     else if (req.status === 'Rejected') { statusClass = 'status-rejected'; statusIcon = '<i class="fa-solid fa-circle-xmark"></i>'; }
-                    const formattedDate = new Date(req.dateSent).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     return `
                         <tr>
                             <td>
                                 <div class="req-table-vendor">
                                     <span class="req-table-vendor-name">${vendor.name}</span>
-                                    <span class="req-table-vendor-cat">${vendor.category}</span>
+                                    <span class="req-table-vendor-cat">${translateServiceTypeLabel(vendor.category)}</span>
                                 </div>
                             </td>
-                            <td><span class="status-badge ${statusClass}">${statusIcon} ${invitationStatusLabel(req.status)}</span></td>
+                            <td><span class="status-badge ${statusClass}">${statusIcon} ${statusKey(invitationStatusLabel(req.status))}</span></td>
                             <td class="req-table-details-cell">
+                                <div class="req-table-details-wrap">
                                 <button type="button" class="btn btn-sm btn-outline req-btn-view" onclick="openRequestDetailModal('${req.id}', 'outgoing')">
-                                    <i class="fa-solid fa-eye"></i> View
+                                    <i class="fa-solid fa-eye"></i> <span>${t('common.view')}</span>
                                 </button>
+                                </div>
                             </td>
                         </tr>`;
                 }).join('');
@@ -1037,9 +1834,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             <table class="data-table req-table">
                                 <thead>
                                     <tr>
-                                        <th class="req-th-vendor">Vendor</th>
-                                        <th class="req-th-status">Status</th>
-                                        <th class="req-th-details">Details</th>
+                                        <th class="req-th-vendor">${t('common.vendor')}</th>
+                                        <th class="req-th-status">${t('common.status')}</th>
+                                        <th class="req-th-details">${t('common.details')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>${rowsHtml}</tbody>
@@ -1063,7 +1860,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const eventSelect = document.getElementById('request-event-select');
             const events = getEvents().filter(e => e.status === 'Upcoming' || e.status === 'Ongoing');
 
-            eventSelect.innerHTML = '<option value="" disabled selected>Choose an event...</option>';
+            eventSelect.innerHTML = `<option value="" disabled selected>${t('org.requests.chooseEvent')}</option>`;
             events.forEach(evt => {
                 const option = document.createElement('option');
                 option.value = evt.id;
@@ -1106,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     if (response.ok || response.redirected) {
-                        showToast('Request sent to vendor successfully!');
+                        showToast(t('org.requests.sentSuccess'));
                         if (requestModal) requestModal.classList.add('hidden');
                         requestForm.reset();
                         await initData();
@@ -1115,7 +1912,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         throw new Error('Failed');
                     }
                 } catch (err) {
-                    showToast('Error sending request.');
+                    showToast(t('org.error.sendingRequest'));
                 }
             });
         }
@@ -1153,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const eventIds = eventFilter && eventFilter.value !== 'all' ? [eventFilter.value] : Object.keys(byEvent);
 
-            if (countLabel) countLabel.textContent = filtered.length ? `${filtered.length} request${filtered.length > 1 ? 's' : ''}` : '';
+            if (countLabel) countLabel.textContent = filtered.length ? formatOrganizerRequestCount(filtered.length) : '';
 
             if (filtered.length === 0 || eventIds.length === 0) {
                 container.innerHTML = '';
@@ -1163,7 +1960,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (noMsg) noMsg.style.display = 'none';
 
-            const eventList = eventIds.map(eid => ({ id: eid, evt: events.find(e => e.id === eid) || { title: 'Unknown Event' } }));
+            const eventList = eventIds.map(eid => ({ id: eid, evt: events.find(e => e.id === eid) || { title: t('org.requests.unknownEvent') } }));
             eventList.sort((a, b) => (a.evt.title || '').localeCompare(b.evt.title || ''));
 
             container.innerHTML = eventList.map(({ id: eventId, evt }) => {
@@ -1176,8 +1973,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isPending = req.status === 'Pending';
                     const actionsHtml = isPending
                         ? `
-                            <button type="button" class="btn btn-sm btn-success" onclick="handleIncomingRequest('${req.id}', 'approve')"><i class="fa-solid fa-check"></i> Approve</button>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="handleIncomingRequest('${req.id}', 'reject')"><i class="fa-solid fa-xmark"></i> Reject</button>
+                            <button type="button" class="btn btn-sm btn-success" onclick="handleIncomingRequest('${req.id}', 'approve')"><i class="fa-solid fa-check"></i> ${t('common.approve')}</button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="handleIncomingRequest('${req.id}', 'reject')"><i class="fa-solid fa-xmark"></i> ${t('common.reject')}</button>
                         `
                         : '<span class="req-table-no-action">—</span>';
                     return `
@@ -1188,13 +1985,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span class="req-table-vendor-cat">${req.vendorEmail || '—'}</span>
                                 </div>
                             </td>
-                            <td><span class="status-badge ${statusClass}">${statusIcon} ${req.status}</span></td>
+                            <td><span class="status-badge ${statusClass}">${statusIcon} ${statusKey(req.status)}</span></td>
                             <td class="req-table-details-cell">
+                                <div class="req-table-details-wrap">
                                 <button type="button" class="btn btn-sm btn-outline req-btn-view" onclick="openRequestDetailModal('${req.id}', 'incoming')">
-                                    <i class="fa-solid fa-eye"></i> View
+                                    <i class="fa-solid fa-eye"></i> <span>${t('common.view')}</span>
                                 </button>
+                                </div>
                             </td>
-                            <td class="req-table-actions-cell">${actionsHtml}</td>
+                            <td class="req-table-actions-cell"><div class="req-table-actions-wrap">${actionsHtml}</div></td>
                         </tr>`;
                 }).join('');
 
@@ -1205,10 +2004,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <table class="data-table req-table">
                                 <thead>
                                     <tr>
-                                        <th class="req-th-vendor">Vendor</th>
-                                        <th class="req-th-status">Status</th>
-                                        <th class="req-th-details">Details</th>
-                                        <th class="req-th-actions">Actions</th>
+                                        <th class="req-th-vendor">${t('common.vendor')}</th>
+                                        <th class="req-th-status">${t('common.status')}</th>
+                                        <th class="req-th-details">${t('common.details')}</th>
+                                        <th class="req-th-actions">${t('common.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>${rowsHtml}</tbody>
@@ -1222,6 +2021,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const modal = document.getElementById('request-detail-modal');
             if (!modal) return;
 
+            modal.dataset.requestId = requestId;
+            modal.dataset.requestType = type;
+
             const events = getEvents();
             const titleEl = document.getElementById('request-detail-modal-title');
             const eventTitleEl = document.getElementById('request-detail-event-title');
@@ -1233,6 +2035,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const rejectionWrap = document.getElementById('request-detail-rejection-wrap');
             const rejectionEl = document.getElementById('request-detail-rejection');
             const statusEl = document.getElementById('request-detail-status');
+
+            const localeLang = localStorage.getItem('eventia_lang') || 'en';
+            const dateLocale = localeLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
 
             if (vendorWrap) vendorWrap.style.display = 'none';
             const attachmentWrapEl = document.getElementById('request-detail-attachment-wrap');
@@ -1246,27 +2051,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const vendors = getVendors();
                 const vendor = vendors.find(v => v.id === req.vendorId) || { name: 'Unknown Vendor' };
 
-                titleEl.textContent = 'Request Details';
-                eventTitleEl.textContent = evt.title || 'Unlinked Event';
-                categoryEl.textContent = evt.category || 'Event';
+                titleEl.textContent = t('org.requests.requestDetails');
+                eventTitleEl.textContent = evt.title || t('org.requests.unlinkedEvent');
+                categoryEl.textContent = evt.category ? translateEventCategory(evt.category) : '';
                 categoryEl.style.display = evt.category ? 'inline-block' : 'none';
 
-                const sentDate = new Date(req.dateSent).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                const eventDate = evt.date ? new Date(evt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-                const policyLabels = { 'flexible': 'Flexible', 'moderate': 'Moderate (14 days)', 'strict': 'Strict (30 days)', 'non-refundable': 'Non-refundable' };
+                const sentDate = new Date(req.dateSent).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' });
+                const eventDate = evt.date ? new Date(evt.date).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+                const policyLabels = { 'flexible': t('policy.flexible'), 'moderate': t('policy.moderate'), 'strict': t('policy.strict'), 'non-refundable': t('policy.nonRefundable') };
                 const policyColors = { 'flexible': '#2e7d32', 'moderate': '#ff9800', 'strict': '#e65100', 'non-refundable': '#c62828' };
                 const pol = evt.withdrawalPolicy;
-                const policyLabel = policyLabels[pol] || 'Not set';
+                const policyLabel = policyLabels[pol] || t('common.notSet');
                 const policyColor = policyColors[pol] || '#666';
 
                 chipsEl.innerHTML = `
-                    <div class="req-chip"><i class="fa-regular fa-clock"></i><div class="req-chip-inner"><span class="req-chip-label">Sent</span><span class="req-chip-value">${sentDate}</span></div></div>
-                    <div class="req-chip"><i class="fa-solid fa-calendar-days"></i><div class="req-chip-inner"><span class="req-chip-label">Event date</span><span class="req-chip-value">${eventDate}</span></div></div>
-                    <div class="req-chip"><i class="fa-solid fa-location-dot"></i><div class="req-chip-inner"><span class="req-chip-label">Location</span><span class="req-chip-value">${evt.location || '—'}</span></div></div>
-                    ${pol ? `<div class="req-chip"><i class="fa-solid fa-shield-halved" style="color: ${policyColor}"></i><div class="req-chip-inner"><span class="req-chip-label">Withdrawal</span><span class="req-chip-value" style="color: ${policyColor}; font-weight: 600;">${policyLabel}</span></div></div>` : ''}
+                    <div class="req-chip"><i class="fa-regular fa-clock"></i><div class="req-chip-inner"><span class="req-chip-label">${t('org.requests.sent')}</span><span class="req-chip-value">${sentDate}</span></div></div>
+                    <div class="req-chip"><i class="fa-solid fa-calendar-days"></i><div class="req-chip-inner"><span class="req-chip-label">${t('org.requests.eventDate')}</span><span class="req-chip-value">${eventDate}</span></div></div>
+                    <div class="req-chip"><i class="fa-solid fa-location-dot"></i><div class="req-chip-inner"><span class="req-chip-label">${t('common.location')}</span><span class="req-chip-value">${evt.location || '—'}</span></div></div>
+                    ${pol ? `<div class="req-chip"><i class="fa-solid fa-shield-halved" style="color: ${policyColor}"></i><div class="req-chip-inner"><span class="req-chip-label">${t('org.policy.vendorLabelPlain')}</span><span class="req-chip-value" style="color: ${policyColor}; font-weight: 600;">${policyLabel}</span></div></div>` : ''}
                 `;
 
-                messageLabelEl.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Your invitation';
+                messageLabelEl.innerHTML = '<i class="fa-solid fa-paper-plane" aria-hidden="true"></i> <span dir="auto">' + t('org.requests.yourInvitation') + '</span>';
                 messageEl.textContent = req.message || '—';
 
                 if (req.status === 'Rejected' && (req.rejectionReason || '').trim()) {
@@ -1281,34 +2086,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (req.status === 'Approved') { statusClass = 'status-approved'; statusIcon = '<i class="fa-solid fa-check-circle"></i>'; }
                 else if (req.status === 'Rejected') { statusClass = 'status-rejected'; statusIcon = '<i class="fa-solid fa-circle-xmark"></i>'; }
                 statusEl.className = 'status-badge ' + statusClass;
-                statusEl.innerHTML = statusIcon + ' ' + invitationStatusLabel(req.status);
+                statusEl.innerHTML = statusIcon + ' ' + statusKey(invitationStatusLabel(req.status));
             } else {
                 const requests = getIncomingRequests();
                 const req = requests.find(r => r.id === requestId);
                 if (!req) return;
                 const evt = events.find(e => e.id === req.eventId) || {};
 
-                titleEl.textContent = 'Application Details';
-                eventTitleEl.textContent = evt.title || 'Unknown Event';
-                categoryEl.textContent = evt.category || 'Event';
+                titleEl.textContent = t('org.requests.applicationDetails');
+                eventTitleEl.textContent = evt.title || t('org.requests.unknownEvent');
+                categoryEl.textContent = evt.category ? translateEventCategory(evt.category) : '';
                 categoryEl.style.display = evt.category ? 'inline-block' : 'none';
 
                 if (vendorWrap) {
                     vendorWrap.style.display = 'block';
                     document.getElementById('request-detail-vendor-name').textContent = req.vendorName || '—';
                     document.getElementById('request-detail-vendor-email').textContent = req.vendorEmail || '—';
-                    document.getElementById('request-detail-vendor-service').textContent = req.serviceType || '—';
+                    document.getElementById('request-detail-vendor-service').textContent = req.serviceType ? translateServiceTypeLabel(req.serviceType) : '—';
                 }
 
-                const receivedDate = new Date(req.dateReceived).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                const eventDate = evt.date ? new Date(evt.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+                const receivedDate = new Date(req.dateReceived).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' });
+                const eventDateIncoming = evt.date ? new Date(evt.date).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
                 chipsEl.innerHTML = `
-                    <div class="req-chip"><i class="fa-regular fa-clock"></i><div class="req-chip-inner"><span class="req-chip-label">Received</span><span class="req-chip-value">${receivedDate}</span></div></div>
-                    <div class="req-chip"><i class="fa-solid fa-calendar-days"></i><div class="req-chip-inner"><span class="req-chip-label">Event date</span><span class="req-chip-value">${eventDate}</span></div></div>
-                    <div class="req-chip"><i class="fa-solid fa-location-dot"></i><div class="req-chip-inner"><span class="req-chip-label">Location</span><span class="req-chip-value">${evt.location || '—'}</span></div></div>
+                    <div class="req-chip"><i class="fa-regular fa-clock"></i><div class="req-chip-inner"><span class="req-chip-label">${t('org.requests.received')}</span><span class="req-chip-value">${receivedDate}</span></div></div>
+                    <div class="req-chip"><i class="fa-solid fa-calendar-days"></i><div class="req-chip-inner"><span class="req-chip-label">${t('org.requests.eventDate')}</span><span class="req-chip-value">${eventDateIncoming}</span></div></div>
+                    <div class="req-chip"><i class="fa-solid fa-location-dot"></i><div class="req-chip-inner"><span class="req-chip-label">${t('common.location')}</span><span class="req-chip-value">${evt.location || '—'}</span></div></div>
                 `;
 
-                messageLabelEl.innerHTML = '<i class="fa-solid fa-message"></i> Vendor\'s proposal';
+                messageLabelEl.innerHTML = '<i class="fa-solid fa-message" aria-hidden="true"></i> <span dir="auto">' + t('org.requests.vendorProposal') + '</span>';
                 messageEl.textContent = req.message || '—';
 
                 // Show vendor attachment if present (card layout with View / Download)
@@ -1345,7 +2150,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (req.status === 'Approved') { statusClass = 'status-approved'; statusIcon = '<i class="fa-solid fa-check-circle"></i>'; }
                 else if (req.status === 'Rejected') { statusClass = 'status-rejected'; statusIcon = '<i class="fa-solid fa-circle-xmark"></i>'; }
                 statusEl.className = 'status-badge ' + statusClass;
-                statusEl.innerHTML = statusIcon + ' ' + req.status;
+                statusEl.innerHTML = statusIcon + ' ' + statusKey(req.status);
             }
 
             modal.classList.remove('hidden');
@@ -1386,13 +2191,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok || response.redirected) {
                     await initData();
                     renderIncomingRequests();
-                    showToast('Request rejected.');
+                    showToast(t('org.requests.rejectedSuccess'));
                     closeRejectionModal();
                 } else {
-                    showToast('Error rejecting request.');
+                    showToast(t('org.error.rejectingRequest'));
                 }
             } catch (err) {
-                showToast('Error rejecting request.');
+                showToast(t('org.error.rejectingRequest'));
             }
         };
 
@@ -1413,12 +2218,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (response.ok || response.redirected) {
                         await initData();
                         renderIncomingRequests();
-                        showToast('Request approved!');
+                        showToast(t('org.requests.approvedSuccess'));
                     } else {
-                        showToast('Error approving request.');
+                        showToast(t('org.error.approvingRequest'));
                     }
                 } catch (err) {
-                    showToast('Error approving request.');
+                    showToast(t('org.error.approvingRequest'));
                 }
             }
         };
@@ -1452,7 +2257,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Style active tab (blue gradient)
                 tab.classList.add('active');
-                tab.style.border = 'none';
+                tab.style.border = '2px solid transparent';
                 tab.style.background = 'linear-gradient(135deg, #1565c0, #0d47a1)';
                 tab.style.boxShadow = '0 4px 15px rgba(21, 101, 192, 0.3)';
                 // Style active icon container
@@ -1503,6 +2308,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update SwitchView to handle requests
         const originalSwitchView = window.switchView;
         window.switchView = function (viewId) {
+            currentView = viewId;
+
             // Update Sidebar Active State
             sidebarItems.forEach(item => {
                 item.classList.remove('active');
@@ -1519,18 +2326,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Update Header Title
-            const titles = {
-                'overview': 'Dashboard Overview',
-                'create-event': 'Create New Event',
-                'events-list': 'My Events',
-                'event-manage': 'Event Management',
-                'vendors': 'Vendor Marketplace',
-                'requests': 'Manage Requests',
-                'analytics': 'Event Analytics',
-                'profile': 'My Profile'
-            };
-            if (pageTitle) pageTitle.textContent = titles[viewId] || 'Dashboard';
+            applyOrganizerPageTitle(viewId);
 
             // Close sidebar on mobile
             if (window.innerWidth < 992) {
@@ -1613,19 +2409,19 @@ document.addEventListener('DOMContentLoaded', () => {
             // State badge
             const todayStr = new Date().toISOString().split('T')[0];
             let stateTxt, stateColor, stateBg;
-            if (evt.date === todayStr) { stateTxt = 'Ongoing'; stateColor = '#2e7d32'; stateBg = 'rgba(46,125,50,0.2)'; }
-            else if (evt.date > todayStr) { stateTxt = 'Upcoming'; stateColor = '#7b1fa2'; stateBg = 'rgba(123,31,162,0.2)'; }
-            else { stateTxt = 'Past'; stateColor = '#757575'; stateBg = 'rgba(117,117,117,0.2)'; }
+            if (evt.date === todayStr) { stateTxt = t('status.ongoing'); stateColor = '#2e7d32'; stateBg = 'rgba(46,125,50,0.2)'; }
+            else if (evt.date > todayStr) { stateTxt = t('status.upcoming'); stateColor = '#7b1fa2'; stateBg = 'rgba(123,31,162,0.2)'; }
+            else { stateTxt = t('status.past'); stateColor = '#757575'; stateBg = 'rgba(117,117,117,0.2)'; }
             const stateBadge = document.getElementById('em-event-state-badge');
             stateBadge.textContent = stateTxt;
             stateBadge.style.background = stateBg;
             stateBadge.style.color = stateColor;
 
-            // SCEGA badge
+            // SCEGA badge — use scegaStatus (PENDING/APPROVED/REJECTED) not temporal status
             let scegaTxt, scegaColor, scegaBg;
-            if (evt.status === 'Pending') { scegaTxt = '⏳ Pending Approval'; scegaColor = '#e65100'; scegaBg = 'rgba(255,152,0,0.2)'; }
-            else if (evt.status === 'Rejected') { scegaTxt = '❌ Rejected'; scegaColor = '#c62828'; scegaBg = 'rgba(198,40,40,0.2)'; }
-            else { scegaTxt = '✅ SCEGA Approved'; scegaColor = '#2e7d32'; scegaBg = 'rgba(46,125,50,0.2)'; }
+            if (evt.scegaStatus === 'PENDING') { scegaTxt = `⏳ ${t('status.pendingApproval')}`; scegaColor = '#e65100'; scegaBg = 'rgba(255,152,0,0.2)'; }
+            else if (evt.scegaStatus === 'REJECTED') { scegaTxt = `❌ ${t('status.rejected')}`; scegaColor = '#c62828'; scegaBg = 'rgba(198,40,40,0.2)'; }
+            else { scegaTxt = `✅ ${t('org.scegaApproved')}`; scegaColor = '#2e7d32'; scegaBg = 'rgba(46,125,50,0.2)'; }
             const scegaBadge = document.getElementById('em-scega-badge');
             scegaBadge.textContent = scegaTxt;
             scegaBadge.style.background = scegaBg;
@@ -1642,14 +2438,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
             const countdownEl = document.getElementById('em-stat-countdown');
             if (diffDays > 0) countdownEl.textContent = diffDays;
-            else if (diffDays === 0) countdownEl.textContent = 'Today';
-            else countdownEl.textContent = 'Ended';
+            else if (diffDays === 0) countdownEl.textContent = t('common.today');
+            else countdownEl.textContent = t('common.ended');
 
             // Overview tab data
             document.getElementById('em-ov-title').textContent = evt.title;
-            document.getElementById('em-ov-category').textContent = evt.category;
+            document.getElementById('em-ov-category').textContent = evt.category ? (t(`cat.${evt.category.toLowerCase()}`) || evt.category) : '';
             document.getElementById('em-ov-description').textContent = evt.description;
-            const dateFormatted = new Date(evt.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const ovLang = localStorage.getItem('eventia_lang') || 'en';
+            const ovLocale = ovLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
+
+            const dateFormatted = new Date(evt.date).toLocaleDateString(ovLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
             document.getElementById('em-ov-date').textContent = dateFormatted;
             document.getElementById('em-ov-time').textContent = evt.time;
             document.getElementById('em-ov-location').textContent = evt.location;
@@ -1658,38 +2457,40 @@ document.addEventListener('DOMContentLoaded', () => {
             const ticketsEl = document.getElementById('em-ov-tickets');
             if (evt.tickets && evt.tickets.length > 0) {
                 ticketsEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">' +
-                    evt.tickets.map(t => `<div class="em-ticket-tier"><span class="tier-name">${t.name}</span><span class="tier-price">${t.price > 0 ? t.price + ' ' + SAR_ICON : 'Free'}</span></div>`).join('') + '</div>';
+                    evt.tickets.map(ticket => `
+                        <div class="em-ticket-tier"><span class="tier-name">${ticket.name}</span>
+                        <span class="tier-price">${ticket.price > 0 ? ticket.price + ' ' + SAR_ICON : t('common.free')}</span></div>`).join('') + '</div>';
             } else {
-                ticketsEl.innerHTML = '<p style="color:#888;margin:0;">No ticket tiers defined.</p>';
+                ticketsEl.innerHTML = `<p style="color:#888;margin:0;">${t('org.em.noTicketTiers')}</p>`;
             }
 
             // Withdrawal Policies
             const policyMeta = {
-                'flexible': { label: '✦ Flexible', css: 'em-policy-flexible', desc: 'Vendors can withdraw up to 7 days before the event starts.' },
-                'moderate': { label: '✦ Moderate', css: 'em-policy-moderate', desc: 'Withdrawal allowed up to 14 days before the event.' },
-                'strict': { label: '✦ Strict', css: 'em-policy-strict', desc: 'Withdrawal allowed up to 30 days before the event.' },
-                'non-refundable': { label: '✦ Non-refundable', css: 'em-policy-non-refundable', desc: 'No withdrawal or cancellations permitted once confirmed.' }
+                'flexible': { label: `✦ ${t('policy.flexible')}`, css: 'em-policy-flexible', desc: t('org.policy.vendor.flexibleDesc') },
+                'moderate': { label: `✦ ${t('policy.moderate')}`, css: 'em-policy-moderate', desc: t('org.policy.vendor.moderateDesc') },
+                'strict': { label: `✦ ${t('policy.strict')}`, css: 'em-policy-strict', desc: t('org.policy.vendor.strictDesc') },
+                'non-refundable': { label: `✦ ${t('policy.nonRefundable')}`, css: 'em-policy-non-refundable', desc: t('org.policy.vendor.nonRefundableDesc') }
             };
             const attendeePolicyMeta = {
-                'flexible': { label: '✦ Flexible', css: 'em-policy-flexible', desc: 'Full refund available up to 1 day before the event.' },
-                'moderate': { label: '✦ Moderate', css: 'em-policy-moderate', desc: 'Full refund available up to 7 days before the event.' },
-                'strict': { label: '✦ Strict', css: 'em-policy-strict', desc: 'Full refund available up to 30 days before the event.' },
-                'non-refundable': { label: '✦ Non-refundable', css: 'em-policy-non-refundable', desc: 'No refunds allowed once tickets are purchased.' }
+                'flexible': { label: `✦ ${t('policy.flexible')}`, css: 'em-policy-flexible', desc: t('org.policy.attendee.flexibleDesc') },
+                'moderate': { label: `✦ ${t('policy.moderate')}`, css: 'em-policy-moderate', desc: t('org.policy.attendee.moderateDesc') },
+                'strict': { label: `✦ ${t('policy.strict')}`, css: 'em-policy-strict', desc: t('org.policy.attendee.strictDesc') },
+                'non-refundable': { label: `✦ ${t('policy.nonRefundable')}`, css: 'em-policy-non-refundable', desc: t('org.policy.attendee.nonRefundableDesc') }
             };
 
             const vendorBadgeEl = document.getElementById('em-ov-vendor-policy-badge');
             const vendorDescEl = document.getElementById('em-ov-vendor-policy-desc');
             const vendorPol = evt.withdrawalPolicy ? policyMeta[evt.withdrawalPolicy] : null;
             vendorBadgeEl.className = 'em-policy-badge ' + (vendorPol ? vendorPol.css : 'em-policy-none');
-            vendorBadgeEl.textContent = vendorPol ? vendorPol.label : '— Not Set';
-            vendorDescEl.textContent = vendorPol ? vendorPol.desc : 'No vendor withdrawal policy has been configured for this event.';
+            vendorBadgeEl.textContent = vendorPol ? vendorPol.label : t('common.dashNotSet');
+            vendorDescEl.textContent = vendorPol ? vendorPol.desc : t('org.policy.vendor.notConfigured');
 
             const attendeeBadgeEl = document.getElementById('em-ov-attendee-policy-badge');
             const attendeeDescEl = document.getElementById('em-ov-attendee-policy-desc');
             const attendeePol = evt.attendeeWithdrawalPolicy ? attendeePolicyMeta[evt.attendeeWithdrawalPolicy] : null;
             attendeeBadgeEl.className = 'em-policy-badge ' + (attendeePol ? attendeePol.css : 'em-policy-none');
-            attendeeBadgeEl.textContent = attendeePol ? attendeePol.label : '— Not Set';
-            attendeeDescEl.textContent = attendeePol ? attendeePol.desc : 'No attendee refund policy has been configured for this event.';
+            attendeeBadgeEl.textContent = attendeePol ? attendeePol.label : t('common.dashNotSet');
+            attendeeDescEl.textContent = attendeePol ? attendeePol.desc : t('org.policy.attendee.notConfigured');
 
             // Render sub-sections
             renderEventManageVendors(eventId);
@@ -1699,10 +2500,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Setup action buttons
             document.getElementById('em-edit-btn').onclick = function () { openEditView(eventId); };
             document.getElementById('em-delete-btn').onclick = function () {
-                if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+                if (confirm(t('org.em.deleteConfirm'))) {
                     deleteEvent(eventId);
                     switchView('events-list');
-                    showToast('Event deleted successfully.');
+                    showToast(t('org.em.deleteSuccess'));
                 }
             };
 
@@ -1733,7 +2534,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             saveDescBtn.onclick = async function () {
                 const newDesc = descTextarea.value.trim();
-                if (!newDesc) { showToast('Description cannot be empty.'); return; }
+                if (!newDesc) { showToast(t('org.em.descriptionEmpty')); return; }
                 const evt = getEvents().find(e => e.id === eventId);
                 if (!evt) return;
 
@@ -1761,13 +2562,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         descTextEl.textContent = newDesc;
                         descDisplayEl.style.display = 'flex';
                         descEditEl.style.display = 'none';
-                        showToast('Description updated successfully!');
+                        showToast(t('org.em.descriptionUpdated'));
                         await initData();
                     } else {
-                        showToast('Error updating description.');
+                        showToast(t('org.error.updatingDescription'));
                     }
                 } catch (err) {
-                    showToast('Error updating description.');
+                    showToast(t('org.error.updatingDescription'));
                 }
             };
 
@@ -1784,6 +2585,9 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('em-comm-vendor-msgs').classList.add('active');
 
             switchView('event-manage');
+
+            // Patch communication tab badge for this event
+            setTimeout(() => { if (typeof window.patchAllUnreadBadges === 'function') window.patchAllUnreadBadges(); }, 0);
         };
 
         // --- Tab Switching ---
@@ -1822,15 +2626,8 @@ document.addEventListener('DOMContentLoaded', () => {
             'Setting Up': '#ff8f00',
             'Ready': '#2e7d32'
         };
-        const PREP_LABELS = {
-            'Pending': 'Pending',
-            'Preparing': 'Start preparing at premises',
-            'In Transit': 'Finish preparing at premises',
-            'Setting Up': 'Setting up in location',
-            'Ready': 'Ready'
-        };
         function prepStatusLabel(key) {
-            return PREP_LABELS[key] || key;
+            return t(prepKeyMap[key] || key);
         }
 
         // Helper: ensure vendor has preparation data
@@ -1889,20 +2686,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Connector lines
                     let connectors = '';
+                    const isRtl = document.documentElement.getAttribute('dir') === 'rtl';
                     for (let i = 0; i < PREP_STATUSES.length - 1; i++) {
                         let connClass = 'upcoming';
                         if (i < currentIdx) connClass = 'completed';
                         else if (i === currentIdx) connClass = 'active';
                         // Position: each step is (100 / n)% wide, connector spans between centers
                         const stepW = 100 / PREP_STATUSES.length;
-                        const left = (stepW * i + stepW / 2);
+                        const offset = (stepW * i + stepW / 2);
                         const width = stepW;
-                        connectors += `<div class="em-timeline-connector ${connClass}" style="left:${left}%;width:${width}%;"></div>`;
+                        const posAttr = isRtl ? `right:${offset}%` : `left:${offset}%`;
+                        connectors += `<div class="em-timeline-connector ${connClass}" style="${posAttr};width:${width}%;"></div>`;
                     }
 
                     // Update requested badge
                     const updateBadge = ev.updateRequested
-                        ? `<span class="em-update-requested-badge"><i class="fa-solid fa-bell"></i> Update Requested</span>`
+                        ? `<span class="em-update-requested-badge"><i class="fa-solid fa-bell"></i> ${t('org.em.updateRequested')}</span>`
                         : '';
 
                     // Latest vendor note
@@ -1910,11 +2709,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const latestVendorEntry = [...history].reverse().find(h => h.source === 'vendor');
                     let latestNoteHtml = '';
                     if (latestVendorEntry && latestVendorEntry.note) {
-                        const noteTime = new Date(latestVendorEntry.timestamp).toLocaleString('en-US', {
+                        const vnLang = localStorage.getItem('eventia_lang') || 'en';
+                        const vnLocale = vnLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
+                        const noteTime = new Date(latestVendorEntry.timestamp).toLocaleString(vnLocale, {
                             month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                         });
                         latestNoteHtml = `
-                            <div style="margin-top: 0.65rem; padding: 0.6rem 0.85rem; background: #f5f7fa; border-radius: 10px; border-left: 3px solid ${PREP_COLORS[latestVendorEntry.status]};">
+                            <div style="margin-top: 0.65rem; padding: 0.6rem 0.85rem; background: #f5f7fa; border-radius: 10px; border-inline-start: 3px solid ${PREP_COLORS[latestVendorEntry.status]};">
                                 <div style="display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.25rem;">
                                     <i class="fa-solid fa-quote-left" style="font-size: 0.6rem; color: ${PREP_COLORS[latestVendorEntry.status]};"></i>
                                     <span style="font-size: 0.7rem; font-weight: 700; color: ${PREP_COLORS[latestVendorEntry.status]};">${prepStatusLabel(latestVendorEntry.status)}</span>
@@ -1928,11 +2729,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="em-vendor-timeline-wrap">
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                    <span style="font-size: 0.72rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.03em;">Preparation</span>
+                                    <span style="font-size: 0.72rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.03em;">${t('vendor.preparation')}</span>
                                     ${updateBadge}
                                 </div>
                                 <button class="em-view-timeline-btn" onclick="event.stopPropagation(); openVendorStatusModal('${eventId}', '${ev.vendorId}')">
-                                    <i class="fa-solid fa-timeline"></i> View Details
+                                    <i class="fa-solid fa-timeline"></i> ${t('common.viewDetails')}
                                 </button>
                             </div>
                             <div class="em-vendor-timeline" style="position: relative;">
@@ -1957,7 +2758,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h4>${vendor.name}</h4>
                             <span>${vendor.category} · ${vendor.location || 'N/A'}</span>
                         </div>
-                        <span class="em-vendor-status ${statusClass}">${ev.status}</span>
+                        <span class="em-vendor-status ${statusClass}">${t(statusKeyMap[ev.status] || ev.status)}</span>
                         <div class="em-vendor-actions">
                             ${requestUpdateBtn}
                             <button class="btn btn-sm btn-outline" onclick="openVendorChat('${eventId}', '${ev.vendorId}')" title="Message"><i class="fa-solid fa-comment"></i></button>
@@ -1988,7 +2789,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const remaining = getEventVendors().filter(v => v.eventId === eventId);
             document.getElementById('em-stat-vendors').textContent = remaining.length;
             document.getElementById('em-stat-pending-vendors').textContent = remaining.filter(v => v.status === 'Pending').length;
-            showToast('Vendor removed from event.');
+            showToast(t('org.em.vendorRemoved'));
         };
 
         // --- Request Vendor Update ---
@@ -2006,17 +2807,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     await initData();
                     renderEventManageVendors(eventId);
-                    showToast('Update request sent to vendor!');
+                    showToast(t('org.em.updateRequestSent'));
                 } else {
-                    showToast('Error requesting update.');
+                    showToast(t('org.error.requestingUpdate'));
                 }
             } catch (err) {
-                showToast('Error requesting update.');
+                showToast(t('org.error.requestingUpdate'));
             }
         };
 
         // --- Open Vendor Status Detail Modal ---
         window.openVendorStatusModal = function (eventId, vendorId) {
+            window._emOpenStatusVendorId = vendorId;
+
             const evVendors = getEventVendors();
             const ev = evVendors.find(v => v.eventId === eventId && v.vendorId === vendorId);
             if (!ev) return;
@@ -2024,7 +2827,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const allVendors = getVendors();
             const vendor = allVendors.find(v => v.id === vendorId) || { name: 'Unknown' };
 
-            document.getElementById('em-status-modal-vendor-name').textContent = vendor.name + ' — Preparation';
+            document.getElementById('em-status-modal-vendor-name').textContent = vendor.name + ' — ' + t('vendor.preparation');
 
             const bodyEl = document.getElementById('em-status-modal-body');
             const prepStatus = ev.preparationStatus || 'Pending';
@@ -2048,11 +2851,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (historyEntry.note) {
                         noteHtml = `<div class="em-history-note">${historyEntry.note}</div>`;
                     }
-                    const time = new Date(historyEntry.timestamp).toLocaleString('en-US', {
+                    const histLang = localStorage.getItem('eventia_lang') || 'en';
+                    const histLocale = histLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
+                    const time = new Date(historyEntry.timestamp).toLocaleString(histLocale, {
                         month: 'short', day: 'numeric', year: 'numeric',
                         hour: '2-digit', minute: '2-digit'
                     });
-                    const source = historyEntry.source === 'vendor' ? 'Updated by vendor' : (historyEntry.source === 'system' ? 'System' : 'Updated');
+                    const source = historyEntry.source === 'vendor' ? t('vendor.history.updatedByVendor') : (historyEntry.source === 'system' ? 'System' : 'Updated');
                     timeHtml = `<div class="em-history-timestamp"><i class="fa-regular fa-clock"></i> ${time} · ${source}</div>`;
                 } else if (itemClass === 'upcoming') {
                     noteHtml = `<div style="font-size: 0.78rem; color: #bbb; font-style: italic;">Awaiting this step</div>`;
@@ -2081,6 +2886,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Close Vendor Status Modal ---
         window.closeVendorStatusModal = function () {
+            delete window._emOpenStatusVendorId;
+
             const modal = document.getElementById('em-status-modal');
             modal.classList.add('hidden');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
@@ -2111,7 +2918,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const msgs = allMessages.filter(m => m.eventId === eventId && m.vendorId === ev.vendorId).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
                 const lastMsg = msgs.length > 0 ? msgs[msgs.length - 1] : null;
                 const lastMsgText = lastMsg ? (lastMsg.sender === 'organizer' ? 'You: ' : '') + lastMsg.text : 'No messages yet';
-                const lastTime = lastMsg ? new Date(lastMsg.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                const convLang = localStorage.getItem('eventia_lang') || 'en';
+                const convLocale = convLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
+                const lastTime = lastMsg ? new Date(lastMsg.timestamp).toLocaleDateString(convLocale, { month: 'short', day: 'numeric' }) : '';
                 const msgCount = msgs.filter(m => m.sender === 'vendor').length;
 
                 return `
@@ -2128,6 +2937,144 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>`;
             }).join('');
         }
+
+        // ================================================================
+        // UNREAD MESSAGE BADGE SYSTEM
+        // Updates three surfaces:
+        //   1. Sidebar "Events List" nav badge (total across all events)
+        //   2. "Communication" tab badge (total for current managed event)
+        //   3. Each event-list-item row badge (per-event unread count)
+        // ================================================================
+
+        /**
+         * Compute unread vendor-sent messages for a given event,
+         * respecting the chatReadTracker that lives in the HTML file's inline script.
+         */
+        function getUnreadCountForEvent(eventId) {
+            const messages = getMessages();
+            const eventVendors = getEventVendors().filter(v => v.eventId === eventId);
+            const tracker = (typeof window._chatReadTracker === 'function')
+                ? window._chatReadTracker()
+                : (window.chatReadTracker || {});
+
+            let total = 0;
+            eventVendors.forEach(ev => {
+                const trackKey = `${eventId}_${ev.vendorId}`;
+                const lastRead = tracker[trackKey] || null;
+                const vendorMsgs = messages.filter(
+                    m => String(m.eventId) === String(eventId) &&
+                         String(m.vendorId) === String(ev.vendorId) &&
+                         m.sender === 'vendor'
+                );
+                if (lastRead) {
+                    total += vendorMsgs.filter(m => new Date(m.timestamp) > new Date(lastRead)).length;
+                } else {
+                    total += vendorMsgs.length;
+                }
+            });
+            return total;
+        }
+
+        /** Total unread across ALL events */
+        function getTotalUnreadCount() {
+            const events = getEvents();
+            return events.reduce((sum, evt) => sum + getUnreadCountForEvent(evt.id), 0);
+        }
+
+        /**
+         * Badge helper: set text + show/hide.
+         * Animation only triggers on first appearance (wasHidden), never re-fires on every poll.
+         */
+        function _applyBadge(el, count) {
+            if (!el) return;
+            if (count <= 0) {
+                el.style.display = 'none';
+                el.classList.remove('badge-pulse');
+                return;
+            }
+            const label = count > 99 ? '99+' : String(count);
+            const wasHidden = el.style.display === 'none' || el.style.display === '';
+            el.textContent = label;
+            el.style.display = 'inline-flex';
+            // Only add pulse class on first appearance — never reset animation mid-life
+            if (wasHidden) {
+                el.classList.add('badge-pulse');
+            }
+        }
+
+        /**
+         * Patch the "Communication" tab badge for the currently managed event.
+         */
+        function patchCommunicationTabBadge() {
+            const badge = document.getElementById('em-comm-tab-badge');
+            if (!badge || !currentManagedEventId) return;
+            const count = getUnreadCountForEvent(currentManagedEventId);
+            _applyBadge(badge, count);
+        }
+
+        /**
+         * Patch the sidebar "Events List" nav item badge with total unread.
+         */
+        function patchNavEventsBadge() {
+            const badge = document.getElementById('nav-events-unread-badge');
+            _applyBadge(badge, getTotalUnreadCount());
+        }
+
+        /**
+         * Patch per-event unread badges in the events list (#all-events-container).
+         * Red circle badge sits on the top-right corner of the Manage button.
+         * Animation is NEVER reset on poll — badge just sits still once created.
+         */
+        function patchEventListBadges() {
+            const container = document.getElementById('all-events-container');
+            if (!container) return;
+
+            container.querySelectorAll('.event-list-item').forEach(item => {
+                const manageBtn = item.querySelector('.manage-btn[data-id]');
+                if (!manageBtn) return;
+                const eventId = manageBtn.dataset.id;
+                const count = getUnreadCountForEvent(eventId);
+
+                // Ensure button is inside a position:relative wrapper
+                let wrap = manageBtn.closest('.manage-btn-wrap');
+                if (!wrap) {
+                    wrap = document.createElement('div');
+                    wrap.className = 'manage-btn-wrap';
+                    manageBtn.parentNode.insertBefore(wrap, manageBtn);
+                    wrap.appendChild(manageBtn);
+                }
+
+                // Find or create the corner badge
+                let badge = wrap.querySelector('.manage-btn-badge');
+                if (count > 0) {
+                    const label = count > 99 ? '99+' : String(count);
+                    if (!badge) {
+                        // First appearance — create and let CSS pop-in animation run once
+                        badge = document.createElement('span');
+                        badge.className = 'manage-btn-badge';
+                        badge.title = 'Unread vendor messages';
+                        badge.textContent = label;
+                        wrap.appendChild(badge);
+                    } else {
+                        // Already showing — just update the number, never touch animation
+                        badge.textContent = label;
+                        badge.style.display = 'flex';
+                    }
+                } else {
+                    if (badge) badge.style.display = 'none';
+                }
+            });
+        }
+
+        /**
+         * Master refresh — call this any time data or read-state changes.
+         * Exposed globally so the background poller in the HTML can call it.
+         */
+        window.patchAllUnreadBadges = function() {
+            patchNavEventsBadge();
+            patchCommunicationTabBadge();
+            patchEventListBadges();
+        };
 
         // --- Vendor Chat ---
         let currentChatVendorId = null;
@@ -2156,6 +3103,8 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { modal.style.display = 'none'; }, 300);
             // Refresh conversations list
             if (currentManagedEventId) renderEventManageConversations(currentManagedEventId);
+            // Update all badge surfaces now that messages have been read
+            setTimeout(() => { if (typeof window.patchAllUnreadBadges === 'function') window.patchAllUnreadBadges(); }, 50);
         };
 
         function renderChatMessages(eventId, vendorId) {
@@ -2165,9 +3114,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (msgs.length === 0) {
                 body.innerHTML = '<div class="em-empty-state" style="margin:auto;"><i class="fa-solid fa-comments"></i><p>No messages yet. Start the conversation!</p></div>';
             } else {
+                const chatLang = localStorage.getItem('eventia_lang') || 'en';
+                const chatLocale = chatLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
                 body.innerHTML = msgs.map(m => {
                     const cls = m.sender === 'organizer' ? 'sent' : 'received';
-                    const time = new Date(m.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const time = new Date(m.timestamp).toLocaleString(chatLocale, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                     return `<div class="em-chat-msg ${cls}">${m.text}<span class="em-chat-msg-time">${time}</span></div>`;
                 }).join('');
             }
@@ -2205,10 +3156,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         await initData();
                         renderChatMessages(currentChatEventId, currentChatVendorId);
                     } else {
-                        showToast('Error sending message.');
+                        showToast(t('org.error.sendingMessage'));
                     }
                 } catch (err) {
-                    showToast('Error sending message.');
+                    showToast(t('org.error.sendingMessage'));
                 }
             }
 
@@ -2237,7 +3188,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             listEl.innerHTML = broadcasts.map(b => {
-                const time = new Date(b.timestamp).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const bcLang = localStorage.getItem('eventia_lang') || 'en';
+                const bcLocale = bcLang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
+                const time = new Date(b.timestamp).toLocaleString(bcLocale, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 return `
                     <div class="em-broadcast-item">
                         <div class="em-broadcast-item-header">
@@ -2272,12 +3225,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         broadcastTextarea.value = '';
                         await initData();
                         renderEventManageBroadcasts(currentManagedEventId);
-                        showToast('Broadcast sent to all attendees!');
+                        showToast(t('org.em.broadcastSent'));
                     } else {
-                        showToast('Error sending broadcast.');
+                        showToast(t('org.error.sendingBroadcast'));
                     }
                 } catch (err) {
-                    showToast('Error sending broadcast.');
+                    showToast(t('org.error.sendingBroadcast'));
                 }
             });
         }
@@ -2290,6 +3243,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (eventId) openEventManage(eventId);
             }
         });
+
+        /* Re-run dynamic organisers views when language switches (applyLang in app-ar.js calls window.renderAll). */
+        function renderAll() {
+            renderEvents();
+            updateStats();
+            renderVendors();
+            if (typeof populateRequestEventFilters === 'function') populateRequestEventFilters();
+            renderRequests();
+            renderIncomingRequests();
+
+            if (typeof window.switchView === 'function') {
+                window.switchView(currentView || 'overview');
+            }
+
+            if (currentManagedEventId) {
+                openEventManage(currentManagedEventId);
+            }
+
+            const chatModal = document.getElementById('em-chat-modal');
+            if (
+                chatModal &&
+                !chatModal.classList.contains('hidden') &&
+                currentChatEventId &&
+                currentChatVendorId
+            ) {
+                openVendorChat(currentChatEventId, currentChatVendorId);
+            }
+
+            const requestDetailModal = document.getElementById('request-detail-modal');
+            if (requestDetailModal && !requestDetailModal.classList.contains('hidden')) {
+                const requestId = requestDetailModal.dataset.requestId;
+                const requestType = requestDetailModal.dataset.requestType;
+                if (requestId && requestType) {
+                    window.openRequestDetailModal(requestId, requestType);
+                }
+            }
+
+            const statusModal = document.getElementById('em-status-modal');
+            if (
+                statusModal &&
+                !statusModal.classList.contains('hidden') &&
+                currentManagedEventId &&
+                window._emOpenStatusVendorId
+            ) {
+                openVendorStatusModal(currentManagedEventId, window._emOpenStatusVendorId);
+            }
+        }
+        window.renderAll = renderAll;
     }
 
 
