@@ -118,16 +118,26 @@ body {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: 0;
     width: 100%;
     height: 100%;
     background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
     z-index: -1;
 }
 
 .btn-primary:hover::before {
-    left: 100%;
+    transform: translateX(100%);
+}
+
+/* Mirror shine sweep for RTL */
+html[dir="rtl"] .btn-primary::before {
+    transform: translateX(100%);
+}
+
+html[dir="rtl"] .btn-primary:hover::before {
+    transform: translateX(-100%);
 }
 
 .btn-primary:hover {
@@ -565,8 +575,16 @@ body {
     font-size: 0.9rem;
 }
 
+.form-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
 .form-actions .btn i {
-    margin-right: 0.4rem;
+    margin: 0;
+    flex-shrink: 0;
 }
 
 /* --- Date Inputs --- */
@@ -746,7 +764,7 @@ body {
 .data-table th,
 .data-table td {
     padding: 1rem 1.25rem;
-    text-align: left;
+    text-align: start;
     border-bottom: 1px solid #eef2f7;
 }
 
