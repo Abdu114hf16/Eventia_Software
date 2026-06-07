@@ -6,6 +6,249 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    function getLang() {
+        return typeof window.getLang === 'function'
+            ? window.getLang()
+            : (localStorage.getItem('eventia_lang') || 'en');
+    }
+
+    function t(key) {
+        const lang = getLang();
+        if (window.I18N && window.I18N[lang] && window.I18N[lang][key]) {
+            return window.I18N[lang][key];
+        }
+        return key;
+    }
+
+    /** Event catalogue → i18n keys (same as organizer-logic.js `eventCategoryMap`). */
+    const eventCatalogCategoryMap = {
+        'Conference': 'cat.conference',
+        'Entertainment': 'cat.entertainment',
+        'Exhibition': 'cat.exhibition',
+        'Technology': 'cat.technology',
+        'Tech': 'cat.tech',
+        'Art': 'cat.art',
+        'Business': 'cat.business',
+        'Music': 'cat.music',
+        'Education': 'cat.education',
+        'Sports': 'cat.sports',
+        'Workshop': 'cat.workshop',
+        'Food & Culture': 'cat.foodCulture',
+        'Culture': 'cat.culture',
+        'Family': 'cat.family',
+        'Shopping': 'cat.shopping',
+        'Gaming': 'cat.gaming',
+        'Automotive': 'cat.automotive',
+        'Other': 'cat.other',
+        'Innovation': 'vendor.cat.innovation',
+        'Startup': 'vendor.cat.startup',
+        'Fashion': 'vendor.cat.fashion',
+        'Design': 'vendor.cat.design',
+        'Networking': 'vendor.cat.networking',
+        'Trade Show': 'vendor.cat.tradeShow',
+        'Concert': 'vendor.cat.concert',
+        'Festival': 'vendor.cat.festival',
+        'Theater': 'vendor.cat.theater',
+        'Training': 'vendor.cat.training',
+        'Seminar': 'vendor.cat.seminar',
+        'Marathon': 'vendor.cat.marathon',
+        'Tournament': 'vendor.cat.tournament',
+        'Fitness': 'vendor.cat.fitness',
+        'Food': 'vendor.cat.foodBeverage',
+        'Culinary': 'vendor.cat.culinary',
+        'Wine Tasting': 'vendor.cat.wineTasting',
+        'Food Festival': 'vendor.cat.foodFestival',
+        'Health': 'vendor.cat.health',
+        'Wellness': 'vendor.cat.wellness',
+        'Yoga': 'vendor.cat.yoga',
+        'Meditation': 'vendor.cat.meditation',
+        'Charity': 'vendor.cat.charity',
+        'Fundraising': 'vendor.cat.fundraising',
+        'Community': 'vendor.cat.community',
+        'Social': 'vendor.cat.social',
+        'Expo': 'vendor.cat.expo',
+        'Fair': 'vendor.cat.fair',
+        'Celebration': 'vendor.cat.celebration'
+    };
+
+    const eventCatalogCategoryMapInsensitive = Object.create(null);
+    Object.keys(eventCatalogCategoryMap).forEach((k) => {
+        eventCatalogCategoryMapInsensitive[k.toLowerCase()] = eventCatalogCategoryMap[k];
+    });
+
+    function translateCategory(category) {
+        if (category == null || String(category).trim() === '') {
+            return t('org.analytics.common.uncategorized');
+        }
+        const trimmed = String(category).trim();
+        let i18nKey = eventCatalogCategoryMap[trimmed] || eventCatalogCategoryMapInsensitive[trimmed.toLowerCase()];
+        if (i18nKey) return t(i18nKey);
+        const slugKey = `cat.${trimmed.toLowerCase()}`;
+        const viaSlug = t(slugKey);
+        if (viaSlug !== slugKey) return viaSlug;
+        return trimmed;
+    }
+
+    /* Vendor service categories — mirrors organizer-logic.js mapping. */
+    const vendorCategoryMap = {
+        'Catering': 'common.catering',
+        'Bakery & Desserts': 'common.bakeryDesserts',
+        'Beverages': 'common.beverages',
+        'Food Trucks': 'common.foodTrucks',
+        'Venue': 'common.venue',
+        'Conference Hall': 'common.conferenceHall',
+        'Outdoor Venue': 'common.outdoorVenue',
+        'AV Equipment': 'common.avEquipment',
+        'Audio & Lighting': 'common.audioLighting',
+        'LED Screens': 'common.ledScreens',
+        'Stage & Rigging': 'common.stageRigging',
+        'Live Streaming': 'common.liveStreaming',
+        'Decoration': 'common.decoration',
+        'Event Decoration': 'common.eventDecoration',
+        'Floral Design': 'common.floralDesign',
+        'Balloon Decor': 'common.balloonDecor',
+        'Event Lighting': 'common.eventLighting',
+        'Photography': 'common.photography',
+        'Photography & Video': 'common.photographyVideo',
+        'Aerial Photography': 'common.aerialPhotography',
+        'Photo Booth': 'common.photoBooth',
+        'DJ Services': 'common.dj',
+        'Live Entertainment': 'common.liveEntertainment',
+        'Kids Entertainment': 'common.kidsEntertainment',
+        'Traditional Music': 'common.traditionalMusic',
+        'Fireworks & Pyro': 'common.fireworks',
+        'Transportation': 'common.transportation',
+        'Shuttle Services': 'common.shuttle',
+        'Valet Parking': 'common.valet',
+        'Security': 'common.security',
+        'Security Services': 'common.securityServices',
+        'VIP Security': 'common.vipSecurity',
+        'Medical Services': 'common.medical',
+        'Event Staff': 'common.eventStaff',
+        'Translation': 'common.translation',
+        'MC & Hosting': 'common.mcHosting',
+        'Tent Rentals': 'common.tents',
+        'Furniture Rentals': 'common.furniture',
+        'Table/Chair Rentals': 'common.tableChair',
+        'Power Supply': 'common.power',
+        'Printing': 'common.printing',
+        'Printing & Signage': 'common.printingSignage',
+        'Book Sales': 'common.bookSales',
+        'Connectivity Services': 'common.connectivityServices',
+        'Food & Beverages': 'common.foodBeverages',
+        'Entertainment': 'common.entertainment',
+        'Social Media Marketing': 'common.socialMedia',
+        'Influencer Marketing': 'common.influencer',
+        'Government Permits': 'common.governmentPermits',
+        'Safety Permits': 'common.safetyPermits',
+        'Sponsors': 'common.sponsors',
+        'Brand Partners': 'common.brandPartners',
+        'Henna Artists': 'common.henna',
+        'Falconry Shows': 'common.falconry',
+        'Horse Shows': 'common.horseShows',
+        'Arabian Perfumes': 'common.perfumes',
+        'Arabic Calligraphy': 'common.calligraphy',
+        'VR/AR Experiences': 'common.vrAr',
+        'Eco-Friendly Services': 'common.eco',
+        'Gifts & Giveaways': 'common.gifts',
+        'Audio Visual': 'common.audioVisual',
+        'Florists': 'common.florists',
+        'Cleaning': 'common.cleaning',
+        'Professional Services': 'common.professionalServices',
+        'Furniture Rental': 'common.furniture',
+        'Permits & Licensing': 'common.permitsLicensing',
+        'Facilities': 'common.facilities',
+        'Special Effects': 'common.specialEffects',
+        'Children Services': 'common.childrenServices',
+        'Technology': 'common.technology',
+        'Other': 'org.analytics.common.other'
+    };
+
+    const vendorCategoryMapInsensitive = Object.create(null);
+    Object.keys(vendorCategoryMap).forEach((k) => {
+        vendorCategoryMapInsensitive[k.toLowerCase()] = vendorCategoryMap[k];
+    });
+
+    function translateVendorCategory(category) {
+        if (!category) return t('org.analytics.common.other');
+        const trimmed = String(category).trim();
+        let key = vendorCategoryMap[trimmed];
+        if (!key) key = vendorCategoryMapInsensitive[trimmed.toLowerCase()];
+        return key ? t(key) : trimmed;
+    }
+
+    /* Internal age-group keys are returned in their canonical English
+       form so they remain stable across languages; the *display*
+       label is translated via translateAgeGroup() at render time. */
+    const AGE_GROUP_KEYS = {
+        'Under 18': 'org.analytics.age.under18',
+        '18–24':    'org.analytics.age.18_24',
+        '25–34':    'org.analytics.age.25_34',
+        '35–44':    'org.analytics.age.35_44',
+        '45–54':    'org.analytics.age.45_54',
+        '55+':      'org.analytics.age.55plus'
+    };
+
+    function translateAgeGroup(group) {
+        return t(AGE_GROUP_KEYS[group] || group);
+    }
+
+    /* Event status keys — mirrors the dropdown filter in organizer-dashboard.html. */
+    const EVENT_STATUS_KEYS = {
+        'Pending':  'status.pendingApproval',
+        'Approved': 'status.approved',
+        'Rejected': 'status.rejected',
+        'Upcoming': 'status.upcoming',
+        'Ongoing':  'status.ongoing',
+        'Past':     'status.past'
+    };
+
+    function translateEventStatus(status) {
+        if (!status) return t('org.analytics.common.active');
+        return t(EVENT_STATUS_KEYS[status] || status);
+    }
+
+    /** Numeric YYYY-MM-DD for the event report banner (same in EN and AR). */
+    function formatEventBannerDate(dateStr) {
+        if (!dateStr) return t('org.analytics.common.noDate');
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    /** Attendee feedback uses `rating` (1–5); older data may use `satisfactionScore`. */
+    function registrationSatisfaction(r) {
+        const raw = r.satisfactionScore != null ? r.satisfactionScore : r.rating;
+        if (raw == null || raw === '') return null;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function setEvtBannerValue(elId, valueText) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        el.textContent = valueText == null ? '' : String(valueText);
+    }
+
+    const MONTH_KEYS = [
+        'org.analytics.month.jan', 'org.analytics.month.feb', 'org.analytics.month.mar',
+        'org.analytics.month.apr', 'org.analytics.month.may', 'org.analytics.month.jun',
+        'org.analytics.month.jul', 'org.analytics.month.aug', 'org.analytics.month.sep',
+        'org.analytics.month.oct', 'org.analytics.month.nov', 'org.analytics.month.dec'
+    ];
+
     let activeChart = null;
     let activeEvtChart = null;
     let currentTab = 'attendance';
@@ -177,8 +420,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const sorted = [...d.events].filter(e => e.attendees > 0).sort((a, b) => b.attendees - a.attendees);
         const topEvt = sorted[0];
         setText('highlight-top-event', topEvt
-            ? `${trunc(topEvt.title, 24)} — ${topEvt.attendees.toLocaleString()} attendees`
-            : 'No data yet');
+            ? `${trunc(topEvt.title, 24)} — ${topEvt.attendees.toLocaleString()} ${t('org.analytics.common.attendeesLower')}`
+            : t('org.analytics.common.noDataYet'));
 
         const vendorMap = {};
         d.vendors.forEach(v => { vendorMap[v.id] = v; });
@@ -191,8 +434,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const topService = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0];
         setText('highlight-top-service', topService
-            ? `${topService[0]} — ${topService[1]} booking${topService[1] !== 1 ? 's' : ''}`
-            : 'No data yet');
+            ? `${translateVendorCategory(topService[0])} — ${topService[1]} ${topService[1] !== 1 ? t('org.analytics.common.bookings') : t('org.analytics.common.booking')}`
+            : t('org.analytics.common.noDataYet'));
 
         const catAtt = {};
         d.events.forEach(e => {
@@ -201,18 +444,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const bestCat = Object.entries(catAtt).sort((a, b) => b[1] - a[1])[0];
         setText('highlight-top-category', bestCat
-            ? `${bestCat[0]} — ${bestCat[1].toLocaleString()} attendees`
-            : 'No data yet');
+            ? `${translateCategory(bestCat[0])} — ${bestCat[1].toLocaleString()} ${t('org.analytics.common.attendeesLower')}`
+            : t('org.analytics.common.noDataYet'));
 
         // Avg satisfaction from attendee survey scores
-        const surveyed = d.registrations.filter(r => r.status !== 'Withdrawn' && r.satisfactionScore != null);
+        const surveyed = d.registrations.filter(r => r.status !== 'Withdrawn' && registrationSatisfaction(r) != null);
         const satEl = document.getElementById('highlight-avg-satisfaction');
         if (satEl) {
             if (surveyed.length > 0) {
-                const avg = surveyed.reduce((s, r) => s + r.satisfactionScore, 0) / surveyed.length;
-                satEl.innerHTML = `${avg.toFixed(1)} ★<br><span style="font-size:0.7rem;font-weight:500;color:#636e72">${surveyed.length} response${surveyed.length !== 1 ? 's' : ''}</span>`;
+                const avg = surveyed.reduce((s, r) => s + registrationSatisfaction(r), 0) / surveyed.length;
+                const respLabel = surveyed.length !== 1 ? t('org.analytics.common.responses') : t('org.analytics.common.response');
+                satEl.innerHTML = `${avg.toFixed(1)} ★<br><span style="font-size:0.7rem;font-weight:500;color:#636e72">${surveyed.length} ${respLabel}</span>`;
             } else {
-                satEl.textContent = 'No data yet';
+                satEl.textContent = t('org.analytics.common.noDataYet');
             }
         }
     }
@@ -255,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: sorted.map(e => trunc(e.title, 22)),
                 datasets: [{
-                    label: 'Attendees',
+                    label: t('org.analytics.common.attendees'),
                     data: sorted.map(e => e.attendees),
                     backgroundColor: c => chartGradient(c.chart, OVERVIEW_THEME.attendanceStart, OVERVIEW_THEME.attendanceEnd, true),
                     borderRadius: 8,
@@ -263,14 +507,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     barPercentage: 0.65
                 }]
             },
-            options: overviewBarOpts(false, c => `${c.raw.toLocaleString()} attendees`, 'Attendance by Event', 'Number of Attendees', 'Event')
+            options: overviewBarOpts(false, c => `${c.raw.toLocaleString()} ${t('org.analytics.common.attendeesLower')}`, t('org.analytics.title.attendanceByEvent'), t('org.analytics.axis.numAttendees'), t('org.analytics.axis.event'))
         });
     }
 
     function chartRevenue(ctx, d) {
         const sorted = [...d.events].filter(e => e.attendees > 0).sort((a, b) => b.attendees - a.attendees);
         const data = sorted.map(e => {
-            const min = Math.min(...(e.tickets || []).map(t => parseFloat(t.price) || 0));
+            const min = Math.min(...(e.tickets || []).map(tk => parseFloat(tk.price) || 0));
             return e.attendees * min;
         });
         return new Chart(ctx, {
@@ -278,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: sorted.map(e => trunc(e.title, 22)),
                 datasets: [{
-                    label: 'Revenue (SAR)',
+                    label: t('org.analytics.axis.revenueSar'),
                     data,
                     backgroundColor: c => chartGradient(c.chart, OVERVIEW_THEME.revenueStart, OVERVIEW_THEME.revenueEnd, true),
                     borderRadius: 8,
@@ -286,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     barPercentage: 0.65
                 }]
             },
-            options: overviewBarOpts(false, c => `${c.raw.toLocaleString()} SAR`, 'Revenue by Event', 'Revenue (SAR)', 'Event')
+            options: overviewBarOpts(false, c => `${c.raw.toLocaleString()} ${t('common.currencySar')}`, t('org.analytics.title.revenueByEvent'), t('org.analytics.axis.revenueSar'), t('org.analytics.axis.event'))
         });
     }
 
@@ -305,7 +549,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateVendorCategory(e[0])),
                 datasets: [{
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => OVERVIEW_THEME.series[i % OVERVIEW_THEME.series.length]),
@@ -348,7 +592,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     tooltip: { ...overviewTip(), callbacks: { label: c => {
                         const pct = total > 0 ? ((c.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${c.label}: ${c.raw} booking${c.raw !== 1 ? 's' : ''} (${pct}%)`;
+                        const bookingLabel = c.raw !== 1 ? t('org.analytics.common.bookings') : t('org.analytics.common.booking');
+                        return ` ${c.label}: ${c.raw} ${bookingLabel} (${pct}%)`;
                     }}},
                     datalabels: {
                         color: '#fff',
@@ -359,6 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         },
                         anchor: 'center',
                         align: 'center',
+                        textAlign: 'center',
                         textShadowBlur: 4,
                         textShadowColor: 'rgba(0,0,0,0.3)'
                     }
@@ -378,9 +624,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateCategory(e[0])),
                 datasets: [{
-                    label: 'Total Attendees',
+                    label: t('org.analytics.axis.totalAttendees'),
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => colors[i % colors.length]),
                     borderRadius: 8,
@@ -388,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     barPercentage: 0.65
                 }]
             },
-            options: overviewBarOpts(true, c => `${c.raw.toLocaleString()} attendees`, 'Attendees by Category', 'Category', 'Total Attendees')
+            options: overviewBarOpts(true, c => `${c.raw.toLocaleString()} ${t('org.analytics.common.attendeesLower')}`, t('org.analytics.title.attendeesByCategory'), t('org.analytics.axis.category'), t('org.analytics.axis.totalAttendees'))
         });
     }
 
@@ -404,15 +650,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: groupOrder,
+                labels: groupOrder.map(translateAgeGroup),
                 datasets: [{
-                    label: 'Attendees',
+                    label: t('org.analytics.common.attendees'),
                     data: groupOrder.map(g => counts[g]),
                     backgroundColor: groupOrder.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8, barPercentage: 0.65
                 }]
             },
-            options: barOpts(true, c => `${c.raw} attendees`, 'Attendees by Age Group', 'Age Group', 'Number of Attendees')
+            options: barOpts(true, c => `${c.raw} ${t('org.analytics.common.attendeesLower')}`, t('org.analytics.title.attendeesByAgeGroup'), t('org.analytics.axis.ageGroup'), t('org.analytics.axis.numAttendees'))
         });
     }
 
@@ -521,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function populateEventDropdown(events) {
         const sel = document.getElementById('ana-event-select');
         if (!sel) return;
-        sel.innerHTML = '<option value="">— Choose an event —</option>';
+        sel.innerHTML = `<option value="">${t('org.analytics.selectEventPlaceholder')}</option>`;
         events.forEach(e => {
             const opt = document.createElement('option');
             opt.value = e.id;
@@ -570,9 +816,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ).length;
 
         setText('ana-evt-title-name', evt.title);
-        setText('ana-evt-title-date', evt.date || 'No date');
-        setText('ana-evt-title-category', evt.category || 'Uncategorized');
-        setText('ana-evt-title-status', evt.status || 'Active');
+        setEvtBannerValue('ana-evt-title-date', formatEventBannerDate(evt.date));
+        setEvtBannerValue('ana-evt-title-category', translateCategory(evt.category));
+        setEvtBannerValue('ana-evt-title-status', translateEventStatus(evt.status));
 
         setText('ana-evt-kpi-attendees',   activeRegs.length.toLocaleString());
         const evtRevenueEl = document.getElementById('ana-evt-kpi-revenue');
@@ -583,12 +829,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setText('ana-evt-kpi-attendee-wd', attendeeWD);
 
         // Per-event satisfaction
-        const evtSurveyed = activeRegs.filter(r => r.satisfactionScore != null);
+        const evtSurveyed = activeRegs.filter(r => registrationSatisfaction(r) != null);
         const satKpi = document.getElementById('ana-evt-kpi-satisfaction');
         if (satKpi) {
             if (evtSurveyed.length > 0) {
-                const avg = evtSurveyed.reduce((s, r) => s + r.satisfactionScore, 0) / evtSurveyed.length;
-                satKpi.innerHTML = `${avg.toFixed(1)} ★<br><span style="font-size:0.6rem;font-weight:500;color:#636e72">${evtSurveyed.length} response${evtSurveyed.length !== 1 ? 's' : ''}</span>`;
+                const avg = evtSurveyed.reduce((s, r) => s + registrationSatisfaction(r), 0) / evtSurveyed.length;
+                const respLabel = evtSurveyed.length !== 1 ? t('org.analytics.common.responses') : t('org.analytics.common.response');
+                satKpi.innerHTML = `${avg.toFixed(1)} ★<br><span style="font-size:0.6rem;font-weight:500;color:#636e72">${evtSurveyed.length} ${respLabel}</span>`;
             } else {
                 satKpi.textContent = '--';
             }
@@ -633,7 +880,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const regs = d.registrations.filter(r => r.eventId === eventId && r.status !== 'Withdrawn');
         const tierRevenue = {};
         const tierCount = {};
-        evt.tickets.forEach(t => { tierRevenue[t.name] = 0; tierCount[t.name] = 0; });
+        evt.tickets.forEach(tk => { tierRevenue[tk.name] = 0; tierCount[tk.name] = 0; });
         regs.forEach(r => {
             if (r.ticketType && tierRevenue[r.ticketType] !== undefined) {
                 tierRevenue[r.ticketType] += parseFloat(r.ticketPrice) || 0;
@@ -641,19 +888,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const labels = evt.tickets.map(t => t.name);
+        const labels = evt.tickets.map(tk => tk.name);
         return new Chart(ctx, {
             type: 'bar',
             data: {
                 labels,
                 datasets: [{
-                    label: 'Revenue (SAR)',
+                    label: t('org.analytics.axis.revenueSar'),
                     data: labels.map(l => tierRevenue[l] || 0),
                     backgroundColor: labels.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8, barPercentage: 0.55
                 }]
             },
-            options: barOpts(true, c => `${c.raw.toLocaleString()} SAR`, 'Revenue by Ticket Tier', 'Ticket Tier', 'Revenue (SAR)')
+            options: barOpts(true, c => `${c.raw.toLocaleString()} ${t('common.currencySar')}`, t('org.analytics.title.revenueByTier'), t('org.analytics.axis.ticketTier'), t('org.analytics.axis.revenueSar'))
         });
     }
 
@@ -669,15 +916,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: groupOrder,
+                labels: groupOrder.map(translateAgeGroup),
                 datasets: [{
-                    label: 'Attendees',
+                    label: t('org.analytics.common.attendees'),
                     data: groupOrder.map(g => counts[g]),
                     backgroundColor: groupOrder.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8, barPercentage: 0.65
                 }]
             },
-            options: barOpts(true, c => `${c.raw} attendee${c.raw !== 1 ? 's' : ''}`, 'Attendees by Age Group', 'Age Group', 'Number of Attendees')
+            options: barOpts(true, c => `${c.raw} ${c.raw !== 1 ? t('org.analytics.common.attendeesLower') : t('org.analytics.common.attendee')}`, t('org.analytics.title.attendeesByAgeGroup'), t('org.analytics.axis.ageGroup'), t('org.analytics.axis.numAttendees'))
         });
     }
 
@@ -708,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: shortLabels,
                 datasets: [{
-                    label: 'Total Registrations',
+                    label: t('org.analytics.axis.totalRegistrations'),
                     data: cumulativeData,
                     borderColor: BRAND_SERIES[0],
                     backgroundColor: 'rgba(0, 78, 146, 0.08)',
@@ -724,19 +971,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { ...tip(), callbacks: { label: c => `${c.raw} total registration${c.raw !== 1 ? 's' : ''}` } },
+                    tooltip: { ...tip(), callbacks: { label: c => `${c.raw} ${c.raw !== 1 ? t('org.analytics.common.totalRegPlural') : t('org.analytics.common.totalRegSingular')}` } },
                     datalabels: { display: false },
                     title: {
                         display: true,
-                        text: 'Registration Timeline',
+                        text: t('org.analytics.title.regTimeline'),
                         font: { family: 'Inter', size: 15, weight: '600' },
                         color: CHART_TEXT.primary,
                         padding: { bottom: 16 }
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: CHART_TEXT.primary, maxRotation: 45 }, title: { display: true, text: 'Date', font: { family: 'Inter', size: 12, weight: '500' }, color: CHART_TEXT.secondary, padding: { top: 8 } } },
-                    y: { grid: { color: CHART_TEXT.grid }, ticks: { font: { family: 'Inter', size: 11 }, color: CHART_TEXT.secondary, stepSize: 1 }, beginAtZero: true, title: { display: true, text: 'Total Registrations', font: { family: 'Inter', size: 12, weight: '500' }, color: CHART_TEXT.secondary, padding: { bottom: 8 } } }
+                    x: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: CHART_TEXT.primary, maxRotation: 45 }, title: { display: true, text: t('org.analytics.axis.date'), font: { family: 'Inter', size: 12, weight: '500' }, color: CHART_TEXT.secondary, padding: { top: 8 } } },
+                    y: { grid: { color: CHART_TEXT.grid }, ticks: { font: { family: 'Inter', size: 11 }, color: CHART_TEXT.secondary, stepSize: 1 }, beginAtZero: true, title: { display: true, text: t('org.analytics.axis.totalRegistrations'), font: { family: 'Inter', size: 12, weight: '500' }, color: CHART_TEXT.secondary, padding: { bottom: 8 } } }
                 }
             }
         });
@@ -762,7 +1009,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateVendorCategory(e[0])),
                 datasets: [{
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]),
@@ -798,7 +1045,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     tooltip: { ...tip(), callbacks: { label: c => {
                         const pct = total > 0 ? ((c.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${c.label}: ${c.raw} vendor${c.raw !== 1 ? 's' : ''} (${pct}%)`;
+                        const vendorLabel = c.raw !== 1 ? t('org.analytics.common.vendors') : t('org.analytics.common.vendor');
+                        return ` ${c.label}: ${c.raw} ${vendorLabel} (${pct}%)`;
                     }}},
                     datalabels: {
                         color: '#fff',
@@ -809,6 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         },
                         anchor: 'center',
                         align: 'center',
+                        textAlign: 'center',
                         textShadowBlur: 4,
                         textShadowColor: 'rgba(0,0,0,0.3)'
                     }
@@ -869,10 +1118,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const tiers = new Set();
         d.events.forEach(e => {
             if (!e.tickets) return;
-            e.tickets.forEach(t => { if (t.name) tiers.add(t.name); });
+            e.tickets.forEach(tk => { if (tk.name) tiers.add(tk.name); });
         });
         const current = sel.value;
-        sel.innerHTML = '<option value="all">All Tiers</option>';
+        sel.innerHTML = `<option value="all">${t('org.analytics.market.allTiers')}</option>`;
         [...tiers].sort().forEach(tier => {
             const opt = document.createElement('option');
             opt.value = tier;
@@ -884,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function chartEventsPerMonth(ctx, d) {
-        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const monthNames = MONTH_KEYS.map(k => t(k));
         const monthCounts = new Array(12).fill(0);
         d.events.forEach(e => {
             if (!e.date) return;
@@ -896,14 +1145,14 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: monthNames,
                 datasets: [{
-                    label: 'Events',
+                    label: t('org.analytics.common.events'),
                     data: monthCounts,
                     backgroundColor: c => chartGradient(c.chart, BRAND_SERIES[0], BRAND_SERIES[2], true),
                     borderRadius: 8,
                     barPercentage: 0.65
                 }]
             },
-            options: barOpts(true, c => `${c.raw} event${c.raw !== 1 ? 's' : ''}`, 'Number of Events by Month', 'Month', 'Events')
+            options: barOpts(true, c => `${c.raw} ${c.raw !== 1 ? t('org.analytics.common.eventsLower') : t('org.analytics.common.eventLower')}`, t('org.analytics.title.eventsByMonth'), t('org.analytics.axis.month'), t('org.analytics.axis.numEvents'))
         });
     }
 
@@ -916,11 +1165,11 @@ document.addEventListener('DOMContentLoaded', () => {
             allCategories.add(e.category);
             const tickets = tierFilter === 'all'
                 ? e.tickets
-                : e.tickets.filter(t => t.name === tierFilter);
+                : e.tickets.filter(tk => tk.name === tierFilter);
             if (tickets.length === 0) return;
             if (!catPrices[e.category]) catPrices[e.category] = [];
-            tickets.forEach(t => {
-                const price = parseFloat(t.price) || 0;
+            tickets.forEach(tk => {
+                const price = parseFloat(tk.price) || 0;
                 catPrices[e.category].push(price);
             });
         });
@@ -935,22 +1184,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .sort((a, b) => b[1] - a[1]);
 
         const chartTitle = tierFilter === 'all'
-            ? 'Average Ticket Price by Category'
-            : `Average "${tierFilter}" Price by Category`;
+            ? t('org.analytics.title.avgPriceByCategory')
+            : t('org.analytics.title.avgPriceByCategoryFmt').replace('{tier}', tierFilter);
 
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateCategory(e[0])),
                 datasets: [{
-                    label: 'Avg. Price (SAR)',
+                    label: t('org.analytics.axis.avgPriceSar'),
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8,
                     barPercentage: 0.6
                 }]
             },
-            options: barOpts(true, c => `${c.raw.toLocaleString()} SAR`, chartTitle, 'Event Category', 'Avg. Price (SAR)')
+            options: barOpts(true, c => `${c.raw.toLocaleString()} ${t('common.currencySar')}`, chartTitle, t('org.analytics.axis.eventCategory'), t('org.analytics.axis.avgPriceSar'))
         });
     }
 
@@ -959,7 +1208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const catCount = {};
         d.events.forEach(e => {
             if (!e.category) return;
-            const prices = (e.tickets || []).map(t => parseFloat(t.price) || 0);
+            const prices = (e.tickets || []).map(tk => parseFloat(tk.price) || 0);
             const minPrice = prices.length ? Math.min(...prices) : 0;
             const revenue = (e.attendees || 0) * minPrice;
             catRevenue[e.category] = (catRevenue[e.category] || 0) + revenue;
@@ -972,16 +1221,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateCategory(e[0])),
                 datasets: [{
-                    label: 'Avg. Revenue / Event (SAR)',
+                    label: t('org.analytics.axis.avgRevenuePerEvent'),
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8,
                     barPercentage: 0.6
                 }]
             },
-            options: barOpts(true, c => `${c.raw.toLocaleString()} SAR`, 'Avg. Revenue Potential per Event by Category', 'Event Category', 'Revenue (SAR)')
+            options: barOpts(true, c => `${c.raw.toLocaleString()} ${t('common.currencySar')}`, t('org.analytics.title.avgRevenueByCategory'), t('org.analytics.axis.eventCategory'), t('org.analytics.axis.revenueSar'))
         });
     }
 
@@ -1006,7 +1255,17 @@ document.addEventListener('DOMContentLoaded', () => {
         setText('att-kpi-withdrawn', withdrawn.length.toLocaleString());
         setText('att-kpi-retention', retention);
 
-        renderAttChart(d);
+        const chartArea = document.querySelector('#ana-panel-attendees .ana-chart-area');
+        const loyaltyContent = document.getElementById('att-loyalty-content');
+        if (currentAttTab === 'loyalty') {
+            if (chartArea) chartArea.style.display = 'none';
+            if (loyaltyContent) loyaltyContent.style.display = '';
+            renderLoyalAttendees(d);
+        } else {
+            if (chartArea) chartArea.style.display = '';
+            if (loyaltyContent) loyaltyContent.style.display = 'none';
+            renderAttChart(d);
+        }
     }
 
     function initAttTabs() {
@@ -1047,10 +1306,11 @@ document.addEventListener('DOMContentLoaded', () => {
     /* --- Ticket Type Distribution (doughnut) --- */
     function chartTicketTypes(ctx, d) {
         const active = d.registrations.filter(r => r.status !== 'Withdrawn');
+        const unknownLabel = t('common.unknown');
         const typeCount = {};
         active.forEach(r => {
-            const t = r.ticketType || 'Unknown';
-            typeCount[t] = (typeCount[t] || 0) + 1;
+            const type = r.ticketType || unknownLabel;
+            typeCount[type] = (typeCount[type] || 0) + 1;
         });
         const entries = Object.entries(typeCount).sort((a, b) => b[1] - a[1]);
         const total = entries.reduce((s, e) => s + e[1], 0);
@@ -1091,7 +1351,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     tooltip: { ...tip(), callbacks: { label: c => {
                         const pct = total > 0 ? ((c.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${c.label}: ${c.raw} attendee${c.raw !== 1 ? 's' : ''} (${pct}%)`;
+                        const attLabel = c.raw !== 1 ? t('org.analytics.common.attendeesLower') : t('org.analytics.common.attendee');
+                        return ` ${c.label}: ${c.raw} ${attLabel} (${pct}%)`;
                     }}},
                     datalabels: {
                         color: '#fff',
@@ -1101,6 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return pct >= 5 ? pct + '%' : '';
                         },
                         anchor: 'center', align: 'center',
+                        textAlign: 'center',
                         textShadowBlur: 4, textShadowColor: 'rgba(0,0,0,0.3)'
                     }
                 }
@@ -1115,11 +1377,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const catScores = {};
         d.registrations.forEach(r => {
-            if (r.status === 'Withdrawn' || r.satisfactionScore == null) return;
+            const score = registrationSatisfaction(r);
+            if (r.status === 'Withdrawn' || score == null) return;
             const evt = eventMap[r.eventId];
             if (!evt || !evt.category) return;
             if (!catScores[evt.category]) catScores[evt.category] = [];
-            catScores[evt.category].push(r.satisfactionScore);
+            catScores[evt.category].push(score);
         });
 
         const entries = Object.entries(catScores)
@@ -1129,9 +1392,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateCategory(e[0])),
                 datasets: [{
-                    label: 'Avg. Satisfaction',
+                    label: t('org.analytics.axis.avgSatisfaction'),
                     data: entries.map(e => parseFloat(e[1].toFixed(2))),
                     backgroundColor: entries.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8, barPercentage: 0.6
@@ -1141,8 +1404,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...barOpts(true, c => {
                     const idx = c.dataIndex;
                     const count = entries[idx] ? entries[idx][2] : 0;
-                    return `${c.raw.toFixed(1)} ★  (${count} response${count !== 1 ? 's' : ''})`;
-                }, 'Average Satisfaction by Event Category', 'Event Category', 'Avg. Score (out of 5)'),
+                    const respLabel = count !== 1 ? t('org.analytics.common.responses') : t('org.analytics.common.response');
+                    return `${c.raw.toFixed(1)} ★  (${count} ${respLabel})`;
+                }, t('org.analytics.title.satisfactionByCategory'), t('org.analytics.axis.eventCategory'), t('org.analytics.axis.avgScore')),
                 scales: {
                     ...barOpts(true, null, '', '', '').scales,
                     y: {
@@ -1155,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             callback: v => v + ' ★'
                         },
                         title: {
-                            display: true, text: 'Avg. Score (out of 5)',
+                            display: true, text: t('org.analytics.axis.avgScore'),
                             font: { family: 'Inter', size: 12, weight: '500' },
                             color: CHART_TEXT.secondary, padding: { bottom: 8 }
                         }
@@ -1175,13 +1439,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const attendeeMap = {};
         d.registrations.filter(r => r.status !== 'Withdrawn').forEach(r => {
-            const key = r.name.trim().toLowerCase();
+            const name = String(r.name ?? '').trim();
+            if (!name) return;
+            const key = name.toLowerCase();
             if (!attendeeMap[key]) {
-                attendeeMap[key] = { name: r.name, events: new Set(), totalSpent: 0, scores: [] };
+                attendeeMap[key] = { name, events: new Set(), totalSpent: 0, scores: [] };
             }
             attendeeMap[key].events.add(r.eventId);
             attendeeMap[key].totalSpent += parseFloat(r.ticketPrice) || 0;
-            if (r.satisfactionScore != null) attendeeMap[key].scores.push(r.satisfactionScore);
+            const score = registrationSatisfaction(r);
+            if (score != null) attendeeMap[key].scores.push(score);
         });
 
         const loyalList = Object.values(attendeeMap)
@@ -1192,7 +1459,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         if (loyalList.length === 0) {
-            container.innerHTML = '<div class="att-loyalty-empty"><i class="fa-solid fa-user-group"></i>No repeat attendees found yet.</div>';
+            container.innerHTML = `<div class="att-loyalty-empty"><i class="fa-solid fa-user-group"></i>${t('org.analytics.loyalty.empty')}</div>`;
             return;
         }
 
@@ -1200,14 +1467,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const rank = i + 1;
             const rankClass = rank <= 3 ? `rank-${rank}` : '';
             const badgeClass = rank === 1 ? 'badge-gold' : rank === 2 ? 'badge-silver' : rank === 3 ? 'badge-bronze' : 'badge-regular';
-            const badgeLabel = rank === 1 ? 'Gold' : rank === 2 ? 'Silver' : rank === 3 ? 'Bronze' : 'Loyal';
+            const badgeLabel = rank === 1 ? t('org.analytics.loyalty.gold')
+                             : rank === 2 ? t('org.analytics.loyalty.silver')
+                             : rank === 3 ? t('org.analytics.loyalty.bronze')
+                             : t('org.analytics.loyalty.loyal');
+            const eventsLabel = a.events.size !== 1 ? t('org.analytics.common.eventsLower') : t('org.analytics.common.eventLower');
             return `<div class="att-loyalty-card">
                 <div class="att-loyalty-rank ${rankClass}">${rank <= 3 ? '<i class="fa-solid fa-crown"></i>' : rank}</div>
                 <div class="att-loyalty-info">
                     <div class="att-loyalty-name">${a.name}</div>
                     <div class="att-loyalty-meta">
-                        <span><i class="fa-solid fa-calendar-check"></i> ${a.events.size} events</span>
-                        <span><i class="fa-solid fa-sack-dollar"></i> ${a.totalSpent.toLocaleString()} SAR</span>
+                        <span><i class="fa-solid fa-calendar-check"></i> ${a.events.size} ${eventsLabel}</span>
+                        <span><i class="fa-solid fa-sack-dollar"></i> ${a.totalSpent.toLocaleString()} ${SAR_ICON}</span>
                     </div>
                 </div>
                 <span class="att-loyalty-badge ${badgeClass}"><i class="fa-solid fa-medal"></i> ${badgeLabel}</span>
@@ -1233,7 +1504,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const d = loadData();
         renderVendorKPIs(d);
         renderVendorHighlights(d);
-        renderVndChart(d);
+        const chartArea = document.querySelector('#ana-panel-vendors .ana-chart-area');
+        const allContent = document.getElementById('vnd-all-vendors-content');
+        if (currentVndTab === 'all-vendors') {
+            if (chartArea) chartArea.style.display = 'none';
+            if (allContent) allContent.style.display = '';
+            renderAllVendorsList(d);
+        } else {
+            if (chartArea) chartArea.style.display = '';
+            if (allContent) allContent.style.display = 'none';
+            renderVndChart(d);
+        }
     }
 
     function renderVendorKPIs(d) {
@@ -1281,14 +1562,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const topVendorEntry = Object.entries(bookingCount).sort((a, b) => b[1] - a[1])[0];
         const topVendor = topVendorEntry ? vendorMap[topVendorEntry[0]] : null;
+        const topVendorEventLabel = topVendorEntry && topVendorEntry[1] !== 1
+            ? t('org.analytics.common.eventsLower')
+            : t('org.analytics.common.eventLower');
         setText('vnd-highlight-top-vendor', topVendor
-            ? `${trunc(topVendor.name, 22)} — ${topVendorEntry[1]} event${topVendorEntry[1] !== 1 ? 's' : ''}`
-            : 'No data yet');
+            ? `${trunc(topVendor.name, 22)} — ${topVendorEntry[1]} ${topVendorEventLabel}`
+            : t('org.analytics.common.noDataYet'));
 
         const ratedVendors = d.vendors.filter(v => v.rating > 0).sort((a, b) => b.rating - a.rating);
         setText('vnd-highlight-top-rated', ratedVendors.length > 0
             ? `${trunc(ratedVendors[0].name, 22)} — ${ratedVendors[0].rating} ★`
-            : 'No data yet');
+            : t('org.analytics.common.noDataYet'));
 
         const catCount = {};
         d.eventVendors.filter(ev => ev.status === 'Confirmed').forEach(ev => {
@@ -1298,9 +1582,12 @@ document.addEventListener('DOMContentLoaded', () => {
             catCount[cat] = (catCount[cat] || 0) + 1;
         });
         const topCat = Object.entries(catCount).sort((a, b) => b[1] - a[1])[0];
+        const topCatBookingLabel = topCat && topCat[1] !== 1
+            ? t('org.analytics.common.bookings')
+            : t('org.analytics.common.booking');
         setText('vnd-highlight-top-category', topCat
-            ? `${topCat[0]} — ${topCat[1]} booking${topCat[1] !== 1 ? 's' : ''}`
-            : 'No data yet');
+            ? `${translateVendorCategory(topCat[0])} — ${topCat[1]} ${topCatBookingLabel}`
+            : t('org.analytics.common.noDataYet'));
 
         const eventIds = [...new Set(d.eventVendors.map(ev => ev.eventId))];
         const eventsWithVendors = eventIds.length;
@@ -1362,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: entries.map(e => e[0]),
+                labels: entries.map(e => translateVendorCategory(e[0])),
                 datasets: [{
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => PIE_COLORS[i % PIE_COLORS.length]),
@@ -1395,7 +1682,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     tooltip: { ...tip(), callbacks: { label: c => {
                         const pct = total > 0 ? ((c.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${c.label}: ${c.raw} booking${c.raw !== 1 ? 's' : ''} (${pct}%)`;
+                        const bookingLabel = c.raw !== 1 ? t('org.analytics.common.bookings') : t('org.analytics.common.booking');
+                        return ` ${c.label}: ${c.raw} ${bookingLabel} (${pct}%)`;
                     }}},
                     datalabels: {
                         color: '#fff',
@@ -1405,6 +1693,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return pct >= 5 ? pct + '%' : '';
                         },
                         anchor: 'center', align: 'center',
+                        textAlign: 'center',
                         textShadowBlur: 4, textShadowColor: 'rgba(0,0,0,0.3)'
                     }
                 }
@@ -1422,7 +1711,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ['Confirmed', 'Pending', 'Declined'],
+                labels: [
+                    t('org.analytics.common.confirmed'),
+                    t('org.analytics.common.pending'),
+                    t('org.analytics.common.declined')
+                ],
                 datasets: [{
                     data: [confirmed, pending, declined],
                     backgroundColor: ['#2e7d32', '#ff9800', '#c62828'],
@@ -1455,7 +1748,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     tooltip: { ...tip(), callbacks: { label: c => {
                         const pct = total > 0 ? ((c.raw / total) * 100).toFixed(1) : 0;
-                        return ` ${c.label}: ${c.raw} assignment${c.raw !== 1 ? 's' : ''} (${pct}%)`;
+                        const assignmentLabel = c.raw !== 1 ? t('org.analytics.common.assignments') : t('org.analytics.common.assignment');
+                        return ` ${c.label}: ${c.raw} ${assignmentLabel} (${pct}%)`;
                     }}},
                     datalabels: {
                         color: '#fff',
@@ -1465,6 +1759,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             return value > 0 ? pct + '%' : '';
                         },
                         anchor: 'center', align: 'center',
+                        textAlign: 'center',
                         textShadowBlur: 4, textShadowColor: 'rgba(0,0,0,0.3)'
                     }
                 }
@@ -1495,13 +1790,19 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: entries.map(e => e[0]),
                 datasets: [{
-                    label: 'Confirmed Vendors',
+                    label: t('org.analytics.axis.confirmedVendors'),
                     data: entries.map(e => e[1]),
                     backgroundColor: entries.map((_, i) => BRAND_SERIES[i % BRAND_SERIES.length]),
                     borderRadius: 8, barPercentage: 0.6
                 }]
             },
-            options: barOpts(true, c => `${c.raw} vendor${c.raw !== 1 ? 's' : ''}`, 'Confirmed Vendors per Event', 'Event', 'Number of Vendors')
+            options: barOpts(
+                true,
+                c => `${c.raw} ${c.raw !== 1 ? t('org.analytics.common.vendors') : t('org.analytics.common.vendor')}`,
+                t('org.analytics.title.confirmedVendorsPerEvent'),
+                t('org.analytics.axis.event'),
+                t('org.analytics.axis.numVendors')
+            )
         });
     }
 
@@ -1535,22 +1836,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }).sort((a, b) => b.events - a.events || b.confirmed - a.confirmed);
 
         if (list.length === 0) {
-            container.innerHTML = '<div class="att-loyalty-empty"><i class="fa-solid fa-store"></i>No vendors available.</div>';
+            container.innerHTML = `<div class="att-loyalty-empty"><i class="fa-solid fa-store"></i>${t('org.analytics.vendors.empty')}</div>`;
             return;
         }
 
         container.innerHTML = list.map((v, i) => {
             const rank = i + 1;
             const rankClass = rank <= 3 && v.events > 0 ? `rank-${rank}` : '';
+            const eventLabel = v.events !== 1
+                ? t('org.analytics.common.eventsLower')
+                : t('org.analytics.common.eventLower');
             return `<div class="att-loyalty-card">
                 <div class="att-loyalty-rank ${rankClass}">${rank <= 3 && v.events > 0 ? '<i class="fa-solid fa-crown"></i>' : rank}</div>
                 <div class="att-loyalty-info">
                     <div class="att-loyalty-name">${v.name}</div>
                     <div class="att-loyalty-meta">
-                        <span><i class="fa-solid fa-calendar-check"></i> ${v.events} event${v.events !== 1 ? 's' : ''}</span>
-                        <span><i class="fa-solid fa-handshake"></i> ${v.confirmed} confirmed</span>
-                        ${v.pending > 0 ? `<span><i class="fa-solid fa-hourglass-half" style="color:#f59e0b"></i> ${v.pending} pending</span>` : ''}
-                        <span><i class="fa-solid fa-tag"></i> ${v.category}</span>
+                        <span><i class="fa-solid fa-calendar-check"></i> ${v.events} ${eventLabel}</span>
+                        <span><i class="fa-solid fa-handshake"></i> ${v.confirmed} ${t('org.analytics.common.confirmedLower')}</span>
+                        ${v.pending > 0 ? `<span><i class="fa-solid fa-hourglass-half" style="color:#f59e0b"></i> ${v.pending} ${t('org.analytics.common.pendingLower')}</span>` : ''}
+                        <span><i class="fa-solid fa-tag"></i> ${translateVendorCategory(v.category)}</span>
                         ${v.location ? `<span><i class="fa-solid fa-location-dot"></i> ${v.location}</span>` : ''}
                         ${v.rating > 0 ? `<span><i class="fa-solid fa-star" style="color:#f59e0b"></i> ${v.rating}</span>` : ''}
                     </div>
@@ -1654,6 +1958,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return h;
     }
 
+    /* Locale-aware date string for PDF banners ("Generated on …"). */
+    function pdfDateString() {
+        const lang = getLang();
+        const locale = lang === 'ar' ? 'ar-EG-u-nu-latn' : 'en-US';
+        return new Date().toLocaleDateString(locale, {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+    }
+
     function nextFrame() {
         return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }
@@ -1664,6 +1977,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:' + w + 'px;height:' + h + 'px;background:#ffffff;';
         const tmpCanvas = document.createElement('canvas');
+        tmpCanvas.setAttribute('dir', 'ltr');
         tmpCanvas.style.cssText = 'display:block;width:100%;height:100%;';
         wrapper.appendChild(tmpCanvas);
         document.body.appendChild(wrapper);
@@ -1735,7 +2049,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (img) {
                 chartWrap.appendChild(img);
             } else {
-                chartWrap.innerHTML = '<div style="padding:2rem;text-align:center;color:#8aa0b3;font-size:0.85rem;">No data available for this chart.</div>';
+                chartWrap.innerHTML = `<div style="padding:2rem;text-align:center;color:#8aa0b3;font-size:0.85rem;">${t('org.analytics.pdf.noChartData')}</div>`;
             }
         });
     }
@@ -1749,27 +2063,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const titleBanner = document.createElement('div');
         titleBanner.className = 'pdf-report-title-banner';
-        titleBanner.innerHTML = '<h2><i class="fa-solid fa-chart-bar"></i> Eventia — Overview Report</h2>' +
-            '<p>Generated on ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
+        titleBanner.innerHTML = `<h2><i class="fa-solid fa-chart-bar"></i> ${t('org.analytics.pdf.overviewTitle')}</h2>` +
+            `<p>${t('org.analytics.pdf.generatedOn')}${pdfDateString()}</p>`;
         stage.appendChild(titleBanner);
 
         const kpiSource = document.querySelector('#ana-panel-overview .ana-kpi-grid');
         if (kpiSource) {
-            stage.appendChild(pdfSectionHeading('Key Performance Indicators'));
+            stage.appendChild(pdfSectionHeading(t('org.analytics.pdf.kpiSection')));
             stage.appendChild(kpiSource.cloneNode(true));
         }
 
         const hlSource = document.querySelector('#ana-panel-overview .ana-highlight-grid');
         if (hlSource) {
-            stage.appendChild(pdfSectionHeading('Highlights'));
+            stage.appendChild(pdfSectionHeading(t('org.analytics.pdf.highlightsSection')));
             stage.appendChild(hlSource.cloneNode(true));
         }
 
         const overviewCharts = [
-            { label: 'Attendance by Event',    fn: ctx => chartAttendance(ctx, d) },
-            { label: 'Revenue by Event',       fn: ctx => chartRevenue(ctx, d) },
-            { label: 'Services Distribution',  fn: ctx => chartServices(ctx, d) },
-            { label: 'Event Categories',       fn: ctx => chartCategories(ctx, d) }
+            { label: t('org.analytics.pdf.section.attendanceByEvent'),   fn: ctx => chartAttendance(ctx, d) },
+            { label: t('org.analytics.pdf.section.revenueByEvent'),      fn: ctx => chartRevenue(ctx, d) },
+            { label: t('org.analytics.pdf.section.servicesDistribution'), fn: ctx => chartServices(ctx, d) },
+            { label: t('org.analytics.pdf.section.eventCategories'),     fn: ctx => chartCategories(ctx, d) }
         ];
 
         return overviewCharts.reduce(
@@ -1796,15 +2110,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const kpiSource = document.querySelector('.evt-report-kpi-grid');
         if (kpiSource) {
-            stage.appendChild(pdfSectionHeading('Key Performance Indicators'));
+            stage.appendChild(pdfSectionHeading(t('org.analytics.pdf.kpiSection')));
             stage.appendChild(kpiSource.cloneNode(true));
         }
 
         const evtCharts = [
-            { label: 'Revenue by Tier',        fn: ctx => evtChartRevenueTier(ctx, eventId, d) },
-            { label: 'Age Groups',             fn: ctx => evtChartAgeGroups(ctx, eventId, d) },
-            { label: 'Registration Timeline',  fn: ctx => evtChartRegTimeline(ctx, eventId, d) },
-            { label: 'Vendor Services',        fn: ctx => evtChartVendorServices(ctx, eventId, d) }
+            { label: t('org.analytics.pdf.section.revenueByTier'),  fn: ctx => evtChartRevenueTier(ctx, eventId, d) },
+            { label: t('org.analytics.pdf.section.ageGroups'),      fn: ctx => evtChartAgeGroups(ctx, eventId, d) },
+            { label: t('org.analytics.pdf.section.regTimeline'),    fn: ctx => evtChartRegTimeline(ctx, eventId, d) },
+            { label: t('org.analytics.pdf.section.vendorServices'), fn: ctx => evtChartVendorServices(ctx, eventId, d) }
         ];
 
         return evtCharts.reduce(
@@ -1825,17 +2139,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating…';
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>${t('org.analytics.pdf.generating')}</span>`;
         }
 
         if (window.location.protocol === 'file:') {
-            alert(
-                'PDF export does not work when you open the page as a local file (address bar shows file:///…).\n\n' +
-                'Run a small web server in your project folder, then use http://localhost instead. Example:\n\n' +
-                '  cd your-project-folder\n' +
-                '  python3 -m http.server 8080\n\n' +
-                'Open: http://localhost:8080/organizer-dashboard.html'
-            );
+            alert(t('org.analytics.pdf.fileError'));
             resetExportButton();
             return;
         }
@@ -1843,12 +2151,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const jspdfMod = window.jspdf;
         const JsPDF = jspdfMod && (jspdfMod.jsPDF || jspdfMod);
         if (typeof JsPDF !== 'function') {
-            alert('PDF library did not load. Check your network, refresh the page, and open the site over http(s), not file://.');
+            alert(t('org.analytics.pdf.libError'));
             resetExportButton();
             return;
         }
         if (typeof html2canvas !== 'function') {
-            alert('Screenshot helper did not load. Refresh the page and try again.');
+            alert(t('org.analytics.pdf.h2cError'));
             resetExportButton();
             return;
         }
@@ -1857,26 +2165,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const canvasScale = Math.min(3, Math.max(2.35, (window.devicePixelRatio || 1) * 2.25));
         const canvasOpts = pdfMakeCanvasOpts(canvasScale);
         const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Screenshot timed out.')), captureMs);
+            setTimeout(() => reject(new Error(t('org.analytics.pdf.timeout'))), captureMs);
         });
 
         let stagingEl = null;
 
         stagingPromise
             .then(el => {
-                if (!el) throw new Error('Could not build report.');
+                if (!el) throw new Error(t('org.analytics.pdf.cantBuild'));
                 stagingEl = el;
                 document.body.appendChild(stagingEl);
                 return pdfWaitForLayoutStable();
             })
             .then(() => Promise.race([html2canvas(stagingEl, canvasOpts), timeoutPromise]))
             .then(canvas => {
-                if (!canvas.width || !canvas.height) throw new Error('Empty screenshot.');
+                if (!canvas.width || !canvas.height) throw new Error(t('org.analytics.pdf.emptyShot'));
                 let imgData;
                 try {
                     imgData = canvas.toDataURL('image/png');
                 } catch (e) {
-                    throw new Error('Could not read the page image (often blocked when opening the file directly).');
+                    throw new Error(t('org.analytics.pdf.cantRead'));
                 }
 
                 const pdfW = 210;
@@ -1904,8 +2212,8 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(err => {
                 console.error('PDF export failed:', err);
-                const hint = err && err.message ? '\n\nDetails: ' + err.message : '';
-                alert('Could not generate PDF. If the address bar shows file:///, serve the project over http://localhost instead.' + hint);
+                const hint = err && err.message ? t('org.analytics.pdf.detailsPrefix') + err.message : '';
+                alert(t('org.analytics.pdf.cantGenerate') + hint);
             })
             .finally(() => {
                 if (stagingEl && stagingEl.parentNode) stagingEl.parentNode.removeChild(stagingEl);
@@ -1928,20 +2236,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const titleBanner = document.createElement('div');
         titleBanner.className = 'pdf-report-title-banner';
-        titleBanner.innerHTML = '<h2><i class="fa-solid fa-users"></i> Eventia — Attendees Report</h2>' +
-            '<p>Generated on ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
+        titleBanner.innerHTML = `<h2><i class="fa-solid fa-users"></i> ${t('org.analytics.pdf.attendeesTitle')}</h2>` +
+            `<p>${t('org.analytics.pdf.generatedOn')}${pdfDateString()}</p>`;
         stage.appendChild(titleBanner);
 
         const kpiSource = document.querySelector('#ana-panel-attendees .ana-kpi-grid');
         if (kpiSource) {
-            stage.appendChild(pdfSectionHeading('Key Performance Indicators'));
+            stage.appendChild(pdfSectionHeading(t('org.analytics.pdf.kpiSection')));
             stage.appendChild(kpiSource.cloneNode(true));
         }
 
         const attendeeCharts = [
-            { label: 'Attendees by Age Group',        fn: ctx => chartAgeGroups(ctx, d) },
-            { label: 'Ticket Type Distribution',      fn: ctx => chartTicketTypes(ctx, d) },
-            { label: 'Satisfaction by Event Category', fn: ctx => chartSatisfactionByCategory(ctx, d) }
+            { label: t('org.analytics.pdf.section.attByAgeGroup'), fn: ctx => chartAgeGroups(ctx, d) },
+            { label: t('org.analytics.pdf.section.ticketTypes'),   fn: ctx => chartTicketTypes(ctx, d) },
+            { label: t('org.analytics.pdf.section.satByCategory'), fn: ctx => chartSatisfactionByCategory(ctx, d) }
         ];
 
         return attendeeCharts.reduce(
@@ -1964,26 +2272,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const titleBanner = document.createElement('div');
         titleBanner.className = 'pdf-report-title-banner';
-        titleBanner.innerHTML = '<h2><i class="fa-solid fa-store"></i> Eventia — Vendor Analytics Report</h2>' +
-            '<p>Generated on ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
+        titleBanner.innerHTML = `<h2><i class="fa-solid fa-store"></i> ${t('org.analytics.pdf.vendorsTitle')}</h2>` +
+            `<p>${t('org.analytics.pdf.generatedOn')}${pdfDateString()}</p>`;
         stage.appendChild(titleBanner);
 
         const kpiSource = document.querySelector('#ana-panel-vendors .ana-kpi-grid');
         if (kpiSource) {
-            stage.appendChild(pdfSectionHeading('Key Performance Indicators'));
+            stage.appendChild(pdfSectionHeading(t('org.analytics.pdf.kpiSection')));
             stage.appendChild(kpiSource.cloneNode(true));
         }
 
         const hlSource = document.querySelector('#ana-panel-vendors .ana-highlight-grid');
         if (hlSource) {
-            stage.appendChild(pdfSectionHeading('Highlights'));
+            stage.appendChild(pdfSectionHeading(t('org.analytics.pdf.highlightsSection')));
             stage.appendChild(hlSource.cloneNode(true));
         }
 
         const vendorCharts = [
-            { label: 'Category Distribution',   fn: ctx => vndChartCategoryDist(ctx, d) },
-            { label: 'Status Breakdown',        fn: ctx => vndChartStatusBreakdown(ctx, d) },
-            { label: 'Vendors per Event',       fn: ctx => vndChartVendorsPerEvent(ctx, d) }
+            { label: t('org.analytics.pdf.section.categoryDist'),    fn: ctx => vndChartCategoryDist(ctx, d) },
+            { label: t('org.analytics.pdf.section.statusBreakdown'), fn: ctx => vndChartStatusBreakdown(ctx, d) },
+            { label: t('org.analytics.pdf.section.vendorsPerEvent'), fn: ctx => vndChartVendorsPerEvent(ctx, d) }
         ];
 
         return vendorCharts.reduce(
@@ -2006,18 +2314,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const titleBanner = document.createElement('div');
         titleBanner.className = 'pdf-report-title-banner';
-        titleBanner.innerHTML = '<h2><i class="fa-solid fa-lightbulb"></i> Eventia — Market Insights Report</h2>' +
-            '<p>Generated on ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) + '</p>';
+        titleBanner.innerHTML = `<h2><i class="fa-solid fa-lightbulb"></i> ${t('org.analytics.pdf.marketTitle')}</h2>` +
+            `<p>${t('org.analytics.pdf.generatedOn')}${pdfDateString()}</p>`;
         stage.appendChild(titleBanner);
 
         const avgPriceLabel = tierForPdf === 'all'
-            ? 'Average Ticket Price by Category'
-            : 'Average Ticket Price by Category (' + tierForPdf + ')';
+            ? t('org.analytics.pdf.section.avgPriceByCat')
+            : t('org.analytics.pdf.section.avgPriceByCatFmt').replace('{tier}', tierForPdf);
 
         const marketCharts = [
-            { label: 'Number of Events by Month',                fn: ctx => chartEventsPerMonth(ctx, d) },
-            { label: avgPriceLabel,                              fn: ctx => chartAvgTicketPrice(ctx, d, tierForPdf) },
-            { label: 'Revenue Potential per Event by Category',  fn: ctx => chartRevenuePotential(ctx, d) }
+            { label: t('org.analytics.pdf.section.eventsByMonth'),    fn: ctx => chartEventsPerMonth(ctx, d) },
+            { label: avgPriceLabel,                                   fn: ctx => chartAvgTicketPrice(ctx, d, tierForPdf) },
+            { label: t('org.analytics.pdf.section.revenuePotential'), fn: ctx => chartRevenuePotential(ctx, d) }
         ];
 
         return marketCharts.reduce(
@@ -2035,7 +2343,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfBuildOverviewStaging(),
                 'Eventia_Overview_Report.pdf',
                 btn,
-                'Eventia — Overview Report'
+                t('org.analytics.pdf.overviewTitle')
             );
         },
         'ana-evt-export-pdf': (btn) => {
@@ -2048,7 +2356,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfBuildEventStaging(selectedEventId),
                 'Eventia_Report_' + name + '.pdf',
                 btn,
-                'Eventia — ' + (evtNameEl ? evtNameEl.textContent.trim() : 'Event Report')
+                'Eventia — ' + (evtNameEl ? evtNameEl.textContent.trim() : t('org.analytics.pdf.eventTitleFallback'))
             );
         },
         'ana-attendees-export-pdf': (btn) => {
@@ -2056,7 +2364,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfBuildAttendeesStaging(),
                 'Eventia_Attendees_Report.pdf',
                 btn,
-                'Eventia — Attendees Report'
+                t('org.analytics.pdf.attendeesTitle')
             );
         },
         'ana-vendors-export-pdf': (btn) => {
@@ -2064,7 +2372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfBuildVendorsStaging(),
                 'Eventia_Vendors_Report.pdf',
                 btn,
-                'Eventia — Vendor Analytics Report'
+                t('org.analytics.pdf.vendorsTitle')
             );
         },
         'ana-market-export-pdf': (btn) => {
@@ -2072,7 +2380,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pdfBuildMarketStaging(),
                 'Eventia_Market_Insights_Report.pdf',
                 btn,
-                'Eventia — Market Insights Report'
+                t('org.analytics.pdf.marketTitle')
             );
         }
     };
@@ -2093,7 +2401,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 route(btn);
             } catch (err) {
                 console.error('Export button failed:', err);
-                alert('Could not start export. See console for details.');
+                alert(t('org.analytics.pdf.cantStart'));
             }
         });
     }
@@ -2106,6 +2414,26 @@ document.addEventListener('DOMContentLoaded', () => {
         renderKPIs(cachedData);
         renderHighlights(cachedData);
         renderCurrentChart();
+
+        const sel = document.getElementById('ana-event-select');
+        if (sel && cachedData.events) {
+            const v = sel.value;
+            populateEventDropdown(cachedData.events);
+            if (v) sel.value = v;
+        }
+        if (selectedEventId) {
+            renderEventReport(selectedEventId);
+        }
+
+        const activePanel = document.querySelector('.ana-main-panel.active');
+        const pid = activePanel && activePanel.id;
+        if (pid === 'ana-panel-attendees') {
+            renderAttendeesPanel();
+        } else if (pid === 'ana-panel-market-insights') {
+            renderMarketInsights();
+        } else if (pid === 'ana-panel-vendors') {
+            renderVendorsPanel();
+        }
     };
 
     initMainTabs();
@@ -2116,4 +2444,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initVndTabs();
     initEventSelector();
     initExportButtons();
+
+    /* Refresh chart-rendered copy when organizer uses the lang switch (applyLang). */
+    if (typeof window.applyLang === 'function' && !window.__eventiaAnalyticsLangHook) {
+        window.__eventiaAnalyticsLangHook = true;
+        const _prevApplyLang = window.applyLang;
+        window.applyLang = function (lang) {
+            _prevApplyLang(lang);
+            if (typeof window.renderAnalytics === 'function') {
+                const p = window.renderAnalytics();
+                if (p && typeof p.then === 'function') p.catch(() => {});
+            }
+        };
+    }
 });
