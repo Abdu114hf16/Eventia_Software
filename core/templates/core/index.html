@@ -133,6 +133,7 @@
             text-decoration: none;
             font-size: 0.95rem;
             display: inline-block;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -1606,15 +1607,23 @@
             }
 
             .hero-landing .hero-buttons {
-                flex-direction: column;
-                align-items: center;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 0.75rem;
             }
 
             .btn-lg {
-                padding: 0.85rem 1.8rem;
-                font-size: 0.95rem;
-                width: 100%;
+                padding: 0.7rem 1.4rem;
+                font-size: 0.85rem;
+                width: auto;
                 justify-content: center;
+            }
+
+            /* Nav buttons: tighter padding so they fit mobile navbar without overflow */
+            .landing-nav .nav-links .btn {
+                padding: 0.45rem 0.9rem;
+                font-size: 0.82rem;
             }
 
             .hero-stats {
@@ -1716,7 +1725,7 @@
         }
 
         html[dir="rtl"] .hero-buttons {
-            justify-content: flex-start;
+            justify-content: center;
         }
 
         html[dir="rtl"] .input-group label {
@@ -2487,30 +2496,6 @@
 
         // --- Initial render: show first batch ---
         applyFilters();
-
-        var langSwitchBtn = document.getElementById('lang-switch');
-        if (langSwitchBtn) {
-            langSwitchBtn.addEventListener('click', function () {
-                var cur = (window.getLang && window.getLang()) || 'ar';
-                if (cur === 'ar') {
-                    // Switch back to English → go to English landing page
-                    localStorage.setItem('eventia_lang', 'en');
-                    window.location.href = "{% url 'landing_page' %}";
-                } else {
-                    // Already on English side, switch to Arabic
-                    if (window.applyLang) window.applyLang('ar');
-                    // Update no-results message if visible
-                    setTimeout(function () {
-                        if (noEventsEl && noEventsEl.style.display !== 'none') {
-                            var msgP = noEventsEl.querySelector('p');
-                            if (msgP && !msgP.hasAttribute('data-i18n')) {
-                                msgP.textContent = landingT('landing.noSearchResults', 'No events match your search. Try different keywords.');
-                            }
-                        }
-                    }, 0);
-                }
-            });
-        }
 
         // --- Smooth scroll for nav links ---
         document.querySelectorAll('.nav-scroll-link').forEach(function (link) {
