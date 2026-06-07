@@ -38,11 +38,11 @@ def dashboard_view(request):
         elif request.user.role == 'ATTENDEE':
             return redirect('attendee_dashboard')
 
-    events = Event.objects.filter(status='APPROVED').order_by('date')
+    events = Event.objects.filter(status='APPROVED', date__gte=date.today()).order_by('date')
     return render(request, 'core/index.html', {'events': events})
 
 def landing_page(request):
-    events = Event.objects.filter(status='APPROVED').order_by('date')
+    events = Event.objects.filter(status='APPROVED', date__gte=date.today()).order_by('date')
     return render(request, 'core/index.html', {'events': events})
 
 def logout_view(request):
@@ -73,7 +73,7 @@ def signup_attendee(request):
             login(request, user)
             return redirect('attendee_dashboard')
         else:
-            messages.error(request, f"Validation Failed: {form.errors}")
+            messages.error(request, f"Validation Failed: {form.errors}", extra_tags='signup i18n:validationFailed')
     else:
         form = SignUpForm()
     return render(request, 'core/signup.html', {'form': form})
@@ -85,12 +85,12 @@ def login_attendee(request):
         if form.is_valid():
             user = form.get_user()
             if user.role != 'ATTENDEE':
-                messages.error(request, "Access Denied. Organizers and Vendors must use the Business Login page.")
+                messages.error(request, "Invalid credentials.", extra_tags='login i18n:invalidCredentials')
                 return render(request, 'core/login.html', {'form': form})
             login(request, user)
             return redirect('attendee_dashboard')
         else:
-            messages.error(request, "Invalid credentials.")
+            messages.error(request, "Invalid credentials.", extra_tags='login i18n:invalidCredentials')
     else:
         form = AuthenticationForm()
     return render(request, 'core/login.html', {'form': form})
@@ -99,7 +99,8 @@ def login_attendee(request):
 @login_required
 def attendee_dashboard(request):
     if request.user.role != 'ATTENDEE': return redirect('home')
-    events = Event.objects.filter(status='APPROVED').order_by('date')
+    today = date.today()
+    events = Event.objects.filter(status='APPROVED', date__gte=today).order_by('date')
     user_tickets = Ticket.objects.filter(attendee=request.user)
     registered_event_ids = list(user_tickets.values_list('event_id', flat=True))
 
@@ -239,7 +240,7 @@ def signup_business(request):
                 return redirect('vendor_dashboard')
             return redirect('dashboard')
         else:
-            messages.error(request, f"Validation Failed: {form.errors}")
+            messages.error(request, f"Validation Failed: {form.errors}", extra_tags='signup i18n:validationFailed')
     else:
         form = SignUpForm()
     return render(request, 'core/signup-business.html', {'form': form})
@@ -252,13 +253,13 @@ def login_business(request):
         if form.is_valid():
             user = form.get_user()
             if user.role not in ['ORGANIZER', 'VENDOR']:
-                messages.error(request, "Access Denied. Attendees must use the standard login page.")
+                messages.error(request, "Invalid business credentials.", extra_tags='login i18n:invalidBusinessCredentials')
                 return render(request, 'core/login-business.html', {'form': form})
             if user.role != selected_role:
                 role_labels = {'ORGANIZER': 'Organizer', 'VENDOR': 'Vendor'}
                 actual = role_labels.get(user.role, user.role.capitalize())
                 selected = role_labels.get(selected_role, selected_role.capitalize())
-                messages.error(request, f"This account is registered as a {actual}, not a {selected}. Please select the correct role and try again.")
+                messages.error(request, f"Invalid business credentials.", extra_tags='login i18n:invalidBusinessCredentials')
                 return render(request, 'core/login-business.html', {'form': form})
             login(request, user)
             if user.role == 'ORGANIZER':
@@ -266,7 +267,7 @@ def login_business(request):
             elif user.role == 'VENDOR':
                 return redirect('vendor_dashboard')
         else:
-            messages.error(request, "Invalid business credentials.")
+            messages.error(request, "Invalid business credentials.", extra_tags='login i18n:invalidBusinessCredentials')
     else:
         form = AuthenticationForm()
     return render(request, 'core/login-business.html', {'form': form})
@@ -345,8 +346,10 @@ def vendor_dashboard(request):
     return render(request, 'core/vendor-dashboard.html', context)
 
 def login_scega(request):
+    # Clear any stale messages from other views
     storage = messages.get_messages(request)
-    for _ in storage: pass
+    for _ in storage:
+        pass
 
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -356,7 +359,9 @@ def login_scega(request):
                 login(request, user)
                 return redirect('scega_dashboard')
             else:
-                messages.error(request, "Access Denied. SCEGA Admins only.")
+                messages.error(request, "Access Denied. SCEGA Admins only.", extra_tags='scega_login i18n:msg.scegaAccessDenied')
+        else:
+            messages.error(request, "Invalid credentials.", extra_tags='scega_login i18n:msg.invalidCredentials')
     else:
         form = AuthenticationForm()
     return render(request, 'core/scega-login.html', {'form': form})
@@ -364,7 +369,7 @@ def login_scega(request):
 
 def logout_scega(request):
     logout(request)
-    messages.info(request, "You have been successfully logged out.")
+    messages.info(request, "You have been successfully logged out.", extra_tags='scega_login i18n:msg.loggedOutSuccessfully')
     return redirect('scega_login')
 
 
@@ -422,7 +427,7 @@ def organizer_dashboard(request):
                 event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
 
                 if Request.objects.filter(event=event, vendor=vendor).exists():
-                    messages.warning(request, "A request for this vendor and event already exists.")
+                    messages.warning(request, "", extra_tags='organizer i18n:org.requests.duplicate')
                 else:
                     Request.objects.create(
                         event=event,
@@ -431,7 +436,7 @@ def organizer_dashboard(request):
                         sent_by='ORGANIZER',
                         status='PENDING'
                     )
-                    messages.success(request, f"Request sent to {vendor.user.username} successfully!")
+                    messages.success(request, vendor.user.username, extra_tags='organizer i18n:org.requests.sentSuccessTo')
                 return redirect('organizer_dashboard')
 
             event_id = request.POST.get('event_id')
@@ -455,7 +460,7 @@ def organizer_dashboard(request):
 
                 event.status = 'PENDING'
                 event.save()
-                messages.success(request, "Event updated successfully!")
+                messages.success(request, "", extra_tags='organizer i18n:org.toast.updated')
             else:
                 Event.objects.create(
                     organizer=request.user.organizer_profile,
@@ -472,10 +477,10 @@ def organizer_dashboard(request):
                     banner=banner_file,
                     status='PENDING'
                 )
-                messages.success(request, "Event created! Waiting for approval.")
+                messages.success(request, "", extra_tags='organizer i18n:org.toast.submitted')
             return redirect('organizer_dashboard')
         except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
+            messages.error(request, str(e), extra_tags='organizer i18n:org.error.generic')
             return redirect('organizer_dashboard')
 
     try:
@@ -540,6 +545,14 @@ def organizer_dashboard(request):
         })
     events_json = json.dumps(events_json_list, cls=DjangoJSONEncoder)
 
+    organizer_flash = []
+    for message in messages.get_messages(request):
+        if 'organizer' in message.tags:
+            organizer_flash.append({
+                'tags': message.tags,
+                'text': str(message),
+            })
+
     context = {
         'events': annotated_events,
         'recent_events': recent_events,
@@ -552,6 +565,7 @@ def organizer_dashboard(request):
         'upcoming_count': upcoming_count,
         # JSON blob injected into the page so JS renders immediately (no blank flash)
         'events_json': events_json,
+        'organizer_flash_json': json.dumps(organizer_flash, cls=DjangoJSONEncoder),
     }
     return render(request, 'core/organizer-dashboard.html', context)
 
@@ -563,7 +577,7 @@ def organizer_accept_request(request, req_id):
     req = get_object_or_404(Request, id=req_id, event__organizer=request.user.organizer_profile)
     req.status = 'APPROVED'
     req.save()
-    messages.success(request, f"Request from {req.vendor.user.username} approved!")
+    messages.success(request, req.vendor.user.username, extra_tags='organizer i18n:org.requests.approvedFrom')
     return redirect('organizer_dashboard')
 
 
@@ -574,7 +588,7 @@ def organizer_reject_request(request, req_id):
     req = get_object_or_404(Request, id=req_id, event__organizer=request.user.organizer_profile)
     req.status = 'REJECTED'
     req.save()
-    messages.warning(request, f"Request from {req.vendor.user.username} rejected.")
+    messages.warning(request, req.vendor.user.username, extra_tags='organizer i18n:org.requests.rejectedFrom')
     return redirect('organizer_dashboard')
 
 
@@ -584,7 +598,7 @@ def delete_event(request, event_id):
         return redirect('home')
     event = get_object_or_404(Event, id=event_id, organizer=request.user.organizer_profile)
     event.delete()
-    messages.success(request, "Event deleted successfully.")
+    messages.success(request, "", extra_tags='organizer i18n:org.em.deleteSuccess')
     return redirect('organizer_dashboard')
 
 
@@ -798,7 +812,10 @@ def update_profile(request):
             if 'job_title' in request.POST: profile.job_title = request.POST.get('job_title')
             profile.save()
 
-        messages.success(request, "Profile updated successfully!")
+        if user.role == 'ORGANIZER':
+            messages.success(request, "", extra_tags='organizer i18n:org.profile.updated')
+        else:
+            messages.success(request, "Profile updated successfully!")
         referer = request.META.get('HTTP_REFERER')
         if referer: return redirect(referer)
         return redirect('dashboard')
@@ -851,13 +868,26 @@ def api_organizer_data(request):
     events_data = []
     for evt in my_events:
         active_count = Ticket.objects.filter(event=evt, status='ACTIVE').count()
-        status_label = 'Past' if evt.date < today else ('Rejected' if evt.status == 'REJECTED' else ('Pending' if evt.status == 'PENDING' else 'Upcoming'))
+        # Compute temporal status label (Upcoming/Ongoing/Past) only for APPROVED events.
+        # PENDING and REJECTED always surface their SCEGA status regardless of date.
+        if evt.status == 'PENDING':
+            status_label = 'Pending'
+        elif evt.status == 'REJECTED':
+            status_label = 'Rejected'
+        elif evt.date == today:
+            status_label = 'Ongoing'
+        elif evt.date > today:
+            status_label = 'Upcoming'
+        else:
+            status_label = 'Past'
         events_data.append({
             'id': str(evt.id), 'title': evt.title, 'category': evt.category or 'Other',
             'date': evt.date.strftime('%Y-%m-%d'), 'time': evt.time.strftime('%H:%M') if evt.time else '',
             'location': evt.location or '', 'description': evt.description or '',
             'price': str(evt.ticket_price), 'tickets': [{'name': 'Standard', 'price': str(evt.ticket_price)}],
-            'status': status_label, 'withdrawalPolicy': evt.withdrawal_policy or 'flexible',
+            'status': status_label,
+            'scegaStatus': evt.status,  # Raw DB value: PENDING | APPROVED | REJECTED
+            'withdrawalPolicy': evt.withdrawal_policy or 'flexible',
             'attendeeWithdrawalPolicy': evt.attendee_withdrawal_policy or 'flexible',
             'attendees': active_count, 'rejectionReason': evt.rejection_reason or '',
             'banner': evt.banner.url if bool(evt.banner) else None, 'capacity': evt.capacity,
@@ -1012,6 +1042,8 @@ def _build_events_context():
     """
     Builds the event context string for the system prompt.
     Called only on a cache miss (first request, or after an event changes).
+    Only includes upcoming and ongoing events (today and later) so the AI
+    never surfaces past/finished events to users.
     """
     approved_vendors_prefetch = Prefetch(
         'requests',
@@ -1019,9 +1051,11 @@ def _build_events_context():
         to_attr='prefetched_vendors'
     )
 
+    today = date.today()
     events = (
         Event.objects
-        .filter(status='APPROVED')
+        .filter(status='APPROVED', date__gte=today)   # ← exclude past events
+        .order_by('date')                              # ← nearest first
         .select_related('organizer')
         .prefetch_related(approved_vendors_prefetch)
         # Only pull the columns we actually use — skips banner, rejection_reason, etc.
@@ -1152,6 +1186,13 @@ RULE 6 – HONESTY:
   - If something isn't in the database, say so. Don't invent vendors, organizers, or events.
   - NEVER use the word "database" in your replies. Say "our listings", "what we have", or "our events" instead.
   - NEVER mention event IDs or REF numbers in your replies. They are internal references only.
+
+RULE 7 – LANGUAGE MATCHING (CRITICAL):
+  - Detect the language of the user's latest message.
+  - If the user writes in Arabic → reply entirely in Arabic, including greetings, event details, and all text inside "reply".
+  - If the user writes in English → reply entirely in English.
+  - NEVER mix languages in the same reply.
+  - This rule overrides everything else — language must always match the user's message.
 
 FORMATTING: Use <strong>, <em>, <br> inside "reply" for emphasis when it helps clarity."""
 
