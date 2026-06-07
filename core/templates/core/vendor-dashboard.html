@@ -8,10 +8,10 @@
     <title>Vendor Dashboard | Eventia</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'css/vendor.css' %}">
+    <link rel="stylesheet" href="{% static 'css/vendor.css' %}?v=4">
     <link rel="stylesheet" href="{% static 'css/organizer.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -39,6 +39,66 @@
             from { transform: translateY(-20px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
+
+        /* ── Language toggle button ── */
+        .lang-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            border: 1.5px solid var(--border-color, #e0e0e0);
+            border-radius: 50px;
+            padding: 5px 13px 5px 9px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,78,146,0.08);
+            transition: box-shadow 0.3s, border-color 0.3s, background 0.3s, color 0.3s;
+            flex-shrink: 0;
+            margin-inline-start: 0.35rem;
+            font-family: inherit;
+        }
+        .lang-toggle-btn:hover {
+            box-shadow: 0 4px 20px rgba(0,78,146,0.16);
+            border-color: rgba(0,78,146,0.28);
+            background: #f5f9ff;
+        }
+        .lang-toggle-flag-img {
+            width: 22px;
+            height: 15px;
+            border-radius: 3px;
+            object-fit: cover;
+            display: inline-block;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.22);
+        }
+        .lang-toggle-code {
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: var(--primary-color, #004e92);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .lang-toggle-divider {
+            width: 1px;
+            height: 14px;
+            background: var(--border-color, #e0e0e0);
+            flex-shrink: 0;
+            transition: background 0.3s;
+        }
+        .lang-toggle-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-color, #1a1a2e);
+            white-space: nowrap;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        @media (max-width: 480px) {
+            .lang-toggle-label { display: none; }
+            .lang-toggle-divider { display: none; }
+            .lang-toggle-btn { padding: 5px 10px; }
+        }
     </style>
 </head>
 
@@ -62,17 +122,17 @@
             <button class="sidebar-close-btn" id="sidebar-close" aria-label="Close sidebar"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <nav class="sidebar-nav">
-            <a href="#" class="nav-item active" data-view="overview"><i class="fa-solid fa-house"></i> Dashboard</a>
-            <a href="#" class="nav-item" data-view="my-events"><i class="fa-solid fa-calendar-check"></i> My Events</a>
+            <a href="#" class="nav-item active" data-view="overview"><i class="fa-solid fa-house"></i> <span data-i18n="vendor.nav.overview">Dashboard</span></a>
+            <a href="#" class="nav-item" data-view="my-events"><i class="fa-solid fa-calendar-check"></i> <span data-i18n="vendor.nav.myEvents">My Events</span><span class="nav-unread-badge" id="nav-my-events-unread-badge" style="display:none;"></span></a>
             <a href="#" class="nav-item" data-view="invitations">
-                <i class="fa-solid fa-envelope-open-text"></i> Invitations
+                <i class="fa-solid fa-envelope-open-text"></i> <span data-i18n="vendor.nav.invitations">Invitations</span>
                 <span id="sidebar-invite-badge" style="background: var(--danger-color); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: auto; display: none;">0</span>
             </a>
-            <a href="#" class="nav-item" data-view="browse-events"><i class="fa-solid fa-earth-americas"></i> Browse Events</a>
-            <a href="#" class="nav-item" data-view="profile"><i class="fa-solid fa-user-gear"></i> Profile</a>
+            <a href="#" class="nav-item" data-view="browse-events"><i class="fa-solid fa-earth-americas"></i> <span data-i18n="vendor.nav.browseEvents">Browse Events</span></a>
+            <a href="#" class="nav-item" data-view="profile"><i class="fa-solid fa-user-gear"></i> <span data-i18n="vendor.nav.profile">Profile</span></a>
         </nav>
         <div class="sidebar-footer">
-            <a href="#" class="nav-item" onclick="logoutVendor()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            <a href="#" class="nav-item" onclick="logoutVendor()"><i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="vendor.nav.logout">Logout</span></a>
         </div>
     </aside>
 
@@ -80,12 +140,12 @@
         <header class="dashboard-header">
             <div class="header-left" style="display: flex; align-items: center; gap: 1rem;">
                 <i class="fa-solid fa-bars mobile-toggle" id="sidebar-toggle"></i>
-                <div class="header-title"><h1 id="page-title">Vendor Dashboard</h1></div>
+                <div class="header-title"><h1 id="page-title" data-i18n="vendor.page.dashboard">Vendor Dashboard</h1></div>
             </div>
             <div class="header-profile">
                 <div class="profile-info">
                     <span class="profile-name" id="vendor-name-display">{{ request.user.vendor_profile.organization_name|default:request.user.username }}</span>
-                    <span class="profile-role" style="font-size: 0.8rem; color: var(--text-muted); display: block;">Vendor</span>
+                    <span class="profile-role" style="font-size: 0.8rem; color: var(--text-muted); display: block;" data-i18n="vendor.role">Vendor</span>
                 </div>
                 <div class="profile-avatar">
                     {% if request.user.profile_picture %}
@@ -94,27 +154,35 @@
                         <i class="fa-solid fa-store"></i>
                     {% endif %}
                 </div>
+                <button type="button" id="lang-switch" class="lang-toggle-btn" aria-label="Switch language" title="Switch language / تغيير اللغة"
+                    data-flag-sa="{% static 'assets/sa.svg' %}"
+                    data-flag-gb="{% static 'assets/gb.svg' %}">
+                    <img id="lang-toggle-flag" class="lang-toggle-flag-img" src="{% static 'assets/sa.svg' %}" alt="SA">
+                    <span class="lang-toggle-code" id="lang-toggle-code">AR</span>
+                    <span class="lang-toggle-divider"></span>
+                    <span class="lang-toggle-label" id="lang-toggle-label">العربية</span>
+                </button>
             </div>
         </header>
 
         <section id="view-overview" class="content-section active">
-            <div class="stats-grid">
+            <div class="stats-grid vendor-stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(255, 152, 0, 0.15); color: #ff9800;"><i class="fa-solid fa-bell"></i></div>
-                    <div class="stat-info"><h3 id="stat-pending-invites">0</h3><p>Pending Invites</p></div>
+                    <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
+                    <div class="stat-info"><h3 id="stat-pending-invites">0</h3><p data-i18n="vendor.stats.pendingInvites">Pending Invites</p></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
-                    <div class="stat-info"><h3 id="stat-active-events">0</h3><p>Active Events</p></div>
+                    <div class="stat-info"><h3 id="stat-active-events">0</h3><p data-i18n="vendor.stats.activeEvents">Active Events</p></div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon" style="background: rgba(76, 175, 80, 0.15); color: #4caf50;"><i class="fa-solid fa-check-double"></i></div>
-                    <div class="stat-info"><h3 id="stat-completed-events">0</h3><p>Completed Events</p></div>
+                    <div class="stat-icon"><i class="fa-solid fa-check-double"></i></div>
+                    <div class="stat-info"><h3 id="stat-completed-events">0</h3><p data-i18n="vendor.stats.completedEvents">Completed Events</p></div>
                 </div>
             </div>
             <div class="section-header" style="margin-top: 2rem;">
-                <h2>My Upcoming Events</h2>
-                <a href="#" class="btn btn-outline btn-sm" onclick="switchView('my-events')">View All</a>
+                <h2 data-i18n="vendor.overview.upcoming">My Upcoming Events</h2>
+                <a href="#" class="btn btn-outline btn-sm" onclick="switchView('my-events')" data-i18n="common.viewAll">View All</a>
             </div>
             <div id="upcoming-events-container" style="display: grid; gap: 1rem;"></div>
         </section>
@@ -123,47 +191,47 @@
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                 <button class="request-tab active" data-tab="applications" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: none; border-radius: 12px; background: linear-gradient(135deg, #1565c0, #0d47a1); cursor: pointer; transition: all 0.3s ease; text-align: left; box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);">
                     <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-paper-plane" style="color: white; font-size: 1.3rem;"></i></div>
-                    <div><div style="font-weight: 600; font-size: 1rem; color: white; margin-bottom: 3px;">My Applications</div><div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">Sent to organizers</div></div>
+                    <div><div style="font-weight: 600; font-size: 1rem; color: white; margin-bottom: 3px;" data-i18n="vendor.requests.myApplications">My Applications</div><div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);" data-i18n="vendor.requests.sentToOrganizers">Sent to organizers</div></div>
                 </button>
                 <button class="request-tab" data-tab="invitations" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem; border: 2px solid #e0e0e0; border-radius: 12px; background: white; cursor: pointer; transition: all 0.3s ease; text-align: left; position: relative;">
                     <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f0f4f8, #e3e8ed); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><i class="fa-solid fa-inbox" style="color: #1565c0; font-size: 1.3rem;"></i></div>
-                    <div><div style="font-weight: 600; font-size: 1rem; color: #333; margin-bottom: 3px;">Invitations</div><div style="font-size: 0.85rem; color: #666;">From organizers</div></div>
+                    <div><div style="font-weight: 600; font-size: 1rem; color: #333; margin-bottom: 3px;" data-i18n="vendor.requests.invitations">Invitations</div><div style="font-size: 0.85rem; color: #666;" data-i18n="vendor.requests.fromOrganizers">From organizers</div></div>
                     <span id="invitations-tab-badge" style="display: none; position: absolute; top: 10px; right: 10px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 12px; box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);">0</span>
                 </button>
             </div>
             <div id="my-applications-section" class="request-section">
                 <div class="section-header" style="margin-bottom: 1.5rem;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <span style="font-weight: 600; color: #333; font-size: 0.9rem;">Filter by Status:</span>
+                        <span style="font-weight: 600; color: #333; font-size: 0.9rem;" data-i18n="vendor.requests.filterByStatus">Filter by Status:</span>
                         <select id="applications-status-filter" style="padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; cursor: pointer; background: white; min-width: 160px; outline: none;">
-                            <option value="all">All Applications</option>
-                            <option value="Pending">Pending</option>
-                            <option value="Approved">Approved</option>
-                            <option value="Rejected">Rejected</option>
+                            <option value="all" data-i18n="vendor.requests.allApplications">All Applications</option>
+                            <option value="Pending" data-i18n="common.pending">Pending</option>
+                            <option value="Approved" data-i18n="common.approved">Approved</option>
+                            <option value="Rejected" data-i18n="status.rejected">Rejected</option>
                         </select>
                     </div>
                 </div>
                 <div class="table-container">
                     <table class="data-table" id="applications-table">
-                        <thead><tr><th>Event</th><th>Organizer</th><th>Service</th><th>Date</th><th>Message</th><th>Status</th></tr></thead>
+                        <thead><tr><th data-i18n="common.eventDetails">Event</th><th data-i18n="vendor.requests.organizer">Organizer</th><th data-i18n="common.service">Service</th><th data-i18n="common.date">Date</th><th data-i18n="common.message">Message</th><th data-i18n="common.status">Status</th></tr></thead>
                         <tbody id="applications-table-body"></tbody>
                     </table>
                 </div>
                 <div id="no-applications-msg" style="text-align: center; padding: 3rem; display: none;">
                     <i class="fa-regular fa-paper-plane" style="font-size: 2.5rem; color: #ccc; margin-bottom: 1rem; display: block;"></i>
-                    <h4 style="margin: 0 0 0.5rem 0; color: #333;">No applications yet</h4>
-                    <button class="btn btn-primary" onclick="switchView('browse-events')"><i class="fa-solid fa-earth-americas"></i> Browse Events</button>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #333;" data-i18n="vendor.requests.noApplications">No applications yet</h4>
+                    <button class="btn btn-primary" onclick="switchView('browse-events')"><i class="fa-solid fa-earth-americas"></i> <span data-i18n="vendor.nav.browseEvents">Browse Events</span></button>
                 </div>
             </div>
             <div id="invitations-section" class="request-section" style="display: none;">
                 <div class="section-header" style="margin-bottom: 1.5rem;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <span style="font-weight: 600; color: #333; font-size: 0.9rem;">Filter by Status:</span>
+                        <span style="font-weight: 600; color: #333; font-size: 0.9rem;" data-i18n="vendor.requests.filterByStatus">Filter by Status:</span>
                         <select id="invite-filter" style="padding: 10px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.9rem; font-weight: 500; cursor: pointer; background: white; min-width: 160px; outline: none;">
-                            <option value="all">All Invitations</option>
-                            <option value="Pending" selected>Pending</option>
-                            <option value="Approved">Confirmed</option>
-                            <option value="Rejected">Rejected</option>
+                            <option value="all" data-i18n="vendor.requests.allInvitations">All Invitations</option>
+                            <option value="Pending" selected data-i18n="common.pending">Pending</option>
+                            <option value="Approved" data-i18n="vendor.status.confirmed">Confirmed</option>
+                            <option value="Rejected" data-i18n="status.rejected">Rejected</option>
                         </select>
                     </div>
                 </div>
@@ -173,44 +241,45 @@
 
         <section id="view-browse-events" class="content-section">
             <div style="background: linear-gradient(135deg, #004e92, #4dabf7); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; color: white;">
-                <h2 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600;"><i class="fa-solid fa-search" style="margin-right: 0.5rem; opacity: 0.9;"></i>Find Events to Apply To</h2>
+                <h2 class="vendor-browse-hero-title" style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 600;"><i class="fa-solid fa-search" aria-hidden="true"></i><span data-i18n="vendor.browse.heroTitle">Find Events to Apply To</span></h2>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 250px; position: relative;">
-                        <i class="fa-solid fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #888;"></i>
-                        <input type="text" id="browse-events-search" placeholder="Search events by name or location..." style="width: 100%; padding: 12px 12px 12px 42px; border: none; border-radius: 10px; font-size: 0.95rem; outline: none; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <div class="vendor-browse-search-wrap" style="flex: 1; min-width: 250px;">
+                        <i class="fa-solid fa-search vendor-browse-search-icon"></i>
+                        <input type="text" id="browse-events-search" class="vendor-browse-search-input" data-i18n-placeholder="vendor.browse.searchPh" placeholder="Search events by name or location..." style="background: white; color: #1a1a2e; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.12); transition: box-shadow 0.2s;">
                     </div>
                 </div>
             </div>
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
-                    <span style="font-weight: 600; color: #333; font-size: 0.9rem;">Categories:</span>
+                    <span style="font-weight: 600; color: #333; font-size: 0.9rem;" data-i18n="common.categories">Categories:</span>
                 </div>
                 <div id="browse-category-pills" style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin;">
-                    <button class="browse-category-pill active" data-category="all" style="padding: 8px 18px; border: none; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: #004e92; color: white;">All</button>
-                    <button class="browse-category-pill" data-category="Tech" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">Tech</button>
-                    <button class="browse-category-pill" data-category="Art" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">Art</button>
-                    <button class="browse-category-pill" data-category="Business" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">Business</button>
-                    <button class="browse-category-pill" data-category="Food" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;">Food & Beverage</button>
+                    <button class="browse-category-pill active" data-category="all" style="padding: 8px 18px; border: none; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: #004e92; color: white;" data-i18n="common.all">All</button>
+                    <button class="browse-category-pill" data-category="Tech" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="cat.tech">Tech</button>
+                    <button class="browse-category-pill" data-category="Art" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="cat.art">Art</button>
+                    <button class="browse-category-pill" data-category="Business" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="cat.business">Business</button>
+                    <button class="browse-category-pill" data-category="Food" style="padding: 8px 18px; border: 1px solid #e0e0e0; border-radius: 20px; font-size: 0.85rem; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; background: white; color: #333;" data-i18n="vendor.cat.foodBeverage">Food & Beverage</button>
                 </div>
+
             </div>
-            <select id="browse-events-filter" style="display: none;"><option value="all">All</option></select>
+            <select id="browse-events-filter" style="display: none;"><option value="all" data-i18n="common.all">All</option></select>
             <div id="browse-events-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;"></div>
         </section>
 
         <section id="view-my-events" class="content-section">
             <div class="vendor-my-events-hero">
-                <h2 class="vendor-my-events-hero-title"><i class="fa-solid fa-calendar-check"></i> My Events</h2>
-                <p class="vendor-my-events-hero-desc">Events you’re confirmed for. Manage your schedule and withdraw if needed.</p>
+                <h2 class="vendor-my-events-hero-title"><i class="fa-solid fa-calendar-check"></i> <span data-i18n="vendor.myEvents.heroTitle">My Events</span></h2>
+                <p class="vendor-my-events-hero-desc" data-i18n="vendor.myEvents.heroDesc">Events you’re confirmed for. Manage your schedule and withdraw if needed.</p>
                 <div class="vendor-my-events-search-wrap">
                     <i class="fa-solid fa-search vendor-my-events-search-icon"></i>
-                    <input type="text" id="my-events-search" class="vendor-my-events-search-input" placeholder="Search by event name or location...">
+                    <input type="text" id="my-events-search" class="vendor-my-events-search-input" data-i18n-placeholder="vendor.myEvents.searchPh" placeholder="Search by event name or location...">
                 </div>
             </div>
             <div class="vendor-my-events-list-header">
-                <span class="vendor-my-events-col-date">Date</span>
-                <span class="vendor-my-events-col-details">Event Details</span>
-                <span class="vendor-my-events-col-status">Status</span>
-                <span class="vendor-my-events-col-actions">Actions</span>
+                <span class="vendor-my-events-col-date" data-i18n="common.date">Date</span>
+                <span class="vendor-my-events-col-details" data-i18n="common.eventDetails">Event Details</span>
+                <span class="vendor-my-events-col-status" data-i18n="common.status">Status</span>
+                <span class="vendor-my-events-col-actions" data-i18n="common.actions">Actions</span>
             </div>
             <div id="my-events-container" class="vendor-my-events-list"></div>
         </section>
@@ -221,32 +290,32 @@
                 <div class="em-header-info"><h2 id="vem-event-title">Event Title</h2></div>
             </div>
             <div class="em-status-bar">
-                <div class="em-status-item"><span class="em-status-label">Event Status</span><span id="vem-event-state-badge" class="em-badge"></span></div>
-                <div class="em-status-item"><span class="em-status-label">Your Role</span><span id="vem-role-badge" class="em-badge" style="background: rgba(21,101,192,0.15); color: #1565c0;">Vendor</span></div>
+                <div class="em-status-item"><span class="em-status-label" data-i18n="org.em.eventStatus">Event Status</span><span id="vem-event-state-badge" class="em-badge"></span></div>
+                <div class="em-status-item"><span class="em-status-label" data-i18n="vendor.myEvents.yourRole">Your Role</span><span id="vem-role-badge" class="em-badge" style="background: rgba(21,101,192,0.15); color: #1565c0;">Vendor</span></div>
             </div>
             <div class="em-stats-row">
                 <div class="em-stat-card">
                     <div class="em-stat-icon" style="background: rgba(21, 101, 192, 0.12); color: #1565c0;"><i class="fa-solid fa-user-tie"></i></div>
-                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-organizer">—</span><span class="em-stat-label">Organizer</span></div>
+                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-organizer">—</span><span class="em-stat-label" data-i18n="vendor.myEvents.organizer">Organizer</span></div>
                 </div>
                 <div class="em-stat-card">
                     <div class="em-stat-icon" style="background: rgba(255, 152, 0, 0.12); color: #ff9800;"><i class="fa-solid fa-briefcase"></i></div>
-                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-service">—</span><span class="em-stat-label">Your Service</span></div>
+                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-service">—</span><span class="em-stat-label" data-i18n="vendor.myEvents.yourService">Your Service</span></div>
                 </div>
                 <div class="em-stat-card">
                     <div class="em-stat-icon" style="background: rgba(46, 125, 50, 0.12); color: #2e7d32;"><i class="fa-solid fa-users"></i></div>
-                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-attendees">0</span><span class="em-stat-label">Attendees</span></div>
+                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-attendees">0</span><span class="em-stat-label" data-i18n="vendor.myEvents.attendees">Attendees</span></div>
                 </div>
                 <div class="em-stat-card">
                     <div class="em-stat-icon" style="background: rgba(123, 31, 162, 0.12); color: #7b1fa2;"><i class="fa-solid fa-calendar-days"></i></div>
-                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-countdown">--</span><span class="em-stat-label">Days Left</span></div>
+                    <div class="em-stat-info"><span class="em-stat-value" id="vem-stat-countdown">--</span><span class="em-stat-label" data-i18n="vendor.myEvents.daysLeft">Days Left</span></div>
                 </div>
             </div>
 
             <div class="em-tabs">
-                <button class="em-tab active" data-vemtab="overview"><i class="fa-solid fa-info-circle"></i> Overview</button>
-                <button class="em-tab" data-vemtab="communication"><i class="fa-solid fa-comments"></i> Communication</button>
-                <button class="em-tab" data-vemtab="actions"><i class="fa-solid fa-gear"></i> Actions</button>
+                <button class="em-tab active" data-vemtab="overview"><i class="fa-solid fa-info-circle"></i> <span data-i18n="vendor.myEvents.overview">Overview</span></button>
+                <button class="em-tab" data-vemtab="communication"><i class="fa-solid fa-comments"></i> <span data-i18n="vendor.myEvents.communication">Communication</span><span class="em-tab-unread-badge" id="vem-comm-tab-badge" style="display:none;"></span></button>
+                <button class="em-tab" data-vemtab="actions"><i class="fa-solid fa-gear"></i> <span data-i18n="vendor.myEvents.actionsTab">Actions</span></button>
             </div>
 
             <div class="em-tab-content active" id="vem-tab-overview">
@@ -254,52 +323,52 @@
                 <div id="vem-preparation-card" style="margin-bottom: 1rem;"></div>
                 <div class="em-overview-grid">
                     <div class="em-detail-card em-card-blue">
-                        <div class="em-detail-card-header"><i class="fa-solid fa-info-circle"></i> Event Details</div>
+                        <div class="em-detail-card-header"><i class="fa-solid fa-info-circle"></i> <span data-i18n="common.eventDetails">Event Details</span></div>
                         <div class="em-detail-card-body">
                             <div class="em-detail-item">
                                 <div class="em-detail-item-icon" style="background: rgba(21, 101, 192, 0.1); color: #1565c0;"><i class="fa-solid fa-heading"></i></div>
-                                <div class="em-detail-item-content"><span class="em-detail-label">Title</span><span class="em-detail-value" id="vem-ov-title">—</span></div>
+                                <div class="em-detail-item-content"><span class="em-detail-label" data-i18n="common.title">Title</span><span class="em-detail-value" id="vem-ov-title">—</span></div>
                             </div>
                             <div class="em-detail-item">
                                 <div class="em-detail-item-icon" style="background: rgba(123, 31, 162, 0.1); color: #7b1fa2;"><i class="fa-solid fa-tags"></i></div>
-                                <div class="em-detail-item-content"><span class="em-detail-label">Category</span><span class="em-detail-value" id="vem-ov-category">—</span></div>
+                                <div class="em-detail-item-content"><span class="em-detail-label" data-i18n="common.category">Category</span><span class="em-detail-value" id="vem-ov-category">—</span></div>
                             </div>
                             <div class="em-detail-item" style="align-items: flex-start;">
                                 <div class="em-detail-item-icon" style="background: rgba(46, 125, 50, 0.1); color: #2e7d32;"><i class="fa-solid fa-align-left"></i></div>
-                                <div class="em-detail-item-content" style="flex: 1;"><span class="em-detail-label">Description</span><span class="em-detail-value" id="vem-ov-description">—</span></div>
+                                <div class="em-detail-item-content" style="flex: 1;"><span class="em-detail-label" data-i18n="common.description">Description</span><span class="em-detail-value" id="vem-ov-description">—</span></div>
                             </div>
                         </div>
                     </div>
                     <div class="em-detail-card em-card-purple">
-                        <div class="em-detail-card-header"><i class="fa-solid fa-calendar-days"></i> Date &amp; Location</div>
+                        <div class="em-detail-card-header"><i class="fa-solid fa-calendar-days"></i> <span data-i18n="vendor.myEvents.dateLocation">Date &amp; Location</span></div>
                         <div class="em-detail-card-body">
                             <div class="em-detail-item">
                                 <div class="em-detail-item-icon" style="background: rgba(123, 31, 162, 0.1); color: #7b1fa2;"><i class="fa-regular fa-calendar"></i></div>
-                                <div class="em-detail-item-content"><span class="em-detail-label">Date</span><span class="em-detail-value" id="vem-ov-date">—</span></div>
+                                <div class="em-detail-item-content"><span class="em-detail-label" data-i18n="common.date">Date</span><span class="em-detail-value" id="vem-ov-date">—</span></div>
                             </div>
                             <div class="em-detail-item">
                                 <div class="em-detail-item-icon" style="background: rgba(230, 81, 0, 0.1); color: #e65100;"><i class="fa-regular fa-clock"></i></div>
-                                <div class="em-detail-item-content"><span class="em-detail-label">Time</span><span class="em-detail-value" id="vem-ov-time">—</span></div>
+                                <div class="em-detail-item-content"><span class="em-detail-label" data-i18n="common.time">Time</span><span class="em-detail-value" id="vem-ov-time">—</span></div>
                             </div>
                             <div class="em-detail-item">
                                 <div class="em-detail-item-icon" style="background: rgba(198, 40, 40, 0.1); color: #c62828;"><i class="fa-solid fa-location-dot"></i></div>
-                                <div class="em-detail-item-content"><span class="em-detail-label">Location</span><span class="em-detail-value" id="vem-ov-location">—</span></div>
+                                <div class="em-detail-item-content"><span class="em-detail-label" data-i18n="common.location">Location</span><span class="em-detail-value" id="vem-ov-location">—</span></div>
                             </div>
                         </div>
                     </div>
 
                     <div class="em-detail-card em-full-width em-card-green">
-                        <div class="em-detail-card-header"><i class="fa-solid fa-shield-halved"></i> Vendor Withdrawal Policy</div>
+                        <div class="em-detail-card-header"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="vendor.myEvents.withdrawPolicy">Vendor Withdrawal Policy</span></div>
                         <div class="em-detail-card-body">
                             <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                                <div id="vem-ov-vendor-policy-badge" class="em-policy-badge em-policy-none"><i class="fa-solid fa-circle-question"></i> Loading...</div>
-                                <p class="em-policy-desc" id="vem-ov-vendor-policy-desc" style="margin: 0;"></p>
+                                <div id="vem-ov-vendor-policy-badge" class="em-policy-badge em-policy-none"><i class="fa-solid fa-circle-question"></i> <span data-i18n="common.notSet">Not Set</span></div>
+                                <p class="em-policy-desc" id="vem-ov-vendor-policy-desc" style="margin: 0;" data-i18n="org.policy.vendor.helpEvent">Applies to vendors participating in this event.</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="em-detail-card em-full-width em-card-amber">
-                        <div class="em-detail-card-header"><i class="fa-solid fa-ticket"></i> Ticket Tiers</div>
+                        <div class="em-detail-card-header"><i class="fa-solid fa-ticket"></i> <span data-i18n="org.em.ticketTiers">Ticket Tiers</span></div>
                         <div class="em-detail-card-body" id="vem-ov-tickets"></div>
                     </div>
                 </div>
@@ -309,7 +378,7 @@
                 <div class="em-conversations-list">
                     <div class="em-conversation-item" id="vem-organizer-conv" style="cursor: pointer;">
                         <div class="em-conv-avatar" style="background: linear-gradient(135deg, #e8f0fe, #d0daf0);"><i class="fa-solid fa-user-tie" style="color: #1565c0;"></i></div>
-                        <div class="em-conv-info"><h4 id="vem-org-conv-name">Event Organizer</h4><p id="vem-org-conv-last-msg">No messages yet</p></div>
+                        <div class="em-conv-info"><h4 id="vem-org-conv-name" data-i18n="vendor.chat.organizerFallback">Event Organizer</h4><p id="vem-org-conv-last-msg" data-i18n="vendor.chat.noMessagesPreview">No messages yet</p></div>
                         <div class="em-conv-meta"><span class="em-conv-time" id="vem-org-conv-time"></span><span class="em-conv-count" id="vem-org-conv-count" style="display: none;">0</span></div>
                     </div>
                 </div>
@@ -319,9 +388,9 @@
                 <div class="em-actions-grid">
                     <div class="em-action-card">
                         <div class="em-action-icon" style="background: linear-gradient(135deg, #c62828, #ef5350);"><i class="fa-solid fa-right-from-bracket"></i></div>
-                        <h4>Withdraw from Event</h4>
-                        <p>Cancel your participation in this event. The organizer will be notified.</p>
-                        <button class="btn btn-sm" id="vem-withdraw-btn" style="background: #c62828; color: white; border: none;"><i class="fa-solid fa-xmark"></i> Withdraw</button>
+                        <h4 data-i18n="vendor.myEvents.withdrawTitle">Withdraw from Event</h4>
+                        <p data-i18n="vendor.myEvents.withdrawDesc">Cancel your participation in this event. The organizer will be notified.</p>
+                        <button class="btn btn-sm" id="vem-withdraw-btn" style="background: #c62828; color: white; border: none;"><i class="fa-solid fa-xmark"></i> <span data-i18n="vendor.myEvents.withdrawBtn">Withdraw</span></button>
                     </div>
                 </div>
             </div>
@@ -331,7 +400,7 @@
             <div style="max-width: 700px; margin: 0 auto;">
                 <div style="background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e8e8e8;">
                     <div style="background: linear-gradient(135deg, #004e92, #4dabf7); padding: 2rem; text-align: center; position: relative;">
-                        <div id="vendor-profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;" onclick="document.getElementById('vendor-pfp-upload').click()">
+                        <div id="vendor-profile-avatar" style="width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 4px solid white; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 2.5rem; color: white; font-weight: 700; cursor: pointer; position: relative; overflow: hidden;" onclick="document.getElementById('vendor-pfp-upload').click()" data-i18n-title="vendor.profile.changePhoto" title="Click to change photo">
                             {% if request.user.profile_picture %}
                                 <img id="vendor-profile-avatar-img" src="{{ request.user.profile_picture.url }}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; display: block;" alt="Profile">
                                 <span id="vendor-profile-avatar-text" style="display: none;"><i class="fa-solid fa-store"></i></span>
@@ -342,45 +411,45 @@
                             <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; font-size: 0.65rem; padding: 4px; text-align: center;"><i class="fa-solid fa-camera"></i></div>
                         </div>
                         <h3 id="vendor-profile-display-name" style="color: white; margin: 0; font-size: 1.4rem;">{{ request.user.vendor_profile.organization_name|default:request.user.username }}</h3>
-                        <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;">Eventia Vendor</p>
+                        <p style="color: rgba(255,255,255,0.8); margin: 0.25rem 0 0; font-size: 0.9rem;" data-i18n="vendor.profile.title">Eventia Vendor</p>
                     </div>
                     <div style="padding: 2rem;">
                         <form id="vendor-profile-form" method="POST" action="{% url 'update_profile' %}" enctype="multipart/form-data">
                             {% csrf_token %}
                             <input type="file" name="profile_picture" id="vendor-pfp-upload" accept="image/*" style="display: none;" onchange="previewVendorAvatar(event)">
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Business Name</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="vendor.profile.businessName">Business Name</label>
                                 <input type="text" name="organization_name" id="vendor-profile-bizname" value="{{ request.user.vendor_profile.organization_name }}" required style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none;">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Username</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="vendor.profile.username">Username</label>
                                 <input type="text" name="username" id="vendor-profile-username" value="{{ request.user.username }}" required style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none;">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Email Address</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="att.profile.email">Email Address</label>
                                 <input type="email" name="email" id="vendor-profile-email" value="{{ request.user.email }}" required style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none;">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Phone Number</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="att.profile.phone">Phone Number</label>
                                 <input type="tel" name="phone_number" id="vendor-profile-phone" value="{{ request.user.phone_number }}" required style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none;">
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Service Category</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="vendor.profile.serviceCategory">Service Category</label>
                                 <select name="service_type" id="vendor-profile-category" data-current="{{ request.user.vendor_profile.service_type }}" style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none; background: white;">
-                                    <option value="Catering">Catering</option>
-                                    <option value="Venue">Venue</option>
-                                    <option value="Photography">Photography</option>
-                                    <option value="Decoration">Decoration</option>
-                                    <option value="AV Equipment">AV Equipment</option>
-                                    <option value="Entertainment">Entertainment</option>
-                                    <option value="Other">Other</option>
+                                    <option value="Catering" data-i18n="common.catering">Catering</option>
+                                    <option value="Venue" data-i18n="common.venue">Venue</option>
+                                    <option value="Photography" data-i18n="common.photography">Photography</option>
+                                    <option value="Decoration" data-i18n="common.decoration">Decoration</option>
+                                    <option value="AV Equipment" data-i18n="common.avEquipment">AV Equipment</option>
+                                    <option value="Entertainment" data-i18n="common.entertainment">Entertainment</option>
+                                    <option value="Other" data-i18n="cat.other">Other</option>
                                 </select>
                             </div>
                             <div style="margin-bottom: 1rem;">
-                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;">Service Description</label>
+                                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.4rem; font-size: 0.85rem;" data-i18n="vendor.profile.serviceDescription">Service Description</label>
                                 <textarea name="description" id="vendor-profile-description" rows="3" style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 0.95rem; outline: none; font-family: inherit; resize: vertical;">{{ request.user.vendor_profile.description }}</textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="vendor.profile.saveChanges">Save Changes</span></button>
                         </form>
                     </div>
                 </div>
@@ -392,23 +461,23 @@
         <div class="modal" style="background: white; padding: 0; border-radius: 16px; width: 90%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); overflow: hidden; animation: modalSlideIn 0.3s ease;">
             <div style="background: linear-gradient(135deg, #ff6b6b, #c62828); padding: 2rem; text-align: center;">
                 <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fa-solid fa-xmark-circle" style="font-size: 1.8rem; color: white;"></i></div>
-                <h3 style="color: white; font-size: 1.5rem; margin: 0;">Reject Invitation</h3>
-                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;">This action will notify the organizer</p>
+                <h3 style="color: white; font-size: 1.5rem; margin: 0;" data-i18n="vendor.modal.rejectTitle">Reject Invitation</h3>
+                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;" data-i18n="vendor.modal.rejectNotify">This action will notify the organizer</p>
             </div>
             <div style="padding: 2rem;">
                 <form id="reject-form">
                     <input type="hidden" id="reject-request-id"><input type="hidden" id="reject-event-title">
-                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
+                    <div style="background: #fff3cd; border-inline-start: 4px solid #ffc107; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;">
                         <div style="display: flex; gap: 0.75rem; align-items: start;">
                             <i class="fa-solid fa-info-circle" style="color: #856404; font-size: 1.1rem; margin-top: 2px;"></i>
-                            <div><strong style="color: #856404; display: block; margin-bottom: 4px;">Important Notice</strong><p style="margin: 0; color: #856404; font-size: 0.85rem; line-height: 1.5;">You are about to reject the invitation for: <strong id="reject-event-name-display" style="display: block; margin-top: 4px;">Event Name</strong></p></div>
+                            <div><strong style="color: #856404; display: block; margin-bottom: 4px;" data-i18n="vendor.modal.importantNotice">Important Notice</strong><p style="margin: 0; color: #856404; font-size: 0.85rem; line-height: 1.5;"><span data-i18n="vendor.modal.rejectingInvitationFor">You are about to reject the invitation for:</span> <strong id="reject-event-name-display" style="display: block; margin-top: 4px;">Event Name</strong></p></div>
                         </div>
                     </div>
-                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;"><i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i> Reason for Rejection <span style="color: #c62828;">*</span></label>
+                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;"><i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i> <span data-i18n="vendor.modal.rejectionReason">Reason for Rejection</span> <span style="color: #c62828;">*</span></label>
                     <textarea id="reject-reason" rows="4" required style="width: 100%; border: 2px solid #e0e0e0; padding: 1rem; border-radius: 12px; font-size: 1rem; font-family: inherit; resize: vertical; outline: none;"></textarea>
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button type="button" class="btn btn-outline" onclick="closeRejectModal()" style="flex: 1; padding: 0.8rem;">Cancel</button>
-                        <button type="submit" class="btn btn-danger" style="flex: 1; padding: 0.8rem; background: #c62828; color: white; border: none;"><i class="fa-solid fa-xmark"></i> Reject Invitation</button>
+                        <button type="button" class="btn btn-outline" onclick="closeRejectModal()" style="flex: 1; padding: 0.8rem;" data-i18n="common.cancel">Cancel</button>
+                        <button type="submit" class="btn btn-danger" style="flex: 1; padding: 0.8rem; background: #c62828; color: white; border: none;"><i class="fa-solid fa-xmark"></i> <span data-i18n="vendor.modal.rejectInvitation">Reject Invitation</span></button>
                     </div>
                 </form>
             </div>
@@ -419,24 +488,24 @@
         <div class="modal" style="background: white; padding: 0; border-radius: 16px; width: 90%; max-width: 480px; box-shadow: 0 25px 50px rgba(0,0,0,0.25); overflow: hidden; animation: modalSlideIn 0.3s ease;">
             <div style="background: linear-gradient(135deg, #ff6b6b, #c62828); padding: 2rem; text-align: center;">
                 <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;"><i class="fa-solid fa-triangle-exclamation" style="font-size: 1.8rem; color: white;"></i></div>
-                <h3 style="color: white; font-size: 1.5rem; margin: 0;">Withdraw from Event</h3>
-                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;">This action will notify the organizer</p>
+                <h3 style="color: white; font-size: 1.5rem; margin: 0;" data-i18n="vendor.modal.withdrawTitle">Withdraw from Event</h3>
+                <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0 0; font-size: 0.9rem;" data-i18n="vendor.modal.withdrawNotify">This action will notify the organizer</p>
             </div>
             <div style="padding: 2rem;">
                 <form id="withdraw-form">
                     <input type="hidden" id="withdraw-request-id"><input type="hidden" id="withdraw-event-title">
-                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
+                    <div style="background: #fff3cd; border-inline-start: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem; border-radius: 4px;">
                         <div style="display: flex; gap: 0.75rem; align-items: start;">
                             <i class="fa-solid fa-info-circle" style="color: #856404; font-size: 1.1rem; margin-top: 2px;"></i>
-                            <div><strong style="color: #856404; display: block; margin-bottom: 4px;">Important Notice</strong><p style="margin: 0; color: #856404; font-size: 0.85rem; line-height: 1.5;">You are about to withdraw from: <strong id="withdraw-event-name-display" style="display: block; margin-top: 4px;">Event Name</strong></p></div>
+                            <div><strong style="color: #856404; display: block; margin-bottom: 4px;" data-i18n="vendor.modal.importantNotice">Important Notice</strong><p style="margin: 0; color: #856404; font-size: 0.85rem; line-height: 1.5;"><span data-i18n="vendor.modal.withdrawingFrom">You are about to withdraw from:</span> <strong id="withdraw-event-name-display" style="display: block; margin-top: 4px;">Event Name</strong></p></div>
                         </div>
                     </div>
-                    <div id="withdraw-policy-banner" style="display: none; border-left: 4px solid #666; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;"></div>
-                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;"><i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i> Reason for Withdrawal <span style="color: #c62828;">*</span></label>
+                    <div id="withdraw-policy-banner" style="display: none; border-inline-start: 4px solid #666; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;"></div>
+                    <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem;"><i class="fa-solid fa-message" style="margin-right: 0.5rem; color: #666;"></i> <span data-i18n="vendor.modal.withdrawReason">Reason for Withdrawal</span> <span style="color: #c62828;">*</span></label>
                     <textarea id="withdraw-reason" rows="4" required style="width: 100%; border: 2px solid #e0e0e0; padding: 1rem; border-radius: 12px; font-size: 1rem; font-family: inherit; resize: vertical; outline: none;"></textarea>
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button type="button" class="btn btn-outline" onclick="closeWithdrawModal()" style="flex: 1; padding: 0.8rem;">Cancel</button>
-                        <button type="submit" class="btn btn-danger" style="flex: 1; padding: 0.8rem; background: #c62828; color: white; border: none;"><i class="fa-solid fa-xmark"></i> Confirm Withdrawal</button>
+                        <button type="button" class="btn btn-outline" onclick="closeWithdrawModal()" style="flex: 1; padding: 0.8rem;" data-i18n="common.cancel">Cancel</button>
+                        <button type="submit" class="btn btn-danger" style="flex: 1; padding: 0.8rem; background: #c62828; color: white; border: none;"><i class="fa-solid fa-xmark"></i> <span data-i18n="vendor.modal.confirmWithdrawal">Confirm Withdrawal</span></button>
                     </div>
                 </form>
             </div>
@@ -447,45 +516,45 @@
         <div class="modal apply-modal-card">
             <div class="apply-modal-header">
                 <div class="apply-modal-header-icon"><i class="fa-solid fa-paper-plane"></i></div>
-                <h3 class="apply-modal-title">Apply for Event</h3>
-                <p class="apply-modal-subtitle">Send a proposal to the organizer with your services and details.</p>
+                <h3 class="apply-modal-title" data-i18n="vendor.modal.applyTitle">Apply for Event</h3>
+                <p class="apply-modal-subtitle" data-i18n="vendor.modal.applySubtitle">Send a proposal to the organizer with your services and details.</p>
                 <button type="button" class="apply-modal-close" onclick="closeApplyModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="apply-modal-body">
                 <form id="apply-form">
                     <input type="hidden" id="apply-event-id">
-                    <div id="apply-policy-banner" style="display: none; border-left: 4px solid; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;"></div>
+                    <div id="apply-policy-banner" style="display: none; border-inline-start: 4px solid; padding: 1rem; margin-bottom: 1.5rem; border-radius: 4px;"></div>
                     <div class="apply-input-group">
-                        <label class="apply-label">Your Service Type</label>
+                        <label class="apply-label" data-i18n="vendor.modal.serviceType">Your Service Type</label>
                         <select id="apply-service-type" class="apply-select" required>
-                            <option value="Catering">Catering</option>
-                            <option value="Venue">Venue</option>
-                            <option value="Photography">Photography</option>
-                            <option value="Decoration">Decoration</option>
-                            <option value="AV Equipment">AV Equipment</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Other">Other</option>
+                            <option value="Catering" data-i18n="common.catering">Catering</option>
+                            <option value="Venue" data-i18n="common.venue">Venue</option>
+                            <option value="Photography" data-i18n="common.photography">Photography</option>
+                            <option value="Decoration" data-i18n="common.decoration">Decoration</option>
+                            <option value="AV Equipment" data-i18n="common.avEquipment">AV Equipment</option>
+                            <option value="Entertainment" data-i18n="common.entertainment">Entertainment</option>
+                            <option value="Other" data-i18n="cat.other">Other</option>
                         </select>
                     </div>
                     <div class="apply-input-group">
-                        <label class="apply-label">Message / Proposal</label>
-                        <textarea id="apply-message" class="apply-textarea" rows="4" placeholder="Describe what you can offer, pricing, and why you're a good fit..." required></textarea>
+                        <label class="apply-label" data-i18n="vendor.modal.messageProposal">Message / Proposal</label>
+                        <textarea id="apply-message" class="apply-textarea" rows="4" data-i18n-placeholder="vendor.modal.messageProposalPh" placeholder="Describe what you can offer, pricing, and why you're a good fit..." required></textarea>
                     </div>
                     <div class="apply-input-group apply-attachment-group">
-                        <label class="apply-label"><i class="fa-solid fa-paperclip"></i> Attachment (optional)</label>
-                        <p class="apply-hint">PDF, Word, or images — company brochure or details (max 5MB).</p>
+                        <label class="apply-label"><i class="fa-solid fa-paperclip"></i> <span data-i18n="vendor.modal.attachmentLabel">Attachment (optional)</span></label>
+                        <p class="apply-hint" data-i18n="vendor.modal.attachmentHint">PDF, Word, or images — company brochure or details (max 5MB).</p>
                         <div class="apply-attachment-row">
                             <input type="file" id="apply-attachment" name="attachment" accept=".pdf,application/pdf,.doc,.docx,image/*" class="apply-file-input">
                             <div id="apply-attachment-preview" class="apply-attachment-preview" style="display: none;">
                                 <span class="apply-attachment-filename" id="apply-attachment-filename"></span>
-                                <button type="button" class="apply-remove-attachment-btn" onclick="clearApplyAttachment()"><i class="fa-solid fa-trash-can"></i> Remove</button>
+                                <button type="button" class="apply-remove-attachment-btn" onclick="clearApplyAttachment()"><i class="fa-solid fa-trash-can"></i> <span data-i18n="vendor.modal.remove">Remove</span></button>
                             </div>
                         </div>
                         <div id="apply-attachment-error" class="apply-attachment-error" style="display: none;"></div>
                     </div>
                     <div class="apply-form-actions">
-                        <button type="button" class="btn btn-outline apply-btn-cancel" onclick="closeApplyModal()">Cancel</button>
-                        <button type="submit" class="btn btn-primary apply-btn-submit"><i class="fa-solid fa-paper-plane"></i> Send Proposal</button>
+                        <button type="button" class="btn btn-outline apply-btn-cancel" onclick="closeApplyModal()" data-i18n="common.cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary apply-btn-submit"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="vendor.modal.sendProposal">Send Proposal</span></button>
                     </div>
                 </form>
             </div>
@@ -494,10 +563,10 @@
 
     <div id="message-modal" class="modal-overlay hidden" style="z-index: 1000;">
         <div class="modal" style="max-width: 500px;">
-            <div class="modal-header"><h3>Full Message</h3><button class="close-modal-btn" onclick="closeMessageModal()"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="modal-header"><h3 data-i18n="vendor.requests.fullMessage">Full Message</h3><button class="close-modal-btn" onclick="closeMessageModal()"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="modal-body">
                 <div style="background: #f8fafc; padding: 1.25rem; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1.5rem;"><p id="full-message-content" style="white-space: pre-wrap; color: #334155; line-height: 1.6; margin: 0; font-size: 0.95rem;"></p></div>
-                <div class="form-actions" style="justify-content: flex-end;"><button type="button" class="btn btn-primary" onclick="closeMessageModal()">Close</button></div>
+                <div class="form-actions" style="justify-content: flex-end;"><button type="button" class="btn btn-primary" onclick="closeMessageModal()" data-i18n="common.close">Close</button></div>
             </div>
         </div>
     </div>
@@ -508,13 +577,13 @@
                 <div class="em-chat-header-info">
                     <button class="em-chat-back" onclick="closeOrganizerChat()"><i class="fa-solid fa-arrow-left"></i></button>
                     <div class="em-chat-vendor-avatar" id="vem-chat-avatar"><i class="fa-solid fa-user-tie"></i></div>
-                    <div><div class="em-chat-vendor-name" id="vem-chat-org-name">Organizer</div><div class="em-chat-vendor-category" id="vem-chat-event-name">Event</div></div>
+                    <div><div class="em-chat-vendor-name" id="vem-chat-org-name" data-i18n="vendor.chat.organizer">Organizer</div><div class="em-chat-vendor-category" id="vem-chat-event-name" data-i18n="vendor.chat.event">Event</div></div>
                 </div>
                 <button class="em-chat-close" onclick="closeOrganizerChat()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="em-chat-body" id="vem-chat-body"></div>
             <div class="em-chat-input-area">
-                <input type="text" id="vem-chat-input" placeholder="Type a message..." autocomplete="off">
+                <input type="text" id="vem-chat-input" data-i18n-placeholder="vendor.chat.typeMessage" placeholder="Type a message..." autocomplete="off">
                 <button class="em-chat-send-btn" id="vem-chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
@@ -523,25 +592,42 @@
     <div id="vem-status-update-modal" class="modal-overlay hidden" style="z-index: 1003;">
         <div class="modal vem-status-modal-box">
             <div class="em-status-modal-header">
-                <h3><i class="fa-solid fa-arrow-up-right-dots"></i> Update Preparation Status</h3>
+                <h3><i class="fa-solid fa-arrow-up-right-dots"></i> <span data-i18n="vendor.status.updateTitle">Update Preparation Status</span></h3>
                 <button class="em-status-modal-close" onclick="closeVendorStatusUpdateModal()"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div style="padding: 1.5rem;">
                 <div class="vem-status-current" id="vem-status-current-display"></div>
-                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem; font-size: 0.88rem;"><i class="fa-solid fa-message" style="margin-right: 0.4rem; color: #1565c0;"></i> Progress Note <span style="color: #c62828;">*</span></label>
-                <textarea id="vem-status-note" class="vem-status-note-area" rows="3" placeholder="Describe your current progress..." required></textarea>
+                <label style="display: block; font-weight: 600; color: #333; margin-bottom: 0.5rem; font-size: 0.88rem;"><i class="fa-solid fa-message" style="margin-right: 0.4rem; color: #1565c0;"></i> <span data-i18n="vendor.status.progressNote">Progress Note</span> <span style="color: #c62828;">*</span></label>
+                <textarea id="vem-status-note" class="vem-status-note-area" rows="3" data-i18n-placeholder="vendor.status.progressNotePh" placeholder="Describe your current progress..." required></textarea>
                 <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-                    <button class="btn btn-outline btn-sm" onclick="closeVendorStatusUpdateModal()">Cancel</button>
-                    <button class="vem-update-status-btn" id="vem-submit-status-btn" onclick="submitVendorStatusUpdate()"><i class="fa-solid fa-arrow-right"></i> Advance Status</button>
+                    <button class="btn btn-outline btn-sm" onclick="closeVendorStatusUpdateModal()" data-i18n="common.cancel">Cancel</button>
+                    <button class="vem-update-status-btn" id="vem-submit-status-btn" onclick="submitVendorStatusUpdate()"><i class="fa-solid fa-arrow-right"></i> <span data-i18n="vendor.status.advanceStatus">Advance Status</span></button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="{% static 'js/vendor-logic.js' %}"></script>
+    <script src="{% static 'js/app-ar.js' %}?v=4"></script>
+    <script src="{% static 'js/vendor-logic.js' %}?v=6"></script>
     <script>
         window.STATIC_URL = "{% static '' %}";
         window.CSRF_TOKEN = "{{ csrf_token }}";
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function dashboardTr(key) {
+            if (typeof window.vendorDashboardT === 'function') return window.vendorDashboardT(key);
+            const lang = localStorage.getItem('eventia_lang') || 'en';
+            var dict = window.I18N && (window.I18N[lang] || window.I18N.en);
+            return dict && dict[key] != null ? dict[key] : key;
+        }
 
         // Inject Real DB Data for policies
         window.DB_EVENT_POLICIES = {
@@ -586,33 +672,41 @@
                     val = 'flexible';
                 }
 
+                function policyBadgeText(labelKey) {
+                    return String(dashboardTr(labelKey) || '').replace(/✦\s*/g, '').trim();
+                }
+
                 const policyMeta = {
-                    'flexible': { label: '<i class="fa-solid fa-unlock"></i> Flexible', css: 'em-policy-flexible', desc: 'Withdrawal allowed up to 7 days before event.', color: '#2e7d32', bg: '#e8f5e9', icon: 'fa-unlock' },
-                    'moderate': { label: '<i class="fa-solid fa-clock"></i> Moderate', css: 'em-policy-moderate', desc: 'Withdrawal allowed up to 14 days before event.', color: '#ff9800', bg: '#fff3e0', icon: 'fa-clock' },
-                    'strict':   { label: '<i class="fa-solid fa-lock"></i> Strict', css: 'em-policy-strict', desc: 'Withdrawal allowed up to 30 days before event.', color: '#e65100', bg: '#fbe9e7', icon: 'fa-lock' },
-                    'non-refundable': { label: '<i class="fa-solid fa-ban"></i> Non-refundable', css: 'em-policy-non-refundable', desc: 'No withdrawal permitted once confirmed.', color: '#c62828', bg: '#ffebee', icon: 'fa-ban' }
+                    'flexible': { labelKey: 'vendor.policy.badgeFlexible', descKey: 'vendor.policy.descFlexible', css: 'em-policy-flexible', color: '#2e7d32', bg: '#e8f5e9', icon: 'fa-unlock' },
+                    'moderate': { labelKey: 'vendor.policy.badgeModerate', descKey: 'vendor.policy.descModerate', css: 'em-policy-moderate', color: '#ff9800', bg: '#fff3e0', icon: 'fa-clock' },
+                    'strict':   { labelKey: 'vendor.policy.badgeStrict', descKey: 'vendor.policy.descStrict', css: 'em-policy-strict', color: '#e65100', bg: '#fbe9e7', icon: 'fa-lock' },
+                    'non-refundable': { labelKey: 'vendor.policy.badgeNonRefundable', descKey: 'vendor.policy.descNonRefundable', css: 'em-policy-non-refundable', color: '#c62828', bg: '#ffebee', icon: 'fa-ban' }
                 };
 
                 const pol = policyMeta[val] || policyMeta['flexible'];
+                const badgePlain = policyBadgeText(pol.labelKey);
+                const descTranslated = dashboardTr(pol.descKey);
 
                 if (isEventManage) {
                     const badge = document.getElementById('vem-ov-vendor-policy-badge');
                     const desc = document.getElementById('vem-ov-vendor-policy-desc');
                     if (badge) {
                         badge.className = 'em-policy-badge ' + pol.css;
-                        badge.innerHTML = pol.label;
+                        badge.innerHTML = '<i class="fa-solid ' + pol.icon + '"></i> ' + escapeHtml(badgePlain);
                     }
-                    if (desc) desc.textContent = pol.desc;
+                    if (desc) desc.textContent = descTranslated;
                 } else if (bannerEl) {
                     bannerEl.style.display = 'block';
                     bannerEl.style.background = pol.bg;
-                    bannerEl.style.borderLeftColor = pol.color;
+                    bannerEl.style.borderLeft = '';
+                    bannerEl.style.borderInlineStart = '4px solid ' + pol.color;
+                    const policyTitle = escapeHtml(dashboardTr('vendor.withdraw.policyTitle'));
                     bannerEl.innerHTML = `
                         <div style="display: flex; gap: 0.75rem; align-items: start;">
                             <i class="fa-solid fa-shield-halved" style="color: ${pol.color}; font-size: 1.1rem; margin-top: 2px;"></i>
                             <div>
-                                <strong style="color: ${pol.color}; display: block; margin-bottom: 4px;">Withdrawal Policy</strong>
-                                <p style="margin: 0; color: #555; font-size: 0.85rem;"><i class="fa-solid ${pol.icon}" style="margin-right: 4px;"></i>${pol.label.replace(/<[^>]*>?/gm, '')} &mdash; ${pol.desc}</p>
+                                <strong style="color: ${pol.color}; display: block; margin-bottom: 4px;">${policyTitle}</strong>
+                                <p style="margin: 0; color: #555; font-size: 0.85rem;"><i class="fa-solid ${pol.icon}" style="margin-inline-end: 4px;"></i>${escapeHtml(badgePlain)} — ${escapeHtml(descTranslated)}</p>
                             </div>
                         </div>`;
                 }
@@ -659,7 +753,6 @@
 
                     const eventDate = reqData.date;
 
-                    // Recalculate restrictions locally based on DB data
                     let allowed = true;
                     let reason = '';
 
@@ -667,18 +760,25 @@
                     const evtDate = new Date(eventDate);
                     const daysUntilEvent = Math.ceil((evtDate - now) / (1000 * 60 * 60 * 24));
 
+                    function withdrawReasonMsg(key, daysNum) {
+                        var s = dashboardTr(key);
+                        return typeof daysNum === 'number'
+                            ? String(s).replace(/\{days\}/g, String(daysNum))
+                            : s;
+                    }
+
                     if (policy === 'non-refundable') {
                         allowed = false;
-                        reason = 'This event has a non-refundable withdrawal policy. You cannot withdraw.';
+                        reason = withdrawReasonMsg('vendor.withdraw.reason.nonRefundable');
                     } else if (policy === 'strict' && daysUntilEvent < 30) {
                         allowed = false;
-                        reason = `Withdrawal deadline passed. Policy requires 30 days before the event (${daysUntilEvent} days remaining).`;
+                        reason = withdrawReasonMsg('vendor.withdraw.reason.strict', daysUntilEvent);
                     } else if (policy === 'moderate' && daysUntilEvent < 14) {
                         allowed = false;
-                        reason = `Withdrawal deadline passed. Policy requires 14 days before the event (${daysUntilEvent} days remaining).`;
+                        reason = withdrawReasonMsg('vendor.withdraw.reason.moderate', daysUntilEvent);
                     } else if (policy === 'flexible' && daysUntilEvent < 7) {
                         allowed = false;
-                        reason = `Withdrawal deadline passed. Policy requires 7 days before the event (${daysUntilEvent} days remaining).`;
+                        reason = withdrawReasonMsg('vendor.withdraw.reason.flexible', daysUntilEvent);
                     }
 
                     injectPolicyToBanner(policy, document.getElementById('withdraw-policy-banner'), false);
@@ -688,10 +788,20 @@
 
                     if (!allowed) {
                         if (submitBtn) { submitBtn.disabled = true; submitBtn.style.opacity = '0.5'; submitBtn.style.cursor = 'not-allowed'; }
-                        if (reasonField) { reasonField.disabled = true; reasonField.placeholder = 'Withdrawal is not allowed under the current policy.'; reasonField.required = false; }
+                        if (reasonField) {
+                            reasonField.disabled = true;
+                            reasonField.placeholder = dashboardTr('vendor.withdraw.notAllowedPlaceholder');
+                            reasonField.required = false;
+                            reasonField.title = reason || '';
+                        }
                     } else {
                         if (submitBtn) { submitBtn.disabled = false; submitBtn.style.opacity = '1'; submitBtn.style.cursor = 'pointer'; }
-                        if (reasonField) { reasonField.disabled = false; reasonField.placeholder = 'Please provide a reason for your withdrawal...'; reasonField.required = true; }
+                        if (reasonField) {
+                            reasonField.disabled = false;
+                            reasonField.placeholder = dashboardTr('vendor.withdraw.reasonPlaceholder');
+                            reasonField.required = true;
+                            reasonField.title = '';
+                        }
                     }
                 }
             }
@@ -734,6 +844,8 @@
                 });
             }
             setInterval(updateCustomUnreadBadge, 1500);
+            // Also refresh all badge surfaces every 3s
+            setInterval(() => { if (typeof window.patchVendorAllUnreadBadges === 'function') window.patchVendorAllUnreadBadges(); }, 3000);
 
             // Hook into Chat functions to fix outside preview tracking
             const originalOpenChat = window.openOrganizerChat;
@@ -757,13 +869,14 @@
                         updateCustomUnreadBadge();
 
                         fetch('/api/vendor/data/').then(r => r.json()).then(data => {
-                            const msgs = data.messages.filter(m => String(m.eventId) === String(globalChatEventId)).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-                            const convMsgEl = document.getElementById('vem-org-conv-last-msg');
-                            const convTimeEl = document.getElementById('vem-org-conv-time');
+                            var msgs = data.messages.filter(m => String(m.eventId) === String(globalChatEventId)).sort(function (a,b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+                            var convMsgEl = document.getElementById('vem-org-conv-last-msg');
+                            var convTimeEl = document.getElementById('vem-org-conv-time');
+                            var dateLocale = (typeof getLang === 'function' && getLang() === 'ar') ? 'ar-SA' : 'en-US';
                             if (msgs.length > 0) {
-                                const lastMsg = msgs[msgs.length - 1];
-                                if (convMsgEl) convMsgEl.textContent = (lastMsg.sender === 'vendor' ? 'You: ' : '') + lastMsg.text;
-                                if (convTimeEl) convTimeEl.textContent = new Date(lastMsg.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                var lastMsg = msgs[msgs.length - 1];
+                                if (convMsgEl) convMsgEl.textContent = (lastMsg.sender === 'vendor' ? dashboardTr('vendor.chat.youPrefix') : '') + lastMsg.text;
+                                if (convTimeEl) convTimeEl.textContent = new Date(lastMsg.timestamp).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' });
                             }
                         });
                     }
@@ -795,21 +908,35 @@
                         }).then(res => {
                             if (res.ok) {
                                 newChatInput.value = '';
-                                const body = document.getElementById('vem-chat-body');
-                                const msgDiv = document.createElement('div');
+                                var body = document.getElementById('vem-chat-body');
+                                var msgDiv = document.createElement('div');
                                 msgDiv.className = 'em-chat-msg sent';
-                                msgDiv.innerHTML = `${text}<span class="em-chat-msg-time">Just now</span>`;
+                                msgDiv.innerHTML = escapeHtml(text) + '<span class="em-chat-msg-time">' + escapeHtml(dashboardTr('ai.time.justNow')) + '</span>';
                                 body.appendChild(msgDiv);
                                 body.scrollTop = body.scrollHeight;
 
-                                const convMsgEl = document.getElementById('vem-org-conv-last-msg');
-                                const convTimeEl = document.getElementById('vem-org-conv-time');
-                                if (convMsgEl) convMsgEl.textContent = 'You: ' + text;
-                                if (convTimeEl) convTimeEl.textContent = 'Just now';
+                                var convMsgEl = document.getElementById('vem-org-conv-last-msg');
+                                var convTimeEl = document.getElementById('vem-org-conv-time');
+                                if (convMsgEl) convMsgEl.textContent = dashboardTr('vendor.chat.youPrefix') + text;
+                                if (convTimeEl) convTimeEl.textContent = dashboardTr('ai.time.justNow');
 
-                                const tracker = JSON.parse(localStorage.getItem('eventia_chat_tracker')) || {};
+                                var tracker = JSON.parse(localStorage.getItem('eventia_chat_tracker')) || {};
                                 tracker['vendor_chat_' + globalChatEventId] = new Date().toISOString();
                                 localStorage.setItem('eventia_chat_tracker', JSON.stringify(tracker));
+
+                                // Reload API_DATA so that closing + reopening the chat
+                                // (which calls renderVendorChatMessages from API_DATA)
+                                // shows the just-sent message instead of the stale state.
+                                // Using the lightweight vendorLoadData instead of renderAll
+                                // to avoid resetting the active tab or the event-manage view.
+                                var capturedEventId = globalChatEventId;
+                                if (typeof window.vendorLoadData === 'function') {
+                                    window.vendorLoadData().then(function() {
+                                        if (typeof window.renderVendorChatMessages === 'function') {
+                                            window.renderVendorChatMessages(capturedEventId);
+                                        }
+                                    });
+                                }
                             }
                         });
                     });
