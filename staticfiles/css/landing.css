@@ -425,8 +425,8 @@
 .search-select {
     padding: 14px 36px 14px 16px;
     border: none;
-    border-left: 1px solid var(--border-color);
-    background: transparent;
+    border-inline-start: 1px solid var(--border-color);
+    background-color: transparent;
     font-size: 0.95rem;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
@@ -440,6 +440,20 @@
     min-width: 140px;
 }
 
+html[dir="rtl"] .search-input-group .search-icon {
+    left: auto;
+    right: 16px;
+}
+
+html[dir="rtl"] .search-input {
+    padding: 14px 46px 14px 14px;
+}
+
+html[dir="rtl"] .search-select {
+    padding: 14px 16px 14px 36px;
+    background-position: left 14px center;
+}
+
 .search-btn {
     border-radius: 12px !important;
     padding: 14px 24px !important;
@@ -449,12 +463,13 @@
     gap: 6px;
 }
 
-/* Category Pills */
+/* Category Pills — match index.html: overflow-x: auto clips vertical overflow,
+   so inset padding leaves room for translateY + shadow; hover matches .btn-primary */
 .category-pills-row {
     display: flex;
     gap: 8px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    padding: 10px 4px 18px;
     scrollbar-width: none;
 }
 
@@ -471,20 +486,54 @@
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     white-space: nowrap;
-    transition: all 0.25s ease;
+    transition: all 0.3s ease;
     background: white;
     color: var(--text-muted);
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    flex-shrink: 0;
+    min-width: max-content;
 }
 
+.cat-pill::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+    z-index: -1;
+}
+
+.cat-pill:hover::before {
+    left: 100%;
+}
+
+html[dir="rtl"] .cat-pill::before {
+    left: auto;
+    right: -100%;
+    transition: right 0.5s ease;
+}
+
+html[dir="rtl"] .cat-pill:hover::before {
+    left: auto;
+    right: 100%;
+}
+
+/* Match .btn-primary:hover (index landing) */
 .cat-pill:hover {
-    background: var(--primary-color) !important;
+    background: linear-gradient(135deg, #004e92, #000428) !important;
     color: white !important;
-    border-color: var(--primary-color) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 78, 146, 0.25);
+    border-color: transparent !important;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 78, 146, 0.35);
 }
 
 .cat-pill.active {
@@ -574,7 +623,7 @@
 .lp-card-badge {
     position: absolute;
     top: 16px;
-    left: 16px;
+    inset-inline-start: 16px;
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     color: white;
@@ -587,10 +636,15 @@
     border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
+[dir="rtl"] .lp-card-badge {
+    text-transform: none;
+    letter-spacing: normal;
+}
+
 .lp-card-price {
     position: absolute;
     bottom: 16px;
-    left: 16px;
+    inset-inline-start: 16px;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(10px);
     color: white;
@@ -603,7 +657,7 @@
 .lp-card-save {
     position: absolute;
     top: 16px;
-    right: 16px;
+    inset-inline-end: 16px;
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -1152,8 +1206,8 @@
     }
 
     .search-select {
-        border-left: none;
-        border-top: 1px solid var(--border-color);
+        border-inline-start: none;
+        border-block-start: 1px solid var(--border-color);
         width: 100%;
     }
 
