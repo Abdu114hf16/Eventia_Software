@@ -202,19 +202,19 @@
     align-items: center;
     gap: 1.5rem;
     transition: transform 0.3s, box-shadow 0.3s;
-    border-left: 4px solid transparent;
+    border-inline-start: 4px solid transparent;
 }
 
 .stat-card:nth-child(1) {
-    border-left-color: var(--accent-teal);
+    border-inline-start-color: var(--accent-teal);
 }
 
 .stat-card:nth-child(2) {
-    border-left-color: var(--accent-purple);
+    border-inline-start-color: var(--accent-purple);
 }
 
 .stat-card:nth-child(3) {
-    border-left-color: #e17055;
+    border-inline-start-color: #e17055;
 }
 
 .stat-card:hover {
@@ -248,6 +248,19 @@
 .stat-card:nth-child(3) .stat-icon {
     background: linear-gradient(135deg, rgba(253, 203, 110, 0.25), rgba(253, 203, 110, 0.1));
     color: #e17055;
+}
+
+/* SCEGA admin — semantic accents; border-inline-start is left in LTR, right in RTL */
+.scega-stats-grid .stat-card:nth-child(1) {
+    border-inline-start-color: #ff9800;
+}
+
+.scega-stats-grid .stat-card:nth-child(2) {
+    border-inline-start-color: #2e7d32;
+}
+
+.scega-stats-grid .stat-card:nth-child(3) {
+    border-inline-start-color: #c62828;
 }
 
 .stat-info h3 {
